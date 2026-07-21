@@ -4,11 +4,13 @@ namespace App\Domain\Finance\Services;
 
 use App\Domain\Finance\Enums\InvoiceStatus;
 use App\Domain\Finance\Enums\LedgerEntryType;
+use App\Domain\Finance\Events\PaymentRecorded;
 use App\Domain\Finance\Models\Invoice;
 use App\Domain\Finance\Models\LedgerEntry;
 use App\Domain\Finance\Models\Payment;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Event;
 
 /**
  * The single place a payment is ever recorded. Every write here happens in
@@ -44,6 +46,8 @@ class PaymentService
                 'memo' => "Paiement facture #{$invoice->id} — {$invoice->label}",
                 'occurred_on' => $payment->paid_at,
             ]);
+
+            Event::dispatch(new PaymentRecorded($payment));
 
             return $payment;
         });

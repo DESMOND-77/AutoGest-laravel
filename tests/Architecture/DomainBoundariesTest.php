@@ -64,6 +64,54 @@ arch('Students domain does not depend on Scheduling or Training')
         'App\Domain\Training',
     ]);
 
+arch('CRM domain does not depend on Finance, Fleet, Store, Scheduling or Training')
+    ->expect('App\Domain\CRM')
+    ->not->toUse([
+        'App\Domain\Finance',
+        'App\Domain\Fleet',
+        'App\Domain\Store',
+        'App\Domain\Scheduling',
+        'App\Domain\Training',
+    ]);
+
+arch('Documents domain only depends on Students and Fleet among business domains')
+    ->expect('App\Domain\Documents')
+    ->not->toUse([
+        'App\Domain\Finance',
+        'App\Domain\Store',
+        'App\Domain\Scheduling',
+        'App\Domain\Training',
+        'App\Domain\CRM',
+    ]);
+
+arch('Notifications domain depends on nothing but Core')
+    ->expect('App\Domain\Notifications')
+    ->not->toUse([
+        'App\Domain\Students',
+        'App\Domain\Finance',
+        'App\Domain\Fleet',
+        'App\Domain\Store',
+        'App\Domain\Scheduling',
+        'App\Domain\Training',
+        'App\Domain\CRM',
+        'App\Domain\Documents',
+        'App\Domain\Audit',
+    ]);
+
+arch('Audit domain depends on nothing but Core')
+    ->expect('App\Domain\Audit')
+    ->not->toUse([
+        'App\Domain\Students',
+        'App\Domain\Finance',
+        'App\Domain\Fleet',
+        'App\Domain\Store',
+        'App\Domain\Scheduling',
+        'App\Domain\Training',
+        'App\Domain\CRM',
+        'App\Domain\Documents',
+        'App\Domain\Notifications',
+    ]);
+
 arch('domain Models stay free of HTTP concerns')
     ->expect('App\Domain\*\Models')
     ->not->toUse([

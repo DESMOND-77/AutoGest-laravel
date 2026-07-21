@@ -1,10 +1,14 @@
 <?php
 
+use App\Domain\Audit\Http\Controllers\AuditLogController;
+use App\Domain\CRM\Http\Controllers\LeadController;
+use App\Domain\Documents\Http\Controllers\DocumentController;
 use App\Domain\Finance\Http\Controllers\InvoiceController;
 use App\Domain\Finance\Http\Controllers\LedgerController;
 use App\Domain\Finance\Http\Controllers\PaymentController;
 use App\Domain\Finance\Http\Controllers\TrainingPackageController;
 use App\Domain\Fleet\Http\Controllers\VehicleController;
+use App\Domain\Notifications\Http\Controllers\NotificationController;
 use App\Domain\Scheduling\Http\Controllers\AgendaController;
 use App\Domain\Scheduling\Http\Controllers\LessonSessionController;
 use App\Domain\Scheduling\Http\Controllers\StudentPlanningController;
@@ -140,6 +144,34 @@ Route::middleware(['auth', 'role:admin'])
         Route::get('orders', [OrderController::class, 'index'])->name('orders.index');
         Route::post('orders', [OrderController::class, 'store'])->name('orders.store');
     });
+
+Route::middleware(['auth', 'role:admin'])
+    ->prefix('crm')
+    ->name('crm.')
+    ->group(function () {
+        Route::get('leads', [LeadController::class, 'index'])->name('leads.index');
+        Route::post('leads', [LeadController::class, 'store'])->name('leads.store');
+        Route::patch('leads/{lead}/status', [LeadController::class, 'updateStatus'])->name('leads.status');
+        Route::post('leads/{lead}/convert', [LeadController::class, 'convert'])->name('leads.convert');
+    });
+
+Route::middleware('auth')->group(function () {
+    Route::get('notifications', [NotificationController::class, 'index'])->name('notifications.index');
+    Route::post('notifications/read', [NotificationController::class, 'markRead'])->name('notifications.read');
+});
+
+Route::middleware(['auth', 'role:admin'])->group(function () {
+    Route::post('students/{student}/documents', [DocumentController::class, 'storeForStudent'])->name('students.documents.store');
+    Route::post('fleet/{vehicle}/documents', [DocumentController::class, 'storeForVehicle'])->name('fleet.documents.store');
+});
+
+Route::middleware('auth')
+    ->get('documents/{document}/download', [DocumentController::class, 'download'])
+    ->name('documents.download');
+
+Route::middleware(['auth', 'role:admin|superadmin'])
+    ->get('audit', [AuditLogController::class, 'index'])
+    ->name('audit.index');
 
 Route::middleware(['auth', 'role:moniteur'])
     ->name('moniteur.')

@@ -2,6 +2,12 @@
 
 namespace App\Providers;
 
+use App\Domain\Audit\Models\AuditLog;
+use App\Domain\Audit\Policies\AuditLogPolicy;
+use App\Domain\CRM\Models\Lead;
+use App\Domain\CRM\Policies\LeadPolicy;
+use App\Domain\Documents\Models\Document;
+use App\Domain\Documents\Policies\DocumentPolicy;
 use App\Domain\Finance\Models\Invoice;
 use App\Domain\Finance\Models\TrainingPackage;
 use App\Domain\Finance\Policies\InvoicePolicy;
@@ -58,6 +64,9 @@ class AppServiceProvider extends ServiceProvider
         Gate::policy(Vehicle::class, VehiclePolicy::class);
         Gate::policy(Product::class, ProductPolicy::class);
         Gate::policy(Order::class, OrderPolicy::class);
+        Gate::policy(Lead::class, LeadPolicy::class);
+        Gate::policy(Document::class, DocumentPolicy::class);
+        Gate::policy(AuditLog::class, AuditLogPolicy::class);
 
         // RecordVehicleExpenseInLedger lives in app/Listeners, where Laravel's
         // event auto-discovery already finds it by its handle(VehicleExpenseRecorded)

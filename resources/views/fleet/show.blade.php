@@ -63,6 +63,43 @@
                     @endforelse
                 </ul>
             </div>
+
+            <div class="bg-white dark:bg-gray-800 shadow-sm rounded-lg p-6">
+                <div class="text-sm font-medium text-gray-900 dark:text-gray-100 mb-3">Documents</div>
+
+                @php
+                    $vehicleDocuments = \App\Domain\Documents\Models\Document::query()
+                        ->where('documentable_type', $vehicle->getMorphClass())
+                        ->where('documentable_id', $vehicle->id)
+                        ->where('is_current', true)
+                        ->latest()
+                        ->get();
+                @endphp
+
+                <ul class="text-sm divide-y divide-gray-100 dark:divide-gray-700 mb-4">
+                    @forelse ($vehicleDocuments as $document)
+                        <li class="py-2 flex justify-between items-center">
+                            <span>{{ $document->type->label() }} — {{ $document->original_name }} (v{{ $document->version }})</span>
+                            <a href="{{ route('documents.download', $document) }}" class="text-xs text-indigo-600 underline">Télécharger</a>
+                        </li>
+                    @empty
+                        <li class="py-2 text-gray-500">Aucun document.</li>
+                    @endforelse
+                </ul>
+
+                @can('update', $vehicle)
+                    <form method="POST" action="{{ route('fleet.documents.store', $vehicle) }}" enctype="multipart/form-data" class="grid grid-cols-3 gap-3 items-end">
+                        @csrf
+                        <select name="type" class="border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 rounded-md shadow-sm block w-full">
+                            @foreach (\App\Domain\Documents\Enums\DocumentType::cases() as $case)
+                                <option value="{{ $case->value }}">{{ $case->label() }}</option>
+                            @endforeach
+                        </select>
+                        <input type="file" name="file" class="text-sm" required>
+                        <x-primary-button>Déposer</x-primary-button>
+                    </form>
+                @endcan
+            </div>
         </div>
     </div>
 </x-app-layout>

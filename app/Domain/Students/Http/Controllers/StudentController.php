@@ -2,6 +2,7 @@
 
 namespace App\Domain\Students\Http\Controllers;
 
+use App\Domain\Audit\Services\AuditService;
 use App\Domain\Students\Enums\LifecycleStage;
 use App\Domain\Students\Http\Requests\StoreStudentRequest;
 use App\Domain\Students\Http\Requests\UpdateStudentRequest;
@@ -13,6 +14,7 @@ use App\Http\Controllers\Controller;
 use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\View\View;
 
 class StudentController extends Controller
@@ -21,6 +23,7 @@ class StudentController extends Controller
         private readonly StudentRepositoryInterface $students,
         private readonly EnrollmentService $enrollment,
         private readonly LifecycleService $lifecycle,
+        private readonly AuditService $audit,
     ) {}
 
     public function index(): View
@@ -81,6 +84,8 @@ class StudentController extends Controller
     public function destroy(Student $student): RedirectResponse
     {
         $this->authorize('delete', $student);
+
+        $this->audit->log('student.deleted', $student, $student->only(['first_name', 'last_name']), [], Auth::user());
 
         $this->students->delete($student);
 

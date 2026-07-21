@@ -47,6 +47,14 @@
                         <x-nav-link :href="route('store.products.index')" :active="request()->routeIs('store.*')">
                             Boutique
                         </x-nav-link>
+                        <x-nav-link :href="route('crm.leads.index')" :active="request()->routeIs('crm.*')">
+                            Prospects
+                        </x-nav-link>
+                    @endif
+                    @if (Auth::user()?->hasAnyRole(['admin', 'superadmin']))
+                        <x-nav-link :href="route('audit.index')" :active="request()->routeIs('audit.*')">
+                            Audit
+                        </x-nav-link>
                     @endif
                     @if (Auth::user()?->hasRole('superadmin'))
                         <x-nav-link :href="route('superadmin.structures.index')" :active="request()->routeIs('superadmin.*')">
@@ -57,7 +65,46 @@
             </div>
 
             <!-- Settings Dropdown -->
-            <div class="hidden sm:flex sm:items-center sm:ms-6">
+            <div class="hidden sm:flex sm:items-center sm:ms-6 gap-2" x-data="{
+                    open: false,
+                    unread: 0,
+                    items: [],
+                    async load() {
+                        const res = await fetch('{{ route('notifications.index') }}');
+                        const data = await res.json();
+                        this.unread = data.unread_count;
+                        this.items = data.notifications;
+                    },
+                    async markRead() {
+                        await fetch('{{ route('notifications.read') }}', {
+                            method: 'POST',
+                            headers: { 'X-CSRF-TOKEN': document.querySelector('meta[name=csrf-token]').content, 'Accept': 'application/json' },
+                        });
+                        this.unread = 0;
+                        this.items.forEach(i => i.read = true);
+                    },
+                 }" x-init="load(); setInterval(load, 60000)">
+                <div class="relative">
+                    <button @click="open = !open; if (open) markRead();" class="relative p-2 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300">
+                        <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+                        </svg>
+                        <span x-show="unread > 0" x-text="unread" class="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-4 w-4 flex items-center justify-center"></span>
+                    </button>
+                    <div x-show="open" @click.outside="open = false" x-cloak class="absolute right-0 mt-2 w-80 bg-white dark:bg-gray-800 rounded-md shadow-lg py-1 z-50 max-h-96 overflow-y-auto">
+                        <template x-if="items.length === 0">
+                            <div class="px-4 py-3 text-sm text-gray-500">Aucune notification.</div>
+                        </template>
+                        <template x-for="item in items" :key="item.id">
+                            <a :href="item.link || '#'" class="block px-4 py-2 text-sm border-b border-gray-100 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700">
+                                <div class="font-medium text-gray-900 dark:text-gray-100" x-text="item.title"></div>
+                                <div class="text-gray-500" x-text="item.message"></div>
+                                <div class="text-xs text-gray-400" x-text="item.created_at"></div>
+                            </a>
+                        </template>
+                    </div>
+                </div>
+
                 <x-dropdown align="right" width="48">
                     <x-slot name="trigger">
                         <button class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-gray-500 dark:text-gray-400 bg-white dark:bg-gray-800 hover:text-gray-700 dark:hover:text-gray-300 focus:outline-none transition ease-in-out duration-150">
