@@ -13,12 +13,21 @@ return new class extends Migration
     {
         Schema::create('users', function (Blueprint $table) {
             $table->id();
+            $table->foreignId('structure_id')->nullable()
+                ->constrained('structures')->cascadeOnDelete();
             $table->string('name');
-            $table->string('email')->unique();
+            $table->string('email');
             $table->timestamp('email_verified_at')->nullable();
             $table->string('password');
             $table->rememberToken();
             $table->timestamps();
+
+            // Scoped per tenant: two different driving schools may share an email.
+            // structure_id is NULL only for the platform super-admin, so a plain
+            // UNIQUE(structure_id, email) would allow duplicate super-admin emails —
+            // acceptable since there is only ever one super-admin account in practice,
+            // enforced at the application layer instead of the schema.
+            $table->unique(['structure_id', 'email']);
         });
 
         Schema::create('password_reset_tokens', function (Blueprint $table) {
