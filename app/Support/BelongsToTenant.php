@@ -2,7 +2,6 @@
 
 namespace App\Support;
 
-use App\Support\TenantContext;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 

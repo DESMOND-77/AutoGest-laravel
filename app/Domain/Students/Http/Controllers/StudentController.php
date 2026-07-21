@@ -1,0 +1,109 @@
+<?php
+
+namespace App\Domain\Students\Http\Controllers;
+
+use App\Domain\Students\Enums\LifecycleStage;
+use App\Domain\Students\Http\Requests\StoreStudentRequest;
+use App\Domain\Students\Http\Requests\UpdateStudentRequest;
+use App\Domain\Students\Models\Student;
+use App\Domain\Students\Repositories\StudentRepositoryInterface;
+use App\Domain\Students\Services\EnrollmentService;
+use App\Domain\Students\Services\LifecycleService;
+use App\Http\Controllers\Controller;
+use App\Models\User;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
+use Illuminate\View\View;
+
+class StudentController extends Controller
+{
+    public function __construct(
+        private readonly StudentRepositoryInterface $students,
+        private readonly EnrollmentService $enrollment,
+        private readonly LifecycleService $lifecycle,
+    ) {}
+
+    public function index(): View
+    {
+        $this->authorize('viewAny', Student::class);
+
+        return view('students.index', [
+            'students' => $this->students->paginate(),
+        ]);
+    }
+
+    public function create(): View
+    {
+        $this->authorize('create', Student::class);
+
+        return view('students.form', [
+            'student' => new Student,
+            'instructors' => $this->instructors(),
+        ]);
+    }
+
+    public function store(StoreStudentRequest $request): RedirectResponse
+    {
+        $student = $this->enrollment->register($request->validated());
+
+        return redirect()->route('students.show', $student)
+            ->with('status', 'Élève créé.');
+    }
+
+    public function show(Student $student): View
+    {
+        $this->authorize('view', $student);
+
+        return view('students.show', [
+            'student' => $student,
+            'stages' => LifecycleStage::cases(),
+        ]);
+    }
+
+    public function edit(Student $student): View
+    {
+        $this->authorize('update', $student);
+
+        return view('students.form', [
+            'student' => $student,
+            'instructors' => $this->instructors(),
+        ]);
+    }
+
+    public function update(UpdateStudentRequest $request, Student $student): RedirectResponse
+    {
+        $this->enrollment->update($student, $request->validated());
+
+        return redirect()->route('students.show', $student)
+            ->with('status', 'Élève mis à jour.');
+    }
+
+    public function destroy(Student $student): RedirectResponse
+    {
+        $this->authorize('delete', $student);
+
+        $this->students->delete($student);
+
+        return redirect()->route('students.index')
+            ->with('status', 'Élève supprimé.');
+    }
+
+    public function advanceStage(Request $request, Student $student): RedirectResponse
+    {
+        $this->authorize('update', $student);
+
+        $target = LifecycleStage::from($request->validate([
+            'stage' => ['required', 'string'],
+        ])['stage']);
+
+        $this->lifecycle->transitionTo($student, $target);
+
+        return redirect()->route('students.show', $student)
+            ->with('status', 'Étape mise à jour.');
+    }
+
+    private function instructors()
+    {
+        return User::role('moniteur')->orderBy('name')->get();
+    }
+}

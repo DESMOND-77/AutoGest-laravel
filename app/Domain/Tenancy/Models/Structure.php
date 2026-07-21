@@ -4,6 +4,7 @@ namespace App\Domain\Tenancy\Models;
 
 use App\Domain\Tenancy\Database\Factories\StructureFactory;
 use App\Domain\Tenancy\Enums\StructureStatus;
+use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -33,6 +34,6 @@ class Structure extends Model
 
     public function users(): HasMany
     {
-        return $this->hasMany(\App\Models\User::class);
+        return $this->hasMany(User::class);
     }
 }
