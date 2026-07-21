@@ -6,10 +6,15 @@
     </x-slot>
 
     <div class="py-12">
-        <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
+        <div class="max-w-7xl mx-auto sm:px-6 lg:px-8 space-y-4">
+            <div class="bg-white dark:bg-gray-800 shadow-sm rounded-lg p-6 flex flex-wrap gap-6 text-sm">
+                <a href="{{ route('eleve.planning') }}" class="text-indigo-600 dark:text-indigo-400 underline">
+                    Mon planning &rarr;
+                </a>
+            </div>
+
             <div class="bg-white dark:bg-gray-800 shadow-sm rounded-lg p-6 text-gray-600 dark:text-gray-300">
-                Votre progression, votre planning et vos paiements arrivent
-                avec les prochaines phases de la migration.
+                Votre progression et vos paiements arrivent avec une prochaine phase.
             </div>
         </div>
     </div>

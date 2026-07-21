@@ -30,6 +30,30 @@ arch('Instructors domain does not depend on Finance or Store')
         'App\Domain\Store',
     ]);
 
+arch('Scheduling domain does not depend on Finance, Store or CRM')
+    ->expect('App\Domain\Scheduling')
+    ->not->toUse([
+        'App\Domain\Finance',
+        'App\Domain\Store',
+        'App\Domain\CRM',
+    ]);
+
+arch('Training domain does not depend on Finance, Fleet, Store or CRM')
+    ->expect('App\Domain\Training')
+    ->not->toUse([
+        'App\Domain\Finance',
+        'App\Domain\Fleet',
+        'App\Domain\Store',
+        'App\Domain\CRM',
+    ]);
+
+arch('Students domain does not depend on Scheduling or Training')
+    ->expect('App\Domain\Students')
+    ->not->toUse([
+        'App\Domain\Scheduling',
+        'App\Domain\Training',
+    ]);
+
 arch('domain Models stay free of HTTP concerns')
     ->expect('App\Domain\*\Models')
     ->not->toUse([

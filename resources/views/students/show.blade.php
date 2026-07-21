@@ -5,6 +5,11 @@
                 {{ $student->fullName() }}
             </h2>
             <div class="flex gap-4">
+                @can('evaluate', $student)
+                    <a href="{{ route('training.evaluation.show', $student) }}" class="text-sm underline text-gray-600 dark:text-gray-400">
+                        Évaluer
+                    </a>
+                @endcan
                 @can('create', \App\Domain\Finance\Models\Invoice::class)
                     <a href="{{ route('finance.invoices.create', $student) }}" class="text-sm underline text-gray-600 dark:text-gray-400">
                         Nouvelle facture

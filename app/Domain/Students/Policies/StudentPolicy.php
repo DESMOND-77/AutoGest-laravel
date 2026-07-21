@@ -47,4 +47,14 @@ class StudentPolicy
     {
         return $user->hasRole('admin') && $student->structure_id === $user->structure_id;
     }
+
+    /**
+     * Same tenant + ownership rule as view(), reused by the Training domain
+     * to gate skill evaluation — this is the exact check that was missing
+     * in the legacy moniteur/evaluation.php (fixs.md #4).
+     */
+    public function evaluate(User $user, Student $student): bool
+    {
+        return $this->view($user, $student);
+    }
 }

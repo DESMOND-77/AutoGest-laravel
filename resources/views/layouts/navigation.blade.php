@@ -31,6 +31,17 @@
                             Journal
                         </x-nav-link>
                     @endcan
+                    @if (Auth::user()?->hasRole('admin'))
+                        <x-nav-link :href="route('scheduling.index')" :active="request()->routeIs('scheduling.index')">
+                            Planning
+                        </x-nav-link>
+                        <x-nav-link :href="route('training.skills.index')" :active="request()->routeIs('training.skills.*')">
+                            Compétences
+                        </x-nav-link>
+                        <x-nav-link :href="route('training.exams.index')" :active="request()->routeIs('training.exams.*')">
+                            Examens
+                        </x-nav-link>
+                    @endif
                     @if (Auth::user()?->hasRole('superadmin'))
                         <x-nav-link :href="route('superadmin.structures.index')" :active="request()->routeIs('superadmin.*')">
                             Établissements

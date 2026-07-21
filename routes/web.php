@@ -4,9 +4,15 @@ use App\Domain\Finance\Http\Controllers\InvoiceController;
 use App\Domain\Finance\Http\Controllers\LedgerController;
 use App\Domain\Finance\Http\Controllers\PaymentController;
 use App\Domain\Finance\Http\Controllers\TrainingPackageController;
+use App\Domain\Scheduling\Http\Controllers\AgendaController;
+use App\Domain\Scheduling\Http\Controllers\LessonSessionController;
+use App\Domain\Scheduling\Http\Controllers\StudentPlanningController;
 use App\Domain\Students\Http\Controllers\AdminDashboardController;
 use App\Domain\Students\Http\Controllers\StudentController;
 use App\Domain\Tenancy\Http\Controllers\StructureManagementController;
+use App\Domain\Training\Http\Controllers\EvaluationController;
+use App\Domain\Training\Http\Controllers\ExamController;
+use App\Domain\Training\Http\Controllers\SkillController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
@@ -65,16 +71,52 @@ Route::middleware(['auth', 'role:admin'])
         Route::post('ledger', [LedgerController::class, 'store'])->name('ledger.store');
     });
 
+Route::middleware(['auth', 'role:admin'])
+    ->prefix('planning')
+    ->name('scheduling.')
+    ->group(function () {
+        Route::get('/', [LessonSessionController::class, 'index'])->name('index');
+        Route::post('/', [LessonSessionController::class, 'store'])->name('store');
+        Route::delete('{session}', [LessonSessionController::class, 'destroy'])->name('destroy');
+    });
+
+Route::middleware(['auth', 'role:admin|moniteur'])
+    ->patch('sessions/{session}/presence', [LessonSessionController::class, 'markPresence'])
+    ->name('scheduling.presence');
+
+Route::middleware(['auth', 'role:admin'])
+    ->prefix('training')
+    ->name('training.')
+    ->group(function () {
+        Route::get('skills', [SkillController::class, 'index'])->name('skills.index');
+        Route::post('skills', [SkillController::class, 'store'])->name('skills.store');
+        Route::delete('skills/{skill}', [SkillController::class, 'destroy'])->name('skills.destroy');
+
+        Route::get('exams', [ExamController::class, 'index'])->name('exams.index');
+        Route::post('exams', [ExamController::class, 'store'])->name('exams.store');
+        Route::patch('exams/{exam}', [ExamController::class, 'update'])->name('exams.update');
+    });
+
+Route::middleware(['auth', 'role:admin|moniteur'])
+    ->prefix('training')
+    ->name('training.')
+    ->group(function () {
+        Route::get('students/{student}/evaluation', [EvaluationController::class, 'show'])->name('evaluation.show');
+        Route::post('students/{student}/evaluation', [EvaluationController::class, 'store'])->name('evaluation.store');
+    });
+
 Route::middleware(['auth', 'role:moniteur'])
     ->name('moniteur.')
     ->group(function () {
         Route::view('moniteur/dashboard', 'moniteur.dashboard')->name('dashboard');
+        Route::get('moniteur/agenda', AgendaController::class)->name('agenda');
     });
 
 Route::middleware(['auth', 'role:eleve'])
     ->name('eleve.')
     ->group(function () {
         Route::view('eleve/dashboard', 'eleve.dashboard')->name('dashboard');
+        Route::get('eleve/planning', StudentPlanningController::class)->name('planning');
     });
 
 require __DIR__.'/auth.php';
