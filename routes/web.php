@@ -4,9 +4,13 @@ use App\Domain\Finance\Http\Controllers\InvoiceController;
 use App\Domain\Finance\Http\Controllers\LedgerController;
 use App\Domain\Finance\Http\Controllers\PaymentController;
 use App\Domain\Finance\Http\Controllers\TrainingPackageController;
+use App\Domain\Fleet\Http\Controllers\VehicleController;
 use App\Domain\Scheduling\Http\Controllers\AgendaController;
 use App\Domain\Scheduling\Http\Controllers\LessonSessionController;
 use App\Domain\Scheduling\Http\Controllers\StudentPlanningController;
+use App\Domain\Store\Http\Controllers\OrderController;
+use App\Domain\Store\Http\Controllers\ProductController;
+use App\Domain\Store\Http\Controllers\SupplierController;
 use App\Domain\Students\Http\Controllers\AdminDashboardController;
 use App\Domain\Students\Http\Controllers\StudentController;
 use App\Domain\Tenancy\Http\Controllers\StructureManagementController;
@@ -103,6 +107,38 @@ Route::middleware(['auth', 'role:admin|moniteur'])
     ->group(function () {
         Route::get('students/{student}/evaluation', [EvaluationController::class, 'show'])->name('evaluation.show');
         Route::post('students/{student}/evaluation', [EvaluationController::class, 'store'])->name('evaluation.store');
+    });
+
+Route::middleware(['auth', 'role:admin|moniteur'])
+    ->prefix('fleet')
+    ->name('fleet.')
+    ->group(function () {
+        Route::get('/', [VehicleController::class, 'index'])->name('index');
+        Route::get('{vehicle}', [VehicleController::class, 'show'])->name('show');
+        Route::post('{vehicle}/maintenance', [VehicleController::class, 'storeMaintenance'])->name('maintenance.store');
+        Route::post('{vehicle}/fuel', [VehicleController::class, 'storeFuel'])->name('fuel.store');
+    });
+
+Route::middleware(['auth', 'role:admin'])
+    ->prefix('fleet')
+    ->name('fleet.')
+    ->group(function () {
+        Route::post('/', [VehicleController::class, 'store'])->name('store');
+        Route::delete('{vehicle}', [VehicleController::class, 'destroy'])->name('destroy');
+    });
+
+Route::middleware(['auth', 'role:admin'])
+    ->prefix('store')
+    ->name('store.')
+    ->group(function () {
+        Route::get('products', [ProductController::class, 'index'])->name('products.index');
+        Route::post('products', [ProductController::class, 'store'])->name('products.store');
+        Route::delete('products/{product}', [ProductController::class, 'destroy'])->name('products.destroy');
+
+        Route::post('suppliers', [SupplierController::class, 'store'])->name('suppliers.store');
+
+        Route::get('orders', [OrderController::class, 'index'])->name('orders.index');
+        Route::post('orders', [OrderController::class, 'store'])->name('orders.store');
     });
 
 Route::middleware(['auth', 'role:moniteur'])

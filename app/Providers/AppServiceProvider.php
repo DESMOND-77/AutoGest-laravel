@@ -8,10 +8,16 @@ use App\Domain\Finance\Policies\InvoicePolicy;
 use App\Domain\Finance\Policies\TrainingPackagePolicy;
 use App\Domain\Finance\Repositories\EloquentInvoiceRepository;
 use App\Domain\Finance\Repositories\InvoiceRepositoryInterface;
+use App\Domain\Fleet\Models\Vehicle;
+use App\Domain\Fleet\Policies\VehiclePolicy;
 use App\Domain\Scheduling\Models\LessonSession;
 use App\Domain\Scheduling\Policies\LessonSessionPolicy;
 use App\Domain\Scheduling\Repositories\EloquentLessonSessionRepository;
 use App\Domain\Scheduling\Repositories\LessonSessionRepositoryInterface;
+use App\Domain\Store\Models\Order;
+use App\Domain\Store\Models\Product;
+use App\Domain\Store\Policies\OrderPolicy;
+use App\Domain\Store\Policies\ProductPolicy;
 use App\Domain\Students\Events\StudentStageChanged;
 use App\Domain\Students\Listeners\LogStageChange;
 use App\Domain\Students\Models\Student;
@@ -49,7 +55,13 @@ class AppServiceProvider extends ServiceProvider
         Gate::policy(LessonSession::class, LessonSessionPolicy::class);
         Gate::policy(Skill::class, SkillPolicy::class);
         Gate::policy(Exam::class, ExamPolicy::class);
+        Gate::policy(Vehicle::class, VehiclePolicy::class);
+        Gate::policy(Product::class, ProductPolicy::class);
+        Gate::policy(Order::class, OrderPolicy::class);
 
+        // RecordVehicleExpenseInLedger lives in app/Listeners, where Laravel's
+        // event auto-discovery already finds it by its handle(VehicleExpenseRecorded)
+        // type-hint — registering it again here would fire it twice.
         Event::listen(StudentStageChanged::class, LogStageChange::class);
     }
 }

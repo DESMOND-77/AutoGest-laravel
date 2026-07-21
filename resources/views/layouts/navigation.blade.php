@@ -41,6 +41,12 @@
                         <x-nav-link :href="route('training.exams.index')" :active="request()->routeIs('training.exams.*')">
                             Examens
                         </x-nav-link>
+                        <x-nav-link :href="route('fleet.index')" :active="request()->routeIs('fleet.*')">
+                            Flotte
+                        </x-nav-link>
+                        <x-nav-link :href="route('store.products.index')" :active="request()->routeIs('store.*')">
+                            Boutique
+                        </x-nav-link>
                     @endif
                     @if (Auth::user()?->hasRole('superadmin'))
                         <x-nav-link :href="route('superadmin.structures.index')" :active="request()->routeIs('superadmin.*')">

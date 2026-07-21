@@ -15,11 +15,21 @@ arch('Students domain does not depend on Finance, Fleet or Store')
         'App\Domain\Store',
     ]);
 
-arch('Fleet domain does not depend on Students, Scheduling or CRM')
+arch('Fleet domain does not depend on Students, Scheduling, Finance or CRM')
     ->expect('App\Domain\Fleet')
     ->not->toUse([
         'App\Domain\Students',
         'App\Domain\Scheduling',
+        'App\Domain\Finance',
+        'App\Domain\CRM',
+    ]);
+
+arch('Store domain does not depend on Fleet, Scheduling, Training or CRM')
+    ->expect('App\Domain\Store')
+    ->not->toUse([
+        'App\Domain\Fleet',
+        'App\Domain\Scheduling',
+        'App\Domain\Training',
         'App\Domain\CRM',
     ]);
 
