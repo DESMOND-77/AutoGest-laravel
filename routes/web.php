@@ -1,5 +1,9 @@
 <?php
 
+use App\Domain\Finance\Http\Controllers\InvoiceController;
+use App\Domain\Finance\Http\Controllers\LedgerController;
+use App\Domain\Finance\Http\Controllers\PaymentController;
+use App\Domain\Finance\Http\Controllers\TrainingPackageController;
 use App\Domain\Students\Http\Controllers\AdminDashboardController;
 use App\Domain\Students\Http\Controllers\StudentController;
 use App\Domain\Tenancy\Http\Controllers\StructureManagementController;
@@ -41,6 +45,25 @@ Route::middleware(['auth', 'role:admin|moniteur'])->group(function () {
     Route::resource('students', StudentController::class);
     Route::patch('students/{student}/stage', [StudentController::class, 'advanceStage'])->name('students.stage');
 });
+
+Route::middleware(['auth', 'role:admin'])
+    ->prefix('finance')
+    ->name('finance.')
+    ->group(function () {
+        Route::get('invoices', [InvoiceController::class, 'index'])->name('invoices.index');
+        Route::get('students/{student}/invoices/create', [InvoiceController::class, 'create'])->name('invoices.create');
+        Route::post('students/{student}/invoices', [InvoiceController::class, 'store'])->name('invoices.store');
+        Route::get('invoices/{invoice}', [InvoiceController::class, 'show'])->name('invoices.show');
+        Route::post('invoices/{invoice}/payments', [PaymentController::class, 'store'])->name('invoices.payments.store');
+
+        Route::get('packages', [TrainingPackageController::class, 'index'])->name('packages.index');
+        Route::post('packages', [TrainingPackageController::class, 'store'])->name('packages.store');
+        Route::patch('packages/{package}', [TrainingPackageController::class, 'update'])->name('packages.update');
+        Route::delete('packages/{package}', [TrainingPackageController::class, 'destroy'])->name('packages.destroy');
+
+        Route::get('ledger', [LedgerController::class, 'index'])->name('ledger.index');
+        Route::post('ledger', [LedgerController::class, 'store'])->name('ledger.store');
+    });
 
 Route::middleware(['auth', 'role:moniteur'])
     ->name('moniteur.')

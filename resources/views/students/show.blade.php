@@ -4,11 +4,18 @@
             <h2 class="font-semibold text-xl text-gray-800 dark:text-gray-200 leading-tight">
                 {{ $student->fullName() }}
             </h2>
-            @can('update', $student)
-                <a href="{{ route('students.edit', $student) }}" class="text-sm underline text-gray-600 dark:text-gray-400">
-                    Modifier
-                </a>
-            @endcan
+            <div class="flex gap-4">
+                @can('create', \App\Domain\Finance\Models\Invoice::class)
+                    <a href="{{ route('finance.invoices.create', $student) }}" class="text-sm underline text-gray-600 dark:text-gray-400">
+                        Nouvelle facture
+                    </a>
+                @endcan
+                @can('update', $student)
+                    <a href="{{ route('students.edit', $student) }}" class="text-sm underline text-gray-600 dark:text-gray-400">
+                        Modifier
+                    </a>
+                @endcan
+            </div>
         </div>
     </x-slot>
 

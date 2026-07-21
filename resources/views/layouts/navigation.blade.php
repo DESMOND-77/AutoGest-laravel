@@ -15,6 +15,27 @@
                     <x-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')">
                         {{ __('Dashboard') }}
                     </x-nav-link>
+                    @can('viewAny', \App\Domain\Students\Models\Student::class)
+                        <x-nav-link :href="route('students.index')" :active="request()->routeIs('students.*')">
+                            Élèves
+                        </x-nav-link>
+                    @endcan
+                    @can('viewAny', \App\Domain\Finance\Models\Invoice::class)
+                        <x-nav-link :href="route('finance.invoices.index')" :active="request()->routeIs('finance.invoices.*')">
+                            Factures
+                        </x-nav-link>
+                        <x-nav-link :href="route('finance.packages.index')" :active="request()->routeIs('finance.packages.*')">
+                            Forfaits
+                        </x-nav-link>
+                        <x-nav-link :href="route('finance.ledger.index')" :active="request()->routeIs('finance.ledger.*')">
+                            Journal
+                        </x-nav-link>
+                    @endcan
+                    @if (Auth::user()?->hasRole('superadmin'))
+                        <x-nav-link :href="route('superadmin.structures.index')" :active="request()->routeIs('superadmin.*')">
+                            Établissements
+                        </x-nav-link>
+                    @endif
                 </div>
             </div>
 
