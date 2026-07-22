@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: 💬 Discussions
+    url: https://github.com/DESMOND-77/AutoGest/discussions
+    about: Pour les échanges généraux, retours d'expérience et idées non formalisées.
+  - name: 🔒 Signaler une vulnérabilité de sécurité
+    url: https://github.com/DESMOND-77/AutoGest/security/advisories/new
+    about: Merci de ne jamais signaler une faille de sécurité via une Issue publique — voir SECURITY.md.

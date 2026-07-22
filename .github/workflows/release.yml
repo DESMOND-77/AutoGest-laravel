@@ -1,0 +1,69 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*.*.*"
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout du dépôt
+        uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: "8.5"
+          extensions: mbstring, dom, fileinfo, mysql, pdo_mysql, bcmath, redis
+          coverage: none
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+
+      - name: Installer les dépendances Composer (production)
+        run: composer install --no-interaction --prefer-dist --optimize-autoloader --no-dev
+
+      - name: Installer les dépendances npm
+        run: npm ci
+
+      - name: Construire les assets front-end
+        run: npm run build
+
+      - name: Créer l'archive de déploiement
+        run: |
+          mkdir -p dist
+          tar --exclude='./dist' --exclude='./.git' --exclude='./node_modules' --exclude='./tests' \
+            -czf dist/autogest-${{ github.ref_name }}.tar.gz .
+
+      - name: Extraire les notes de version depuis CHANGELOG.md
+        id: changelog
+        run: |
+          VERSION="${{ github.ref_name }}"
+          VERSION_NUMBER="${VERSION#v}"
+          awk -v ver="$VERSION_NUMBER" '
+            BEGIN{found=0}
+            $0 ~ "^## \\[" ver "\\]" {found=1; next}
+            found && /^## \[/ {exit}
+            found {print}
+          ' CHANGELOG.md > release_notes.md
+          echo "Notes de version extraites pour $VERSION_NUMBER :"
+          cat release_notes.md
+
+      - name: Créer la Release GitHub
+        uses: softprops/action-gh-release@v2
+        with:
+          name: Auto-GestBoard ${{ github.ref_name }}
+          body_path: release_notes.md
+          files: dist/autogest-${{ github.ref_name }}.tar.gz
+          generate_release_notes: true
+          draft: false
+          prerelease: ${{ contains(github.ref_name, '-rc') || contains(github.ref_name, '-beta') || contains(github.ref_name, '-alpha') }}

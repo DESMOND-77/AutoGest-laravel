@@ -1,0 +1,9 @@
+# Ces plateformes de financement s'affichent sous forme de bouton "Sponsor"
+# sur la page principale du dépôt GitHub une fois activées.
+# Voir : https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/displaying-a-sponsor-button-in-your-repository
+
+# github: [DESMOND-77]
+# open_collective: autogest
+# patreon: autogest
+# ko_fi: autogest
+# custom: ["https://TODO-Complete-with-project-specific-information"]

@@ -1,0 +1,12 @@
+# Propriétaires par défaut du dépôt.
+# Ces personnes sont automatiquement demandées en revue sur toute Pull Request,
+# sauf règle plus spécifique définie ci-dessous.
+# Voir : https://docs.github.com/articles/about-codeowners
+
+* @DESMOND-77
+
+# TODO: Complete with project-specific information — affecter des propriétaires
+# dédiés par domaine à mesure que l'équipe grandit, par exemple :
+# /app/Domain/Finance/      @DESMOND-77
+# /app/Domain/Scheduling/   @DESMOND-77
+# /.github/                 @DESMOND-77
