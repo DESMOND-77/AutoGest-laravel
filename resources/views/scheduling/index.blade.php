@@ -40,6 +40,15 @@
                             @endforeach
                         </select>
                     </div>
+                    <div class="col-span-2">
+                        <x-input-label for="vehicle_id" value="Véhicule" />
+                        <select id="vehicle_id" name="vehicle_id" class="border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 rounded-md shadow-sm block mt-1 w-full">
+                            <option value="">—</option>
+                            @foreach ($vehicles as $vehicle)
+                                <option value="{{ $vehicle->id }}">{{ $vehicle->plate }}</option>
+                            @endforeach
+                        </select>
+                    </div>
                     <div>
                         <x-input-label for="type" value="Type" />
                         <select id="type" name="type" class="border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 rounded-md shadow-sm block mt-1 w-full">
@@ -74,6 +83,7 @@
                             <th class="px-4 py-3">Horaire</th>
                             <th class="px-4 py-3">Élève</th>
                             <th class="px-4 py-3">Moniteur</th>
+                            <th class="px-4 py-3">Véhicule</th>
                             <th class="px-4 py-3">Type</th>
                             <th class="px-4 py-3">Présence</th>
                             <th class="px-4 py-3"></th>
@@ -86,6 +96,7 @@
                                 <td class="px-4 py-3">{{ substr($session->starts_at, 0, 5) }}–{{ substr($session->ends_at, 0, 5) }}</td>
                                 <td class="px-4 py-3">{{ $session->student->fullName() }}</td>
                                 <td class="px-4 py-3">{{ $session->instructor->name }}</td>
+                                <td class="px-4 py-3">{{ $session->vehicle->plate ?? '—' }}</td>
                                 <td class="px-4 py-3">{{ $session->type->label() }}</td>
                                 <td class="px-4 py-3">{{ $session->presence->label() }}</td>
                                 <td class="px-4 py-3">
@@ -96,7 +107,7 @@
                                 </td>
                             </tr>
                         @empty
-                            <tr><td colspan="7" class="px-4 py-6 text-center text-gray-500">Aucune séance cette semaine.</td></tr>
+                            <tr><td colspan="8" class="px-4 py-6 text-center text-gray-500">Aucune séance cette semaine.</td></tr>
                         @endforelse
                     </tbody>
                 </table>

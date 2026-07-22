@@ -8,11 +8,14 @@ use App\Domain\Finance\Http\Controllers\LedgerController;
 use App\Domain\Finance\Http\Controllers\PaymentController;
 use App\Domain\Finance\Http\Controllers\TrainingPackageController;
 use App\Domain\Fleet\Http\Controllers\VehicleController;
+use App\Domain\Instructors\Http\Controllers\InstructorAvailabilityController;
+use App\Domain\Instructors\Http\Controllers\InstructorController;
 use App\Domain\Notifications\Http\Controllers\NotificationController;
 use App\Domain\Reports\Http\Controllers\ReportsController;
 use App\Domain\Scheduling\Http\Controllers\AgendaController;
 use App\Domain\Scheduling\Http\Controllers\LessonSessionController;
 use App\Domain\Scheduling\Http\Controllers\StudentPlanningController;
+use App\Domain\Settings\Http\Controllers\SettingController;
 use App\Domain\Store\Http\Controllers\OrderController;
 use App\Domain\Store\Http\Controllers\ProductController;
 use App\Domain\Store\Http\Controllers\SupplierController;
@@ -20,6 +23,7 @@ use App\Domain\Students\Http\Controllers\StudentController;
 use App\Domain\Tenancy\Http\Controllers\StructureManagementController;
 use App\Domain\Training\Http\Controllers\EvaluationController;
 use App\Domain\Training\Http\Controllers\ExamController;
+use App\Domain\Training\Http\Controllers\QuizController;
 use App\Domain\Training\Http\Controllers\SkillController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\ProfileController;
@@ -56,8 +60,13 @@ Route::middleware(['auth', 'role:admin'])
     });
 
 Route::middleware(['auth', 'role:admin'])
-    ->get('reports/revenue.csv', [ReportsController::class, 'exportRevenueCsv'])
-    ->name('reports.revenue.csv');
+    ->prefix('reports')
+    ->name('reports.')
+    ->group(function () {
+        Route::get('revenue.csv', [ReportsController::class, 'exportRevenueCsv'])->name('revenue.csv');
+        Route::get('exams.csv', [ReportsController::class, 'exportExamResultsCsv'])->name('exams.csv');
+        Route::get('students-by-stage.csv', [ReportsController::class, 'exportStudentsByStageCsv'])->name('students-by-stage.csv');
+    });
 
 Route::middleware(['auth', 'role:admin|moniteur'])->group(function () {
     Route::resource('students', StudentController::class);
@@ -117,6 +126,19 @@ Route::middleware(['auth', 'role:admin|moniteur'])
         Route::post('students/{student}/evaluation', [EvaluationController::class, 'store'])->name('evaluation.store');
     });
 
+Route::middleware(['auth', 'role:eleve'])
+    ->prefix('quiz')
+    ->name('quiz.')
+    ->group(function () {
+        Route::get('/', [QuizController::class, 'index'])->name('index');
+        Route::post('/', [QuizController::class, 'store'])->name('store');
+        Route::get('results', [QuizController::class, 'results'])->name('results');
+    });
+
+Route::middleware(['auth', 'role:admin|moniteur'])
+    ->get('quiz/students/{student}/results', [QuizController::class, 'studentResults'])
+    ->name('quiz.students.results');
+
 Route::middleware(['auth', 'role:admin|moniteur'])
     ->prefix('fleet')
     ->name('fleet.')
@@ -133,6 +155,33 @@ Route::middleware(['auth', 'role:admin'])
     ->group(function () {
         Route::post('/', [VehicleController::class, 'store'])->name('store');
         Route::delete('{vehicle}', [VehicleController::class, 'destroy'])->name('destroy');
+    });
+
+Route::middleware(['auth', 'role:admin|moniteur'])
+    ->prefix('instructors')
+    ->name('instructors.')
+    ->group(function () {
+        Route::get('/', [InstructorController::class, 'index'])->name('index');
+        Route::get('{instructor}', [InstructorController::class, 'show'])->name('show');
+        Route::post('{instructor}/availabilities', [InstructorAvailabilityController::class, 'store'])->name('availabilities.store');
+        Route::delete('{instructor}/availabilities/{availability}', [InstructorAvailabilityController::class, 'destroy'])->name('availabilities.destroy');
+    });
+
+Route::middleware(['auth', 'role:admin'])
+    ->prefix('instructors')
+    ->name('instructors.')
+    ->group(function () {
+        Route::post('/', [InstructorController::class, 'store'])->name('store');
+        Route::patch('{instructor}', [InstructorController::class, 'update'])->name('update');
+        Route::delete('{instructor}', [InstructorController::class, 'destroy'])->name('destroy');
+    });
+
+Route::middleware(['auth', 'role:admin'])
+    ->prefix('settings')
+    ->name('settings.')
+    ->group(function () {
+        Route::get('/', [SettingController::class, 'show'])->name('show');
+        Route::patch('/', [SettingController::class, 'update'])->name('update');
     });
 
 Route::middleware(['auth', 'role:admin'])

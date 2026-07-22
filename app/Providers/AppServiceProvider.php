@@ -16,10 +16,16 @@ use App\Domain\Finance\Repositories\EloquentInvoiceRepository;
 use App\Domain\Finance\Repositories\InvoiceRepositoryInterface;
 use App\Domain\Fleet\Models\Vehicle;
 use App\Domain\Fleet\Policies\VehiclePolicy;
+use App\Domain\Instructors\Models\Instructor;
+use App\Domain\Instructors\Policies\InstructorPolicy;
+use App\Domain\Instructors\Repositories\EloquentInstructorRepository;
+use App\Domain\Instructors\Repositories\InstructorRepositoryInterface;
 use App\Domain\Scheduling\Models\LessonSession;
 use App\Domain\Scheduling\Policies\LessonSessionPolicy;
 use App\Domain\Scheduling\Repositories\EloquentLessonSessionRepository;
 use App\Domain\Scheduling\Repositories\LessonSessionRepositoryInterface;
+use App\Domain\Settings\Models\Setting;
+use App\Domain\Settings\Policies\SettingPolicy;
 use App\Domain\Store\Models\Order;
 use App\Domain\Store\Models\Product;
 use App\Domain\Store\Policies\OrderPolicy;
@@ -31,8 +37,10 @@ use App\Domain\Students\Policies\StudentPolicy;
 use App\Domain\Students\Repositories\EloquentStudentRepository;
 use App\Domain\Students\Repositories\StudentRepositoryInterface;
 use App\Domain\Training\Models\Exam;
+use App\Domain\Training\Models\QuizAttempt;
 use App\Domain\Training\Models\Skill;
 use App\Domain\Training\Policies\ExamPolicy;
+use App\Domain\Training\Policies\QuizAttemptPolicy;
 use App\Domain\Training\Policies\SkillPolicy;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Gate;
@@ -48,6 +56,7 @@ class AppServiceProvider extends ServiceProvider
         $this->app->bind(StudentRepositoryInterface::class, EloquentStudentRepository::class);
         $this->app->bind(InvoiceRepositoryInterface::class, EloquentInvoiceRepository::class);
         $this->app->bind(LessonSessionRepositoryInterface::class, EloquentLessonSessionRepository::class);
+        $this->app->bind(InstructorRepositoryInterface::class, EloquentInstructorRepository::class);
     }
 
     /**
@@ -67,6 +76,9 @@ class AppServiceProvider extends ServiceProvider
         Gate::policy(Lead::class, LeadPolicy::class);
         Gate::policy(Document::class, DocumentPolicy::class);
         Gate::policy(AuditLog::class, AuditLogPolicy::class);
+        Gate::policy(Instructor::class, InstructorPolicy::class);
+        Gate::policy(Setting::class, SettingPolicy::class);
+        Gate::policy(QuizAttempt::class, QuizAttemptPolicy::class);
 
         // RecordVehicleExpenseInLedger lives in app/Listeners, where Laravel's
         // event auto-discovery already finds it by its handle(VehicleExpenseRecorded)

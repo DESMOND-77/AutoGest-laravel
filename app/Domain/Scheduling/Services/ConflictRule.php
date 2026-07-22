@@ -4,6 +4,7 @@ namespace App\Domain\Scheduling\Services;
 
 use App\Domain\Scheduling\Enums\PresenceStatus;
 use App\Domain\Scheduling\Models\LessonSession;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Carbon;
 
 /**
@@ -25,16 +26,40 @@ class ConflictRule
         string $endsAt,
         ?int $excludingSessionId = null,
     ): bool {
+        return $this->overlapQuery('instructor_id', $instructorId, $date, $startsAt, $endsAt, $excludingSessionId)->exists();
+    }
+
+    /**
+     * Same overlap check as hasConflict(), scoped to a vehicle instead of an
+     * instructor — a car can't be double-booked any more than a moniteur can.
+     */
+    public function hasVehicleConflict(
+        int $vehicleId,
+        string $date,
+        string $startsAt,
+        string $endsAt,
+        ?int $excludingSessionId = null,
+    ): bool {
+        return $this->overlapQuery('vehicle_id', $vehicleId, $date, $startsAt, $endsAt, $excludingSessionId)->exists();
+    }
+
+    private function overlapQuery(
+        string $column,
+        int $id,
+        string $date,
+        string $startsAt,
+        string $endsAt,
+        ?int $excludingSessionId,
+    ): Builder {
         return LessonSession::query()
-            ->where('instructor_id', $instructorId)
+            ->where($column, $id)
             ->where('scheduled_date', $date)
             ->where('presence', '!=', PresenceStatus::Cancelled->value)
             ->when($excludingSessionId, fn ($query) => $query->where('id', '!=', $excludingSessionId))
             ->where(function ($query) use ($startsAt, $endsAt) {
                 $query->where('starts_at', '<', $endsAt)
                     ->where('ends_at', '>', $startsAt);
-            })
-            ->exists();
+            });
     }
 
     public function validateRange(string $startsAt, string $endsAt): bool

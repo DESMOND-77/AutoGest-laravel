@@ -1,5 +1,6 @@
 <?php
 
+use App\Domain\Fleet\Models\Vehicle;
 use App\Domain\Scheduling\Models\LessonSession;
 use App\Domain\Scheduling\Services\ConflictRule;
 use App\Domain\Students\Models\Student;
@@ -47,4 +48,39 @@ it('allows the same half-hour slot for a different instructor', function () {
 
 it('rejects a range where the end is before the start', function () {
     expect($this->rule->validateRange('09:00', '08:30'))->toBeFalse();
+});
+
+it('detects a conflict for an overlapping session using the same vehicle', function () {
+    $vehicle = Vehicle::factory()->create(['structure_id' => $this->instructor->structure_id]);
+    $student = Student::factory()->create(['structure_id' => $this->instructor->structure_id]);
+
+    LessonSession::factory()->create([
+        'structure_id' => $this->instructor->structure_id,
+        'student_id' => $student->id,
+        'instructor_id' => $this->instructor->id,
+        'vehicle_id' => $vehicle->id,
+        'scheduled_date' => '2026-08-04',
+        'starts_at' => '09:00',
+        'ends_at' => '10:00',
+    ]);
+
+    expect($this->rule->hasVehicleConflict($vehicle->id, '2026-08-04', '09:30', '10:30'))->toBeTrue();
+});
+
+it('allows the same slot for a different vehicle', function () {
+    $vehicle = Vehicle::factory()->create(['structure_id' => $this->instructor->structure_id]);
+    $otherVehicle = Vehicle::factory()->create(['structure_id' => $this->instructor->structure_id]);
+    $student = Student::factory()->create(['structure_id' => $this->instructor->structure_id]);
+
+    LessonSession::factory()->create([
+        'structure_id' => $this->instructor->structure_id,
+        'student_id' => $student->id,
+        'instructor_id' => $this->instructor->id,
+        'vehicle_id' => $vehicle->id,
+        'scheduled_date' => '2026-08-04',
+        'starts_at' => '09:00',
+        'ends_at' => '10:00',
+    ]);
+
+    expect($this->rule->hasVehicleConflict($otherVehicle->id, '2026-08-04', '09:00', '10:00'))->toBeFalse();
 });

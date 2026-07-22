@@ -2,6 +2,7 @@
 
 namespace App\Domain\Scheduling\Http\Controllers;
 
+use App\Domain\Fleet\Models\Vehicle;
 use App\Domain\Scheduling\Enums\PresenceStatus;
 use App\Domain\Scheduling\Exceptions\SchedulingConflict;
 use App\Domain\Scheduling\Http\Requests\StoreLessonSessionRequest;
@@ -31,7 +32,7 @@ class LessonSessionController extends Controller
 
         $sessions = LessonSession::query()
             ->whereBetween('scheduled_date', [$week->toDateString(), $week->copy()->endOfWeek()->toDateString()])
-            ->with(['student', 'instructor'])
+            ->with(['student', 'instructor', 'vehicle'])
             ->orderBy('scheduled_date')->orderBy('starts_at')
             ->get();
 
@@ -40,6 +41,7 @@ class LessonSessionController extends Controller
             'week' => $week,
             'students' => Student::query()->orderBy('last_name')->get(),
             'instructors' => User::role('moniteur')->orderBy('name')->get(),
+            'vehicles' => Vehicle::query()->orderBy('plate')->get(),
         ]);
     }
 

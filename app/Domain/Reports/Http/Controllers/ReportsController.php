@@ -3,6 +3,7 @@
 namespace App\Domain\Reports\Http\Controllers;
 
 use App\Domain\Reports\Services\ReportService;
+use App\Domain\Reports\Support\CsvExporter;
 use App\Http\Controllers\Controller;
 use Illuminate\View\View;
 use Symfony\Component\HttpFoundation\StreamedResponse;
@@ -25,17 +26,32 @@ class ReportsController extends Controller
 
     public function exportRevenueCsv(): StreamedResponse
     {
-        $rows = $this->reports->revenueByMonth(12);
+        $rows = $this->reports->revenueByMonth(12)
+            ->map(fn (array $row) => [$row['month'], $row['total']]);
 
-        return response()->streamDownload(function () use ($rows) {
-            $handle = fopen('php://output', 'w');
-            fputcsv($handle, ['Mois', 'Recettes (FCFA)']);
+        return CsvExporter::stream('recettes-mensuelles.csv', ['Mois', 'Recettes (FCFA)'], $rows);
+    }
 
-            foreach ($rows as $row) {
-                fputcsv($handle, [$row['month'], $row['total']]);
-            }
+    public function exportExamResultsCsv(): StreamedResponse
+    {
+        $summary = $this->reports->examResultsSummary();
 
-            fclose($handle);
-        }, 'recettes-mensuelles.csv');
+        $rows = [
+            ['Réussis', $summary['passed']],
+            ['Échoués', $summary['failed']],
+            ['En attente', $summary['pending']],
+            ['Taux de réussite (%)', $summary['rate']],
+        ];
+
+        return CsvExporter::stream('resultats-examens.csv', ['Indicateur', 'Valeur'], $rows);
+    }
+
+    public function exportStudentsByStageCsv(): StreamedResponse
+    {
+        $rows = $this->reports->studentsByStage()
+            ->map(fn (int $count, string $stage) => [$stage, $count])
+            ->values();
+
+        return CsvExporter::stream('eleves-par-etape.csv', ['Étape', "Nombre d'élèves"], $rows);
     }
 }

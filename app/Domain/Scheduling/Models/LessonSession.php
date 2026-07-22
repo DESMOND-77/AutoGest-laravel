@@ -2,6 +2,7 @@
 
 namespace App\Domain\Scheduling\Models;
 
+use App\Domain\Fleet\Models\Vehicle;
 use App\Domain\Scheduling\Database\Factories\LessonSessionFactory;
 use App\Domain\Scheduling\Enums\PresenceStatus;
 use App\Domain\Scheduling\Enums\SessionType;
@@ -30,6 +31,7 @@ class LessonSession extends Model
         'structure_id',
         'student_id',
         'instructor_id',
+        'vehicle_id',
         'type',
         'scheduled_date',
         'starts_at',
@@ -53,5 +55,10 @@ class LessonSession extends Model
     public function instructor(): BelongsTo
     {
         return $this->belongsTo(User::class, 'instructor_id');
+    }
+
+    public function vehicle(): BelongsTo
+    {
+        return $this->belongsTo(Vehicle::class);
     }
 }

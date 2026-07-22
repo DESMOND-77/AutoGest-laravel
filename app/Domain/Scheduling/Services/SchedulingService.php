@@ -16,7 +16,13 @@ class SchedulingService
 
     public function schedule(array $data): LessonSession
     {
-        $this->guard($data['instructor_id'], $data['scheduled_date'], $data['starts_at'], $data['ends_at']);
+        $this->guard(
+            $data['instructor_id'],
+            $data['vehicle_id'] ?? null,
+            $data['scheduled_date'],
+            $data['starts_at'],
+            $data['ends_at'],
+        );
 
         return $this->sessions->create($data);
     }
@@ -25,6 +31,7 @@ class SchedulingService
     {
         $this->guard(
             $data['instructor_id'] ?? $session->instructor_id,
+            array_key_exists('vehicle_id', $data) ? $data['vehicle_id'] : $session->vehicle_id,
             $data['scheduled_date'] ?? $session->scheduled_date->toDateString(),
             $data['starts_at'] ?? $session->starts_at,
             $data['ends_at'] ?? $session->ends_at,
@@ -39,14 +46,24 @@ class SchedulingService
         return $this->sessions->update($session, ['presence' => $status->value]);
     }
 
-    private function guard(int $instructorId, string $date, string $startsAt, string $endsAt, ?int $excluding = null): void
-    {
+    private function guard(
+        int $instructorId,
+        ?int $vehicleId,
+        string $date,
+        string $startsAt,
+        string $endsAt,
+        ?int $excluding = null,
+    ): void {
         if (! $this->conflictRule->validateRange($startsAt, $endsAt)) {
             throw SchedulingConflict::invalidRange();
         }
 
         if ($this->conflictRule->hasConflict($instructorId, $date, $startsAt, $endsAt, $excluding)) {
             throw SchedulingConflict::instructorBusy();
+        }
+
+        if ($vehicleId && $this->conflictRule->hasVehicleConflict($vehicleId, $date, $startsAt, $endsAt, $excluding)) {
+            throw SchedulingConflict::vehicleBusy();
         }
     }
 }

@@ -33,12 +33,76 @@ arch('Store domain does not depend on Fleet, Scheduling, Training or CRM')
         'App\Domain\CRM',
     ]);
 
-arch('Instructors domain does not depend on Finance or Store')
+// Instructors is a leaf domain (like Fleet/Tenancy): per the design doc's
+// graph, only Scheduling and Training are allowed to depend on it, and it
+// must not reach into any other business domain itself.
+arch('Instructors domain does not depend on other business domains')
     ->expect('App\Domain\Instructors')
     ->not->toUse([
+        'App\Domain\Students',
         'App\Domain\Finance',
+        'App\Domain\Fleet',
         'App\Domain\Store',
+        'App\Domain\Scheduling',
+        'App\Domain\Training',
+        'App\Domain\CRM',
+        'App\Domain\Documents',
+        'App\Domain\Notifications',
+        'App\Domain\Audit',
+        'App\Domain\Reports',
+        'App\Domain\Settings',
     ]);
+
+arch('only Scheduling and Training depend on Instructors')
+    ->expect([
+        'App\Domain\Students',
+        'App\Domain\Finance',
+        'App\Domain\Fleet',
+        'App\Domain\Store',
+        'App\Domain\CRM',
+        'App\Domain\Documents',
+        'App\Domain\Notifications',
+        'App\Domain\Audit',
+        'App\Domain\Reports',
+        'App\Domain\Settings',
+    ])
+    ->not->toUse('App\Domain\Instructors');
+
+// Settings is a tenant-config leaf domain: nothing depends on it yet, and it
+// must not reach into any business domain.
+arch('Settings domain does not depend on other business domains')
+    ->expect('App\Domain\Settings')
+    ->not->toUse([
+        'App\Domain\Students',
+        'App\Domain\Finance',
+        'App\Domain\Fleet',
+        'App\Domain\Store',
+        'App\Domain\Scheduling',
+        'App\Domain\Training',
+        'App\Domain\CRM',
+        'App\Domain\Documents',
+        'App\Domain\Notifications',
+        'App\Domain\Audit',
+        'App\Domain\Reports',
+        'App\Domain\Instructors',
+    ]);
+
+arch('no business domain depends on Settings')
+    ->expect([
+        'App\Domain\Students',
+        'App\Domain\Finance',
+        'App\Domain\Fleet',
+        'App\Domain\Store',
+        'App\Domain\Scheduling',
+        'App\Domain\Training',
+        'App\Domain\CRM',
+        'App\Domain\Documents',
+        'App\Domain\Notifications',
+        'App\Domain\Audit',
+        'App\Domain\Reports',
+        'App\Domain\Instructors',
+    ])
+    ->not->toUse('App\Domain\Settings');
 
 arch('Scheduling domain does not depend on Finance, Store or CRM')
     ->expect('App\Domain\Scheduling')
@@ -96,6 +160,8 @@ arch('Notifications domain depends on nothing but Core')
         'App\Domain\CRM',
         'App\Domain\Documents',
         'App\Domain\Audit',
+        'App\Domain\Instructors',
+        'App\Domain\Settings',
     ]);
 
 arch('Audit domain depends on nothing but Core')
@@ -110,6 +176,8 @@ arch('Audit domain depends on nothing but Core')
         'App\Domain\CRM',
         'App\Domain\Documents',
         'App\Domain\Notifications',
+        'App\Domain\Instructors',
+        'App\Domain\Settings',
     ]);
 
 arch('Reports domain only depends on Finance, Training, Fleet and Students')
@@ -121,6 +189,8 @@ arch('Reports domain only depends on Finance, Training, Fleet and Students')
         'App\Domain\Documents',
         'App\Domain\Audit',
         'App\Domain\Notifications',
+        'App\Domain\Instructors',
+        'App\Domain\Settings',
     ]);
 
 // Nobody should be pulled into computing dashboard aggregates: check the
@@ -138,6 +208,8 @@ arch('no business domain depends on Reports')
         'App\Domain\Documents',
         'App\Domain\Audit',
         'App\Domain\Notifications',
+        'App\Domain\Instructors',
+        'App\Domain\Settings',
     ])
     ->not->toUse('App\Domain\Reports');
 

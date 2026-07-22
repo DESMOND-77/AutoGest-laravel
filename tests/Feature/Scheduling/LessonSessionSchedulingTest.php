@@ -1,5 +1,6 @@
 <?php
 
+use App\Domain\Fleet\Models\Vehicle;
 use App\Domain\Scheduling\Enums\PresenceStatus;
 use App\Domain\Scheduling\Models\LessonSession;
 use App\Domain\Students\Models\Student;
@@ -34,6 +35,34 @@ it('rejects scheduling a session that overlaps an existing one for the same inst
     $this->actingAs($this->admin)->post(route('scheduling.store'), [
         'student_id' => $this->student->id,
         'instructor_id' => $this->instructor->id,
+        'type' => 'practical',
+        'scheduled_date' => '2026-08-10',
+        'starts_at' => '08:30',
+        'ends_at' => '09:30',
+    ])->assertSessionHasErrors('starts_at');
+
+    expect(LessonSession::query()->count())->toBe(1);
+});
+
+it('rejects scheduling a session that reuses a vehicle already booked at that time', function () {
+    $vehicle = Vehicle::factory()->create(['structure_id' => $this->structure->id]);
+    $otherInstructor = User::factory()->create(['structure_id' => $this->structure->id]);
+    $otherInstructor->assignRole('moniteur');
+
+    LessonSession::factory()->create([
+        'structure_id' => $this->structure->id,
+        'student_id' => $this->student->id,
+        'instructor_id' => $otherInstructor->id,
+        'vehicle_id' => $vehicle->id,
+        'scheduled_date' => '2026-08-10',
+        'starts_at' => '08:00',
+        'ends_at' => '09:00',
+    ]);
+
+    $this->actingAs($this->admin)->post(route('scheduling.store'), [
+        'student_id' => $this->student->id,
+        'instructor_id' => $this->instructor->id,
+        'vehicle_id' => $vehicle->id,
         'type' => 'practical',
         'scheduled_date' => '2026-08-10',
         'starts_at' => '08:30',

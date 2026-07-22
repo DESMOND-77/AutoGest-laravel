@@ -19,6 +19,7 @@ class StoreLessonSessionRequest extends FormRequest
         return [
             'student_id' => ['required', 'exists:students,id'],
             'instructor_id' => ['required', 'exists:users,id'],
+            'vehicle_id' => ['nullable', 'exists:vehicles,id'],
             'type' => ['required', new Enum(SessionType::class)],
             'scheduled_date' => ['required', 'date'],
             'starts_at' => ['required', 'date_format:H:i'],
