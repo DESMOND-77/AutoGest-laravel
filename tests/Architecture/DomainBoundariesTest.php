@@ -112,6 +112,35 @@ arch('Audit domain depends on nothing but Core')
         'App\Domain\Notifications',
     ]);
 
+arch('Reports domain only depends on Finance, Training, Fleet and Students')
+    ->expect('App\Domain\Reports')
+    ->not->toUse([
+        'App\Domain\Store',
+        'App\Domain\Scheduling',
+        'App\Domain\CRM',
+        'App\Domain\Documents',
+        'App\Domain\Audit',
+        'App\Domain\Notifications',
+    ]);
+
+// Nobody should be pulled into computing dashboard aggregates: check the
+// reverse direction too, since Reports sits at the top of the dependency
+// graph and every other domain must stay ignorant of it.
+arch('no business domain depends on Reports')
+    ->expect([
+        'App\Domain\Students',
+        'App\Domain\Finance',
+        'App\Domain\Fleet',
+        'App\Domain\Store',
+        'App\Domain\Scheduling',
+        'App\Domain\Training',
+        'App\Domain\CRM',
+        'App\Domain\Documents',
+        'App\Domain\Audit',
+        'App\Domain\Notifications',
+    ])
+    ->not->toUse('App\Domain\Reports');
+
 arch('domain Models stay free of HTTP concerns')
     ->expect('App\Domain\*\Models')
     ->not->toUse([

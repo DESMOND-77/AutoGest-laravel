@@ -9,13 +9,13 @@ use App\Domain\Finance\Http\Controllers\PaymentController;
 use App\Domain\Finance\Http\Controllers\TrainingPackageController;
 use App\Domain\Fleet\Http\Controllers\VehicleController;
 use App\Domain\Notifications\Http\Controllers\NotificationController;
+use App\Domain\Reports\Http\Controllers\ReportsController;
 use App\Domain\Scheduling\Http\Controllers\AgendaController;
 use App\Domain\Scheduling\Http\Controllers\LessonSessionController;
 use App\Domain\Scheduling\Http\Controllers\StudentPlanningController;
 use App\Domain\Store\Http\Controllers\OrderController;
 use App\Domain\Store\Http\Controllers\ProductController;
 use App\Domain\Store\Http\Controllers\SupplierController;
-use App\Domain\Students\Http\Controllers\AdminDashboardController;
 use App\Domain\Students\Http\Controllers\StudentController;
 use App\Domain\Tenancy\Http\Controllers\StructureManagementController;
 use App\Domain\Training\Http\Controllers\EvaluationController;
@@ -52,8 +52,12 @@ Route::middleware(['auth', 'role:admin'])
     ->prefix('admin')
     ->name('admin.')
     ->group(function () {
-        Route::get('dashboard', AdminDashboardController::class)->name('dashboard');
+        Route::get('dashboard', [ReportsController::class, 'dashboard'])->name('dashboard');
     });
+
+Route::middleware(['auth', 'role:admin'])
+    ->get('reports/revenue.csv', [ReportsController::class, 'exportRevenueCsv'])
+    ->name('reports.revenue.csv');
 
 Route::middleware(['auth', 'role:admin|moniteur'])->group(function () {
     Route::resource('students', StudentController::class);
