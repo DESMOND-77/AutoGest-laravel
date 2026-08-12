@@ -1,115 +1,314 @@
 <x-app-layout>
-    <x-slot name="header">
-        <div class="flex items-center justify-between">
-            <h2 class="font-semibold text-xl text-gray-800 dark:text-gray-200 leading-tight">
-                {{ $student->fullName() }}
-            </h2>
-            <div class="flex gap-4">
-                @can('evaluate', $student)
-                    <a href="{{ route('training.evaluation.show', $student) }}" class="text-sm underline text-gray-600 dark:text-gray-400">
-                        Évaluer
-                    </a>
-                @endcan
-                @can('create', \App\Domain\Finance\Models\Invoice::class)
-                    <a href="{{ route('finance.invoices.create', $student) }}" class="text-sm underline text-gray-600 dark:text-gray-400">
-                        Nouvelle facture
-                    </a>
-                @endcan
-                @can('update', $student)
-                    <a href="{{ route('students.edit', $student) }}" class="text-sm underline text-gray-600 dark:text-gray-400">
-                        Modifier
-                    </a>
-                @endcan
-            </div>
-        </div>
-    </x-slot>
+    <x-slot name="header">{{ $student->fullName() }}</x-slot>
 
-    <div class="py-12">
-        <div class="max-w-3xl mx-auto sm:px-6 lg:px-8 space-y-6">
+    <div class="py-6 space-y-5 max-w-5xl mx-auto">
+        @if (session('status'))
+            <x-alert variant="success">{{ session('status') }}</x-alert>
+        @endif
+        @if ($errors->any())
+            <x-alert variant="danger">{{ $errors->first() }}</x-alert>
+        @endif
 
-            @if (session('status'))
-                <div class="bg-green-100 text-green-800 text-sm rounded-md p-3">
-                    {{ session('status') }}
-                </div>
-            @endif
-            @if ($errors->any())
-                <div class="bg-red-100 text-red-800 text-sm rounded-md p-3">
-                    {{ $errors->first() }}
-                </div>
-            @endif
+        {{-- Profile header --}}
+        <x-card>
+            <div class="flex flex-col sm:flex-row sm:items-center gap-5">
+                <span class="flex h-16 w-16 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary text-xl font-semibold">
+                    {{ mb_substr($student->first_name, 0, 1) }}{{ mb_substr($student->last_name, 0, 1) }}
+                </span>
 
-            <div class="bg-white dark:bg-gray-800 shadow-sm rounded-lg p-6 grid grid-cols-2 gap-4 text-sm">
-                <div><span class="text-gray-500">Catégorie</span><br>{{ $student->license_category->value }}</div>
-                <div><span class="text-gray-500">Type de cours</span><br>{{ $student->course_type->label() }}</div>
-                <div><span class="text-gray-500">Dossier</span><br>{{ $student->dossier_status->label() }}</div>
-                <div><span class="text-gray-500">Moniteur</span><br>{{ $student->instructor?->name ?? '—' }}</div>
-                <div><span class="text-gray-500">Téléphone</span><br>{{ $student->phone ?? '—' }}</div>
-                <div><span class="text-gray-500">E-mail</span><br>{{ $student->email ?? '—' }}</div>
-            </div>
+                <div class="flex-1 min-w-0">
+                    <div class="flex flex-wrap items-center gap-2">
+                        <h1 class="text-lg font-semibold text-content">{{ $student->fullName() }}</h1>
+                        <x-badge variant="info">{{ $student->lifecycle_stage->label() }}</x-badge>
+                    </div>
+                    <p class="text-sm text-content-secondary mt-0.5">
+                        {{ $student->license_category->value }} &middot; {{ $student->course_type->label() }}
+                        @if ($student->phone) &middot; {{ $student->phone }} @endif
+                    </p>
 
-            <div class="bg-white dark:bg-gray-800 shadow-sm rounded-lg p-6">
-                <div class="text-sm text-gray-500 mb-2">Étape du cycle de vie</div>
-                <div class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">
-                    {{ $student->lifecycle_stage->label() }}
-                </div>
-
-                @can('update', $student)
-                    @php $next = $student->lifecycle_stage->allowedNextStages(); @endphp
-                    @if (count($next))
-                        <div class="flex flex-wrap gap-2">
-                            @foreach ($next as $stage)
-                                <form method="POST" action="{{ route('students.stage', $student) }}">
-                                    @csrf
-                                    @method('PATCH')
-                                    <input type="hidden" name="stage" value="{{ $stage->value }}">
-                                    <button type="submit" class="text-sm bg-gray-100 dark:bg-gray-700 px-3 py-1.5 rounded-md">
-                                        &rarr; {{ $stage->label() }}
-                                    </button>
-                                </form>
-                            @endforeach
+                    @php
+                        $allStages = \App\Domain\Students\Enums\LifecycleStage::cases();
+                        $stageIndex = array_search($student->lifecycle_stage, $allStages, true);
+                        $progressPercent = (int) round(($stageIndex / (count($allStages) - 1)) * 100);
+                    @endphp
+                    <div class="mt-3 max-w-sm">
+                        <div class="flex items-center justify-between text-xs text-content-muted mb-1">
+                            <span>Progression du parcours</span>
+                            <span>{{ $progressPercent }}%</span>
                         </div>
-                    @else
-                        <p class="text-sm text-gray-500">Fin de parcours.</p>
-                    @endif
-                @endcan
+                        <div class="bg-surface-inset rounded-full h-2 overflow-hidden">
+                            <div class="bg-primary h-2 rounded-full" style="width: {{ max(2, $progressPercent) }}%"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flex flex-wrap gap-2 sm:flex-col sm:items-end shrink-0">
+                    @can('evaluate', $student)
+                        <a href="{{ route('training.evaluation.show', $student) }}" class="text-sm text-content-secondary hover:text-primary transition">Évaluer</a>
+                    @endcan
+                    @can('create', \App\Domain\Finance\Models\Invoice::class)
+                        <a href="{{ route('finance.invoices.create', $student) }}" class="text-sm text-content-secondary hover:text-primary transition">Nouvelle facture</a>
+                    @endcan
+                    @can('update', $student)
+                        <a href="{{ route('students.edit', $student) }}" class="text-sm text-content-secondary hover:text-primary transition">Modifier</a>
+                    @endcan
+                </div>
+            </div>
+        </x-card>
+
+        <x-tabs :tabs="[
+            'general' => 'Vue générale',
+            'informations' => 'Informations',
+            'formation' => 'Formation',
+            'planning' => 'Planning',
+            'paiements' => 'Paiements',
+            'documents' => 'Documents',
+            'examens' => 'Examens',
+            'historique' => 'Historique',
+        ]">
+            {{-- Vue générale --}}
+            <div x-show="tab === 'general'" x-cloak class="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                <x-card>
+                    <div class="text-sm font-semibold text-content mb-3">Coordonnées</div>
+                    <dl class="space-y-2 text-sm">
+                        <div class="flex items-center gap-2"><x-icon name="phone" class="w-4 h-4 text-content-muted" /><span class="text-content">{{ $student->phone ?? '—' }}</span></div>
+                        <div class="flex items-center gap-2"><x-icon name="envelope" class="w-4 h-4 text-content-muted" /><span class="text-content">{{ $student->email ?? '—' }}</span></div>
+                        <div class="flex items-center gap-2"><x-icon name="map-pin" class="w-4 h-4 text-content-muted" /><span class="text-content">{{ $student->address ?? '—' }}</span></div>
+                    </dl>
+                </x-card>
+                <x-card>
+                    <div class="text-sm font-semibold text-content mb-3">Dossier & Moniteur</div>
+                    <dl class="space-y-2 text-sm">
+                        <div class="flex justify-between"><span class="text-content-secondary">Dossier</span><span class="text-content font-medium">{{ $student->dossier_status->label() }}</span></div>
+                        <div class="flex justify-between"><span class="text-content-secondary">Moniteur</span><span class="text-content font-medium">{{ $student->instructor?->name ?? '—' }}</span></div>
+                        <div class="flex justify-between"><span class="text-content-secondary">Inscrit le</span><span class="text-content font-medium">{{ $student->registered_at?->format('d/m/Y') ?? '—' }}</span></div>
+                    </dl>
+                </x-card>
             </div>
 
-            <div class="bg-white dark:bg-gray-800 shadow-sm rounded-lg p-6">
-                <div class="text-sm font-medium text-gray-900 dark:text-gray-100 mb-3">Documents</div>
+            {{-- Informations --}}
+            <div x-show="tab === 'informations'" x-cloak>
+                <x-card>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
+                        <div><span class="text-content-muted">Nom</span><p class="text-content font-medium">{{ $student->last_name }}</p></div>
+                        <div><span class="text-content-muted">Prénom</span><p class="text-content font-medium">{{ $student->first_name }}</p></div>
+                        <div><span class="text-content-muted">Date de naissance</span><p class="text-content font-medium">{{ $student->birth_date?->format('d/m/Y') ?? '—' }}</p></div>
+                        <div><span class="text-content-muted">Lieu de naissance</span><p class="text-content font-medium">{{ $student->birth_place ?? '—' }}</p></div>
+                        <div><span class="text-content-muted">Téléphone</span><p class="text-content font-medium">{{ $student->phone ?? '—' }}</p></div>
+                        <div><span class="text-content-muted">Téléphone secondaire</span><p class="text-content font-medium">{{ $student->phone_secondary ?? '—' }}</p></div>
+                        <div><span class="text-content-muted">E-mail</span><p class="text-content font-medium">{{ $student->email ?? '—' }}</p></div>
+                        <div><span class="text-content-muted">NEPH</span><p class="text-content font-medium">{{ $student->neph ?? '—' }}</p></div>
+                        <div class="sm:col-span-2"><span class="text-content-muted">Adresse</span><p class="text-content font-medium">{{ $student->address ?? '—' }}</p></div>
+                    </div>
+                </x-card>
+            </div>
 
-                @php
-                    $documents = \App\Domain\Documents\Models\Document::query()
-                        ->where('documentable_type', $student->getMorphClass())
-                        ->where('documentable_id', $student->id)
-                        ->where('is_current', true)
-                        ->latest()
-                        ->get();
-                @endphp
+            {{-- Formation --}}
+            <div x-show="tab === 'formation'" x-cloak class="space-y-5">
+                <x-card>
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 text-sm mb-5">
+                        <div><span class="text-content-muted">Catégorie</span><p class="text-content font-medium">{{ $student->license_category->value }}</p></div>
+                        <div><span class="text-content-muted">Type de cours</span><p class="text-content font-medium">{{ $student->course_type->label() }}</p></div>
+                        <div><span class="text-content-muted">Étape actuelle</span><p class="text-content font-medium">{{ $student->lifecycle_stage->label() }}</p></div>
+                    </div>
 
-                <ul class="text-sm divide-y divide-gray-100 dark:divide-gray-700 mb-4">
-                    @forelse ($documents as $document)
-                        <li class="py-2 flex justify-between items-center">
-                            <span>{{ $document->type->label() }} — {{ $document->original_name }} (v{{ $document->version }})</span>
-                            <a href="{{ route('documents.download', $document) }}" class="text-xs text-indigo-600 underline">Télécharger</a>
-                        </li>
-                    @empty
-                        <li class="py-2 text-gray-500">Aucun document.</li>
-                    @endforelse
-                </ul>
-
-                @can('create', \App\Domain\Documents\Models\Document::class)
-                    <form method="POST" action="{{ route('students.documents.store', $student) }}" enctype="multipart/form-data" class="grid grid-cols-3 gap-3 items-end">
-                        @csrf
-                        <select name="type" class="border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 rounded-md shadow-sm block w-full">
-                            @foreach (\App\Domain\Documents\Enums\DocumentType::cases() as $case)
-                                <option value="{{ $case->value }}">{{ $case->label() }}</option>
+                    <div class="border-t border-border/60 pt-4">
+                        <ol class="space-y-1.5">
+                            @foreach ($stages as $stage)
+                                @php $done = $stage->value === $student->lifecycle_stage->value || array_search($stage, $allStages, true) < $stageIndex; @endphp
+                                <li class="flex items-center gap-2 text-sm">
+                                    <span @class([
+                                        'flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-[10px] font-semibold',
+                                        'bg-primary text-primary-content' => $stage->value === $student->lifecycle_stage->value,
+                                        'bg-success/15 text-success' => $done && $stage->value !== $student->lifecycle_stage->value,
+                                        'bg-surface-inset text-content-muted' => ! $done,
+                                    ])>
+                                        @if ($done && $stage->value !== $student->lifecycle_stage->value) &check; @else {{ $loop->iteration }} @endif
+                                    </span>
+                                    <span @class(['text-content font-medium' => $stage->value === $student->lifecycle_stage->value, 'text-content-secondary' => $stage->value !== $student->lifecycle_stage->value])>
+                                        {{ $stage->label() }}
+                                    </span>
+                                </li>
                             @endforeach
-                        </select>
-                        <input type="file" name="file" class="text-sm" required>
-                        <x-primary-button>Déposer</x-primary-button>
-                    </form>
-                @endcan
+                        </ol>
+                    </div>
+
+                    @can('update', $student)
+                        @php $next = $student->lifecycle_stage->allowedNextStages(); @endphp
+                        @if (count($next))
+                            <div class="flex flex-wrap gap-2 mt-5 pt-4 border-t border-border/60">
+                                @foreach ($next as $stage)
+                                    <form method="POST" action="{{ route('students.stage', $student) }}">
+                                        @csrf
+                                        @method('PATCH')
+                                        <input type="hidden" name="stage" value="{{ $stage->value }}">
+                                        <button type="submit" class="text-sm bg-surface-inset px-3 py-1.5 rounded-ui-md text-content hover:shadow-soft-sm transition">
+                                            &rarr; {{ $stage->label() }}
+                                        </button>
+                                    </form>
+                                @endforeach
+                            </div>
+                        @endif
+                    @endcan
+                </x-card>
             </div>
-        </div>
+
+            {{-- Planning --}}
+            <div x-show="tab === 'planning'" x-cloak>
+                <x-card :padded="false">
+                    @php
+                        $sessions = \App\Domain\Scheduling\Models\LessonSession::query()
+                            ->where('student_id', $student->id)
+                            ->with('instructor', 'vehicle')
+                            ->orderByDesc('scheduled_date')
+                            ->limit(10)
+                            ->get();
+                    @endphp
+                    @if ($sessions->isEmpty())
+                        <p class="text-sm text-content-muted p-6 text-center">Aucune séance planifiée pour cet élève.</p>
+                    @else
+                        <ul class="divide-y divide-border/60">
+                            @foreach ($sessions as $session)
+                                <li class="px-5 py-3 flex items-center justify-between text-sm gap-3">
+                                    <div class="min-w-0">
+                                        <p class="text-content font-medium">{{ $session->scheduled_date->format('d/m/Y') }} &middot; {{ $session->starts_at }}–{{ $session->ends_at }}</p>
+                                        <p class="text-content-muted text-xs">{{ $session->type->label() }} &middot; {{ $session->instructor?->name ?? '—' }} &middot; {{ $session->vehicle?->plate ?? '—' }}</p>
+                                    </div>
+                                    <x-badge :variant="$session->presence?->value === 'present' ? 'success' : ($session->presence?->value === 'absent' ? 'danger' : 'neutral')">
+                                        {{ $session->presence?->label() ?? 'Prévue' }}
+                                    </x-badge>
+                                </li>
+                            @endforeach
+                        </ul>
+                    @endif
+                    <div class="px-5 py-3 border-t border-border/60">
+                        <a href="{{ route('scheduling.index', ['student_id' => $student->id]) }}" class="text-xs text-primary hover:underline">Voir le planning complet &rarr;</a>
+                    </div>
+                </x-card>
+            </div>
+
+            {{-- Paiements --}}
+            <div x-show="tab === 'paiements'" x-cloak>
+                <x-card :padded="false">
+                    @php
+                        $invoices = \App\Domain\Finance\Models\Invoice::query()
+                            ->where('student_id', $student->id)
+                            ->latest('issued_at')
+                            ->get();
+                    @endphp
+                    @if ($invoices->isEmpty())
+                        <p class="text-sm text-content-muted p-6 text-center">Aucune facture pour cet élève.</p>
+                    @else
+                        <ul class="divide-y divide-border/60">
+                            @foreach ($invoices as $invoice)
+                                <li class="px-5 py-3 flex items-center justify-between text-sm gap-3">
+                                    <div class="min-w-0">
+                                        <a href="{{ route('finance.invoices.show', $invoice) }}" class="text-content font-medium hover:text-primary transition">{{ $invoice->label }}</a>
+                                        <p class="text-content-muted text-xs">{{ $invoice->issued_at?->format('d/m/Y') }} &middot; {{ number_format((float) $invoice->amount_paid, 0, ',', ' ') }} / {{ number_format((float) $invoice->amount_due, 0, ',', ' ') }} FCFA</p>
+                                    </div>
+                                    <x-badge :variant="$invoice->status->value === 'paid' ? 'success' : ($invoice->status->value === 'unpaid' ? 'danger' : 'warning')">
+                                        {{ $invoice->status->label() }}
+                                    </x-badge>
+                                </li>
+                            @endforeach
+                        </ul>
+                    @endif
+                </x-card>
+            </div>
+
+            {{-- Documents --}}
+            <div x-show="tab === 'documents'" x-cloak>
+                <x-card>
+                    @php
+                        $documents = \App\Domain\Documents\Models\Document::query()
+                            ->where('documentable_type', $student->getMorphClass())
+                            ->where('documentable_id', $student->id)
+                            ->where('is_current', true)
+                            ->latest()
+                            ->get();
+                    @endphp
+
+                    <ul class="text-sm divide-y divide-border/60 mb-4">
+                        @forelse ($documents as $document)
+                            <li class="py-2.5 flex justify-between items-center">
+                                <span class="text-content">{{ $document->type->label() }} — {{ $document->original_name }} (v{{ $document->version }})</span>
+                                <a href="{{ route('documents.download', $document) }}" class="text-xs text-primary hover:underline">Télécharger</a>
+                            </li>
+                        @empty
+                            <li class="py-2.5 text-content-muted">Aucun document.</li>
+                        @endforelse
+                    </ul>
+
+                    @can('create', \App\Domain\Documents\Models\Document::class)
+                        <form method="POST" action="{{ route('students.documents.store', $student) }}" enctype="multipart/form-data" class="grid grid-cols-1 sm:grid-cols-3 gap-3 items-end pt-2">
+                            @csrf
+                            <select name="type" class="rounded-ui-md border-0 bg-surface-inset text-content shadow-inset focus:shadow-inset-focus focus:ring-0 text-sm block w-full">
+                                @foreach (\App\Domain\Documents\Enums\DocumentType::cases() as $case)
+                                    <option value="{{ $case->value }}">{{ $case->label() }}</option>
+                                @endforeach
+                            </select>
+                            <input type="file" name="file" class="text-sm text-content" required>
+                            <x-primary-button>Déposer</x-primary-button>
+                        </form>
+                    @endcan
+                </x-card>
+            </div>
+
+            {{-- Examens --}}
+            <div x-show="tab === 'examens'" x-cloak>
+                <x-card :padded="false">
+                    @php
+                        $exams = \App\Domain\Training\Models\Exam::query()
+                            ->where('student_id', $student->id)
+                            ->orderByDesc('exam_date')
+                            ->get();
+                    @endphp
+                    @if ($exams->isEmpty())
+                        <p class="text-sm text-content-muted p-6 text-center">Aucun examen enregistré.</p>
+                    @else
+                        <ul class="divide-y divide-border/60">
+                            @foreach ($exams as $exam)
+                                <li class="px-5 py-3 flex items-center justify-between text-sm gap-3">
+                                    <div class="min-w-0">
+                                        <p class="text-content font-medium">{{ $exam->type->label() }}</p>
+                                        <p class="text-content-muted text-xs">{{ $exam->exam_date->format('d/m/Y') }}</p>
+                                    </div>
+                                    <x-badge :variant="$exam->result->value === 'passed' ? 'success' : ($exam->result->value === 'failed' ? 'danger' : 'neutral')">
+                                        {{ $exam->result->label() }}
+                                    </x-badge>
+                                </li>
+                            @endforeach
+                        </ul>
+                    @endif
+                </x-card>
+            </div>
+
+            {{-- Historique --}}
+            <div x-show="tab === 'historique'" x-cloak>
+                <x-card :padded="false">
+                    @php
+                        $logs = \App\Domain\Audit\Models\AuditLog::query()
+                            ->where('auditable_type', $student->getMorphClass())
+                            ->where('auditable_id', $student->id)
+                            ->with('user')
+                            ->latest()
+                            ->limit(20)
+                            ->get();
+                    @endphp
+                    @if ($logs->isEmpty())
+                        <p class="text-sm text-content-muted p-6 text-center">Aucun historique disponible.</p>
+                    @else
+                        <ul class="divide-y divide-border/60">
+                            @foreach ($logs as $log)
+                                <li class="px-5 py-3 text-sm">
+                                    <p class="text-content">{{ $log->action }} <span class="text-content-muted">— {{ $log->user?->name ?? 'Système' }}</span></p>
+                                    <p class="text-content-muted text-xs">{{ $log->created_at->format('d/m/Y H:i') }}</p>
+                                </li>
+                            @endforeach
+                        </ul>
+                    @endif
+                </x-card>
+            </div>
+        </x-tabs>
     </div>
 </x-app-layout>

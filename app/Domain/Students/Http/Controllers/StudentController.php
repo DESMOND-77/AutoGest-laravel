@@ -3,6 +3,8 @@
 namespace App\Domain\Students\Http\Controllers;
 
 use App\Domain\Audit\Services\AuditService;
+use App\Domain\Students\Enums\CourseType;
+use App\Domain\Students\Enums\LicenseCategory;
 use App\Domain\Students\Enums\LifecycleStage;
 use App\Domain\Students\Http\Requests\StoreStudentRequest;
 use App\Domain\Students\Http\Requests\UpdateStudentRequest;
@@ -26,12 +28,21 @@ class StudentController extends Controller
         private readonly AuditService $audit,
     ) {}
 
-    public function index(): View
+    public function index(Request $request): View
     {
         $this->authorize('viewAny', Student::class);
 
+        $filters = $request->only([
+            'search', 'stage', 'license_category', 'course_type', 'instructor_id', 'registered_from', 'registered_to',
+        ]);
+
         return view('students.index', [
-            'students' => $this->students->paginate(),
+            'students' => $this->students->paginate($filters),
+            'filters' => $filters,
+            'stages' => LifecycleStage::cases(),
+            'licenseCategories' => LicenseCategory::cases(),
+            'courseTypes' => CourseType::cases(),
+            'instructors' => $this->instructors(),
         ]);
     }
 
