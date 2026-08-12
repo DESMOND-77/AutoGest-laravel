@@ -82,7 +82,7 @@ Un test d'architecture Pest (`tests/Architecture/DomainBoundariesTest.php`) **fa
 - Impact : impossible de confirmer dans cette passe d'audit que les 96+ cas de test recensés passent réellement. Le rapport de mission (§43) impose de ne jamais prétendre qu'un test passe sans l'avoir exécuté — donc **aucune affirmation de succès des tests n'est faite ici**.
 - Preuve : tentative d'exécution documentée par l'agent d'audit (échec `vendor/autoload.php`).
 - Solution recommandée : dans un environnement disposant de `composer install` + MySQL configuré, exécuter `php artisan test --compact` et consigner le résultat réel avant de considérer une quelconque fonctionnalité comme validée. C'est un prérequis bloquant pour l'étape 9 (Tests) du plan d'exécution.
-- Statut : Bloquant — à lever en priorité absolue à la prochaine session avec environnement complet.
+- Statut : **CORRIGÉ (2026-08-12)** — environnement complet provisionné (`composer install`, `.env` + clé d'application, `npm install && npm run build`, MySQL de test déjà accessible avec les identifiants de `phpunit.xml`). Suite complète exécutée et **réellement vérifiée verte** : 130/130 tests passants après l'ensemble des corrections de cette session (114/114 sur la baseline avant modification).
 
 **[MEDIUM] TECH-06 — Requêtes de reporting couplées à la syntaxe MySQL**
 - Domaine : Reports

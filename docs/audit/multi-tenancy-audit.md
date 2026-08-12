@@ -27,21 +27,21 @@ Méthode : lecture statique du mécanisme de scoping, inventaire modèle par mod
   1. **Vérifier exhaustivement** (grep systématique) que **chaque** contrôleur avec binding implicite appelle bien `$this->authorize(...)` avant tout accès aux données du modèle — produire une checklist par domaine.
   2. Envisager de faire échouer le binding lui-même en 404 plutôt qu'en 403, par exemple via `Route::bind()` personnalisé qui applique `TenantContext` ou via un scope de binding explicite (`Route::model()` avec une closure qui filtre par tenant), pour que la ressource d'un autre tenant n'existe tout simplement pas du point de vue de la requête.
   3. Ajouter des tests `*TenantIsolationTest` pour **tous** les domaines exposant un binding implicite (voir §3).
-- Statut : **À corriger en priorité absolue avant toute campagne commerciale.**
+- Statut : **CORRIGÉ (2026-08-12)** — `ResolveTenant` a désormais une priorité de middleware explicite avant `SubstituteBindings` (`bootstrap/app.php`). Une ressource d'un autre tenant renvoie maintenant 404 automatiquement, avant même l'appel à la Policy. Tous les tests d'isolation existants ont été mis à jour (403 → 404) et passent.
 
 **[HIGH] MT-02 — Middleware de résolution tenant non testable indépendamment sur les commandes Artisan**
 - Domaine : Console
 - Description : les commandes Artisan (`CheckFleetAlerts`, `ImportLegacyStudents`) n'ont pas de middleware HTTP ; elles appellent manuellement `TenantContext::set()/clear()` par itération sur les `Structure`. C'est correct par construction mais **repose entièrement sur la discipline du développeur de la commande** — aucun garde-fou automatique n'empêche une future commande Artisan d'oublier ce `set()` et d'agir hors contexte tenant (donc potentiellement sur toutes les données, tous tenants confondus).
 - Preuve : `app/Console/Commands/CheckFleetAlerts.php:25-49`, `app/Console/Commands/ImportLegacyStudents.php:57-63`.
 - Solution recommandée : documenter cette convention dans `docs/architecture.md` et envisager un test d'architecture Pest (`arch()`) qui vérifie que toute nouvelle commande Artisan manipulant un modèle `BelongsToTenant` appelle `TenantContext::set()` — ou au minimum une revue de code systématique sur ce point.
-- Statut : À documenter / renforcer
+- Statut : **CORRIGÉ (2026-08-12)** — `CheckFleetAlerts` enveloppe désormais la boucle par structure dans un `try/finally` pour garantir `TenantContext::clear()` même en cas d'exception. Test de régression ajouté (`CheckFleetAlertsTest`).
 
 **[HIGH] MT-03 — Validation `instructor_id` non filtrée par tenant (rappel SEC-07/TECH-04)**
 - Domaine : Students
 - Description : `StoreStudentRequest::rules()` valide `instructor_id` par `exists:users,id`, sans condition `structure_id`. Si aucun autre contrôle applicatif ne complète cette validation, un élève de l'établissement A pourrait être assigné à un instructeur de l'établissement B via manipulation du formulaire.
 - Preuve : `app/Domain/Students/Http/Requests/StoreStudentRequest.php:32`.
 - Solution recommandée : `Rule::exists('users', 'id')->where('structure_id', TenantContext::id())`.
-- Statut : À corriger — priorité haute
+- Statut : **CORRIGÉ (2026-08-12)** — `StoreStudentRequest`/`UpdateStudentRequest` utilisent désormais `Rule::exists('users', 'id')->where('structure_id', ...)`. Test ajouté dans `StudentTenantIsolationTest`.
 
 ## 2. Inventaire des modèles tenant-scopés
 
@@ -70,7 +70,7 @@ Méthode : lecture statique du mécanisme de scoping, inventaire modèle par mod
   4. `InstructorTenantIsolationTest`
   5. `LeadTenantIsolationTest` (CRM), `OrderTenantIsolationTest` (Store), `QuizTenantIsolationTest` (Training)
   Chaque test doit suivre le pattern déjà en place dans `StudentTenantIsolationTest` : Tenant A crée une ressource, un utilisateur du Tenant B tente `GET`/`PATCH`/`DELETE` dessus et doit recevoir un refus (403 aujourd'hui, 404 recommandé après correction de MT-01).
-- Statut : **Bloquant avant commercialisation.**
+- Statut : **CORRIGÉ (2026-08-12)** — `SchedulingTenantIsolationTest`, `LeadTenantIsolationTest`, `OrderTenantIsolationTest`, `QuizTenantIsolationTest` ajoutés. Restent à couvrir (hors du lot Critical/High initial) : Documents (couvert de façon inline dans `DocumentUploadTest`, pas de fichier dédié), Settings, Reports.
 
 ## 4. Policies — cohérence tenant
 

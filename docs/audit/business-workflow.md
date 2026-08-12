@@ -46,13 +46,13 @@ Périmètre : cycle de vie élève, facturation/paiement, planning (conflits).
 - Description : rappel de SEC-08. `StorePaymentRequest` valide `amount` sans lien avec `Invoice::balanceDue()`. `statusFor()` traite tout `amount_paid >= amount_due` comme `Paid`, quel que soit le dépassement.
 - Impact : un paiement de 500 000 FCFA sur une facture de 100 000 FCFA serait accepté silencieusement, sans notion de crédit/avoir, sans possibilité de le corriger (voir FIN-02).
 - Solution recommandée : ajouter une contrainte de validation (bloquante ou avec confirmation explicite) + réfléchir à un mécanisme de crédit si le sur-paiement est un cas métier légitime (ex. acompte pour formation suivante).
-- Statut : À corriger — zone financière critique
+- Statut : **CORRIGÉ (2026-08-12)** — `StorePaymentRequest` rejette désormais tout montant dépassant `Invoice::balanceDue()` (calcul bcmath, cohérent avec `PaymentService`). Tests ajoutés dans `PaymentRecordingTest`.
 
 **[HIGH] FIN-02 — Aucun mécanisme de remboursement / annulation de paiement**
 - Description : recherche exhaustive de `refund|Refund|cancel|Cancel` dans `app/Domain/Finance` : aucun résultat. Il n'existe **aucun chemin applicatif** pour annuler ou rembourser un paiement enregistré par erreur, ni pour annuler une facture.
 - Impact : contraire à l'exigence CLAUDE.md §10 qui liste explicitement "annulation, remboursement, suppression, modification" parmi les scénarios à tester. Aujourd'hui, une erreur de saisie financière (mauvais montant, mauvaise facture) ne peut être corrigée que par une intervention manuelle en base de données — inacceptable pour un SaaS commercial.
 - Solution recommandée : concevoir un workflow d'annulation/remboursement avec sa propre trace d'audit et son propre impact sur le ledger (écriture compensatoire plutôt que suppression, pour préserver l'intégrité comptable).
-- Statut : **Bloquant avant commercialisation** — le domaine Finance ne peut pas être considéré "complet" tant que ce chemin n'existe pas.
+- Statut : **CORRIGÉ (2026-08-12)** — `PaymentService::cancel()` : annulation transactionnelle d'un paiement (jamais de suppression), rollback de `Invoice.amount_paid`/`status`, écriture compensatoire de type `Expense` dans le ledger. Nouvelle `PaymentPolicy`, route `finance.payments.cancel`, bouton "Annuler" dans la vue facture. Tests dans `PaymentRecordingTest` (annulation simple, double-annulation refusée, solde libéré après annulation) et `InvoiceTenantIsolationTest` (isolation tenant sur l'annulation).
 
 **[INFO] FIN-03 — Séparation propre Invoice / Payment / Ledger**
 - Description : `InvoicingService` (création facture, toujours `Unpaid` initialement), `PaymentService` (paiement, transactionnel), `LedgerService::recordManual()` (écritures manuelles hors facture — salaires, dépenses). Bonne séparation des responsabilités, amélioration architecturale confirmée par rapport à l'ancienne app (table `paiements` plate + `transactions` génériques).

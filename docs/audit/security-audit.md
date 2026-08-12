@@ -59,7 +59,7 @@ Voir `docs/audit/multi-tenancy-audit.md` pour le détail complet des policies et
 - Description : voir TECH-04 / MT-03. `StoreStudentRequest` valide seulement l'existence de l'utilisateur, pas son appartenance au tenant courant.
 - Impact : potentiel contournement multi-tenant via manipulation de formulaire (POST direct avec un `instructor_id` d'un autre établissement). Sévérité HIGH tant que non confirmé/infirmé par du code applicatif compensatoire.
 - Solution recommandée : `Rule::exists('users', 'id')->where(fn ($q) => $q->where('structure_id', TenantContext::id()))`.
-- Statut : À corriger — priorité HIGH
+- Statut : **CORRIGÉ (2026-08-12)** — voir `multi-tenancy-audit.md` MT-03.
 
 **[MEDIUM] SEC-08 — Pas de plafond de paiement (overpayment)**
 - Domaine : Finance
@@ -67,7 +67,7 @@ Voir `docs/audit/multi-tenancy-audit.md` pour le détail complet des policies et
 - Impact : un paiement peut être enregistré pour un montant très supérieur à la dette réelle, sans blocage ni avertissement, et sans mécanisme de remboursement/avoir pour corriger — voir aussi `docs/audit/business-workflow.md` FIN-01.
 - Preuve : `app/Domain/Finance/Http/Requests/StorePaymentRequest.php`, `app/Domain/Finance/Services/PaymentService.php:56-63`.
 - Solution recommandée : ajouter une validation applicative (pas nécessairement bloquante, mais au minimum un warning de confirmation) et envisager un concept de crédit/avoir si le sur-paiement est un cas métier réel (acompte, arrondi).
-- Statut : À corriger (zone financière critique — cf. §10 CLAUDE.md)
+- Statut : **CORRIGÉ (2026-08-12)** — voir `business-workflow.md` FIN-01.
 
 ## 5. Uploads / stockage de documents
 

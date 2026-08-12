@@ -12,7 +12,7 @@ Méthode : revue statique des layouts Blade et de la config Tailwind (l'applicat
 - Impact : régression directe par rapport à l'ancienne application (`autoecole_jh`), qui avait un vrai toggle Light/Dark, persistant en session serveur ET en `localStorage`, actif dès le rendu serveur (`data-theme` sur `<html>`). Contraire à l'exigence explicite CLAUDE.md §15 (Light/Dark/Système, persistant).
 - Point positif à exploiter : `Setting.default_theme` **existe déjà** en base (`app/Domain/Settings/Models/Setting.php`) — la modélisation backend de la préférence est à moitié faite, il manque le toggle et le branchement.
 - Solution recommandée : `tailwind.config.js` → `darkMode: 'class'`, ajouter un toggle Alpine.js qui bascule une classe sur `<html>`, persiste en `localStorage` + éventuellement `PATCH settings` pour la préférence par défaut du compte.
-- Statut : À corriger — priorité §15 CLAUDE.md
+- Statut : **CORRIGÉ (2026-08-12)** — `darkMode: 'class'` activé, toggle Light/Dark/Système (`components/theme-toggle.blade.php`) ajouté à la navigation desktop et mobile, persistance `localStorage`, application pré-peinture via `components/theme-init-script.blade.php` (évite le flash du mauvais thème). La synchronisation avec `Setting.default_theme` (préférence par tenant) reste un fast-follow non traité ici.
 
 ## 2. Tableaux et responsive
 
@@ -21,7 +21,7 @@ Méthode : revue statique des layouts Blade et de la config Tailwind (l'applicat
 - Impact : sur un écran étroit (mobile 390/430, cf. §18 CLAUDE.md), un tableau plus large que le viewport n'est **pas défilable** — son contenu est purement et simplement **coupé/masqué** (`overflow-hidden` cache tout dépassement au lieu de permettre un scroll). C'est un défaut systématique, pas un cas isolé, qui touche potentiellement toutes les listes de l'application sur mobile.
 - Preuve : `resources/views/students/index.blade.php:24-25`, `resources/views/finance/invoices/index.blade.php:15-16`, `resources/views/scheduling/index.blade.php:78-79`, `resources/views/fleet/index.blade.php:47-48` (et 13 autres vues au même pattern).
 - Solution recommandée : remplacer `overflow-hidden` par `overflow-x-auto` sur le conteneur de scroll horizontal (en conservant un wrapper externe `overflow-hidden` séparé pour les coins arrondis si nécessaire — pattern classique : wrapper externe `rounded-lg overflow-hidden`, wrapper interne `overflow-x-auto` autour du `<table>`). Envisager une vue carte (stack) pour mobile sur les tableaux les plus denses (Finance, Scheduling), conformément à §18 CLAUDE.md.
-- Statut : **Bug systématique à corriger avant l'étape 21 (pages débordantes) du plan.**
+- Statut : **CORRIGÉ (2026-08-12)** — un wrapper `overflow-x-auto` a été ajouté autour du `<table>` dans les 16 vues concernées (le wrapper externe `rounded-lg overflow-hidden` est conservé pour les coins arrondis). La vue carte mobile pour les tableaux denses reste une amélioration future, pas traitée ici.
 
 ## 3. Planning — reconstruction en grille
 
