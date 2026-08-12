@@ -30,8 +30,13 @@ class LessonSessionController extends Controller
             ? Carbon::parse($request->query('week'))->startOfWeek()
             : now()->startOfWeek();
 
+        $filters = $request->only(['instructor_id', 'vehicle_id', 'student_id']);
+
         $sessions = LessonSession::query()
             ->whereBetween('scheduled_date', [$week->toDateString(), $week->copy()->endOfWeek()->toDateString()])
+            ->when($filters['instructor_id'] ?? null, fn ($query, $value) => $query->where('instructor_id', $value))
+            ->when($filters['vehicle_id'] ?? null, fn ($query, $value) => $query->where('vehicle_id', $value))
+            ->when($filters['student_id'] ?? null, fn ($query, $value) => $query->where('student_id', $value))
             ->with(['student', 'instructor', 'vehicle'])
             ->orderBy('scheduled_date')->orderBy('starts_at')
             ->get();
@@ -39,6 +44,7 @@ class LessonSessionController extends Controller
         return view('scheduling.index', [
             'sessions' => $sessions,
             'week' => $week,
+            'filters' => $filters,
             'students' => Student::query()->orderBy('last_name')->get(),
             'instructors' => User::role('moniteur')->orderBy('name')->get(),
             'vehicles' => Vehicle::query()->orderBy('plate')->get(),

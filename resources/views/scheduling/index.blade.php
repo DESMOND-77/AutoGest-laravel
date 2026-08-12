@@ -15,13 +15,50 @@
                 <div class="bg-red-100 text-red-800 text-sm rounded-md p-3">{{ $errors->first() }}</div>
             @endif
 
-            <div class="flex gap-3 text-sm">
-                <a href="{{ route('scheduling.index', ['week' => $week->copy()->subWeek()->toDateString()]) }}" class="underline">&larr; Semaine précédente</a>
-                <a href="{{ route('scheduling.index', ['week' => $week->copy()->addWeek()->toDateString()]) }}" class="underline">Semaine suivante &rarr;</a>
+            <div class="flex flex-wrap items-center justify-between gap-3">
+                <div class="flex gap-3 text-sm">
+                    <a href="{{ route('scheduling.index', array_merge($filters, ['week' => $week->copy()->subWeek()->toDateString()])) }}" class="underline">&larr; Semaine précédente</a>
+                    <a href="{{ route('scheduling.index', array_merge($filters, ['week' => $week->copy()->addWeek()->toDateString()])) }}" class="underline">Semaine suivante &rarr;</a>
+                </div>
+
+                <form method="GET" action="{{ route('scheduling.index') }}" class="flex flex-wrap items-end gap-2 text-sm">
+                    <input type="hidden" name="week" value="{{ $week->toDateString() }}">
+                    <div>
+                        <label for="filter_student_id" class="block text-xs text-gray-500">Élève</label>
+                        <select id="filter_student_id" name="student_id" onchange="this.form.submit()" class="text-sm border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 rounded-md">
+                            <option value="">Tous</option>
+                            @foreach ($students as $student)
+                                <option value="{{ $student->id }}" @selected(($filters['student_id'] ?? null) == $student->id)>{{ $student->fullName() }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <div>
+                        <label for="filter_instructor_id" class="block text-xs text-gray-500">Moniteur</label>
+                        <select id="filter_instructor_id" name="instructor_id" onchange="this.form.submit()" class="text-sm border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 rounded-md">
+                            <option value="">Tous</option>
+                            @foreach ($instructors as $instructor)
+                                <option value="{{ $instructor->id }}" @selected(($filters['instructor_id'] ?? null) == $instructor->id)>{{ $instructor->name }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <div>
+                        <label for="filter_vehicle_id" class="block text-xs text-gray-500">Véhicule</label>
+                        <select id="filter_vehicle_id" name="vehicle_id" onchange="this.form.submit()" class="text-sm border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 rounded-md">
+                            <option value="">Tous</option>
+                            @foreach ($vehicles as $vehicle)
+                                <option value="{{ $vehicle->id }}" @selected(($filters['vehicle_id'] ?? null) == $vehicle->id)>{{ $vehicle->plate }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                    @if (array_filter($filters))
+                        <a href="{{ route('scheduling.index', ['week' => $week->toDateString()]) }}" class="text-xs underline text-gray-500">Réinitialiser</a>
+                    @endif
+                </form>
             </div>
 
             <div class="bg-white dark:bg-gray-800 shadow-sm rounded-lg p-6">
                 <div class="text-sm font-medium text-gray-900 dark:text-gray-100 mb-3">Planifier une séance</div>
+                <p class="text-xs text-gray-500 mb-3">Cliquez directement dans une colonne du planning ci-dessous pour préremplir la date et l'heure.</p>
                 <form id="scheduling-create-form" method="POST" action="{{ route('scheduling.store') }}" class="grid grid-cols-6 gap-3 items-end">
                     @csrf
                     <div class="col-span-2">
@@ -75,51 +112,47 @@
                 </form>
             </div>
 
-            <div class="bg-white dark:bg-gray-800 shadow-sm sm:rounded-lg overflow-hidden">
-                <div class="overflow-x-auto">
-                    <table class="w-full text-sm text-left">
-                    <thead class="bg-gray-50 dark:bg-gray-700 text-gray-600 dark:text-gray-300">
-                        <tr>
-                            <th class="px-4 py-3">Date</th>
-                            <th class="px-4 py-3">Horaire</th>
-                            <th class="px-4 py-3">Élève</th>
-                            <th class="px-4 py-3">Moniteur</th>
-                            <th class="px-4 py-3">Véhicule</th>
-                            <th class="px-4 py-3">Type</th>
-                            <th class="px-4 py-3">Présence</th>
-                            <th class="px-4 py-3"></th>
-                        </tr>
-                    </thead>
-                    <tbody class="divide-y divide-gray-100 dark:divide-gray-700">
-                        @forelse ($sessions as $session)
-                            <tr>
-                                <td class="px-4 py-3">{{ $session->scheduled_date->format('d/m') }}</td>
-                                <td class="px-4 py-3">{{ substr($session->starts_at, 0, 5) }}–{{ substr($session->ends_at, 0, 5) }}</td>
-                                <td class="px-4 py-3">{{ $session->student->fullName() }}</td>
-                                <td class="px-4 py-3">{{ $session->instructor->name }}</td>
-                                <td class="px-4 py-3">{{ $session->vehicle->plate ?? '—' }}</td>
-                                <td class="px-4 py-3">{{ $session->type->label() }}</td>
-                                <td class="px-4 py-3">{{ $session->presence->label() }}</td>
-                                <td class="px-4 py-3">
-                                    <form method="POST" action="{{ route('scheduling.destroy', $session) }}" onsubmit="return confirm('Annuler cette séance ?');">
-                                        @csrf @method('DELETE')
-                                        <button type="submit" class="text-xs text-red-600 underline">Annuler</button>
-                                    </form>
-                                </td>
-                            </tr>
-                        @empty
-                            <x-empty-table-row
-                                colspan="8"
-                                title="Aucune séance planifiée cette semaine."
-                                message="Planifiez une séance pour un élève avec le formulaire ci-dessus."
-                                action="#scheduling-create-form"
-                                action-label="Planifier une séance"
-                            />
-                        @endforelse
-                    </tbody>
-                </table>
+            @if ($sessions->isEmpty())
+                <div class="bg-white dark:bg-gray-800 shadow-sm rounded-lg p-10 text-center">
+                    <p class="text-sm font-medium text-gray-700 dark:text-gray-300">Aucune séance planifiée cette semaine.</p>
+                    <p class="text-sm text-gray-500 mt-1">Planifiez une séance pour un élève avec le formulaire ci-dessus.</p>
                 </div>
-            </div>
+            @else
+                <x-planning-grid :sessions="$sessions" :week="$week" />
+            @endif
         </div>
     </div>
+
+    <script>
+        document.querySelectorAll('[data-day-column]').forEach((column) => {
+            column.addEventListener('click', (event) => {
+                if (event.target.closest('form, button, a, select')) {
+                    return;
+                }
+
+                const rect = column.getBoundingClientRect();
+                const offsetY = event.clientY - rect.top;
+                const dayStart = parseInt(column.dataset.dayStartHour, 10);
+                const dayEnd = parseInt(column.dataset.dayEndHour, 10);
+                const totalMinutes = (dayEnd - dayStart) * 60;
+
+                let minutes = dayStart * 60 + (offsetY / rect.height) * totalMinutes;
+                minutes = Math.round(minutes / 15) * 15; // snap to the nearest quarter hour
+                minutes = Math.max(dayStart * 60, Math.min(minutes, dayEnd * 60 - 30));
+
+                const format = (totalMin) => {
+                    const h = Math.floor(totalMin / 60).toString().padStart(2, '0');
+                    const m = (totalMin % 60).toString().padStart(2, '0');
+                    return `${h}:${m}`;
+                };
+
+                document.getElementById('scheduled_date').value = column.dataset.date;
+                document.getElementById('starts_at').value = format(minutes);
+                document.getElementById('ends_at').value = format(minutes + 60);
+
+                document.getElementById('scheduling-create-form').scrollIntoView({ behavior: 'smooth', block: 'center' });
+                document.getElementById('student_id').focus();
+            });
+        });
+    </script>
 </x-app-layout>
