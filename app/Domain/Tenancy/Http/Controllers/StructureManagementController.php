@@ -25,6 +25,8 @@ class StructureManagementController extends Controller
 
     public function index(Request $request): View
     {
+        $this->authorize('viewAny', Structure::class);
+
         $status = $request->query('status');
 
         $structures = Structure::query()
@@ -43,6 +45,8 @@ class StructureManagementController extends Controller
 
     public function updateStatus(Request $request, Structure $structure): RedirectResponse
     {
+        $this->authorize('update', $structure);
+
         $data = $request->validate([
             'status' => ['required', new Enum(StructureStatus::class)],
         ]);
@@ -63,6 +67,8 @@ class StructureManagementController extends Controller
 
     public function destroy(Structure $structure): RedirectResponse
     {
+        $this->authorize('delete', $structure);
+
         $this->audit->log('structure.deleted', $structure, $structure->only(['name', 'status']), [], Auth::user());
 
         $structure->delete();

@@ -17,7 +17,11 @@ Route::middleware('guest')->group(function () {
     Route::get('register', [StructureRegistrationController::class, 'create'])
         ->name('register');
 
-    Route::post('register', [StructureRegistrationController::class, 'store']);
+    // SEC-03: this creates a new tenant (and sends no confirmation email to
+    // throttle abuse the way password reset does), so it gets the same
+    // throttle as the other unauthenticated write endpoints below.
+    Route::post('register', [StructureRegistrationController::class, 'store'])
+        ->middleware('throttle:6,1');
 
     Route::get('login', [AuthenticatedSessionController::class, 'create'])
         ->name('login');
@@ -27,7 +31,10 @@ Route::middleware('guest')->group(function () {
     Route::get('forgot-password', [PasswordResetLinkController::class, 'create'])
         ->name('password.request');
 
+    // SEC-03: unthrottled, this endpoint sends an email per request —
+    // an easy mail-bombing/enumeration vector against any address.
     Route::post('forgot-password', [PasswordResetLinkController::class, 'store'])
+        ->middleware('throttle:6,1')
         ->name('password.email');
 
     Route::get('reset-password/{token}', [NewPasswordController::class, 'create'])

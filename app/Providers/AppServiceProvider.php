@@ -30,14 +30,18 @@ use App\Domain\Settings\Models\Setting;
 use App\Domain\Settings\Policies\SettingPolicy;
 use App\Domain\Store\Models\Order;
 use App\Domain\Store\Models\Product;
+use App\Domain\Store\Models\Supplier;
 use App\Domain\Store\Policies\OrderPolicy;
 use App\Domain\Store\Policies\ProductPolicy;
+use App\Domain\Store\Policies\SupplierPolicy;
 use App\Domain\Students\Events\StudentStageChanged;
 use App\Domain\Students\Listeners\LogStageChange;
 use App\Domain\Students\Models\Student;
 use App\Domain\Students\Policies\StudentPolicy;
 use App\Domain\Students\Repositories\EloquentStudentRepository;
 use App\Domain\Students\Repositories\StudentRepositoryInterface;
+use App\Domain\Tenancy\Models\Structure;
+use App\Domain\Tenancy\Policies\StructurePolicy;
 use App\Domain\Training\Models\Exam;
 use App\Domain\Training\Models\QuizAttempt;
 use App\Domain\Training\Models\Skill;
@@ -75,6 +79,7 @@ class AppServiceProvider extends ServiceProvider
         Gate::policy(Exam::class, ExamPolicy::class);
         Gate::policy(Vehicle::class, VehiclePolicy::class);
         Gate::policy(Product::class, ProductPolicy::class);
+        Gate::policy(Supplier::class, SupplierPolicy::class);
         Gate::policy(Order::class, OrderPolicy::class);
         Gate::policy(Lead::class, LeadPolicy::class);
         Gate::policy(Document::class, DocumentPolicy::class);
@@ -82,6 +87,7 @@ class AppServiceProvider extends ServiceProvider
         Gate::policy(Instructor::class, InstructorPolicy::class);
         Gate::policy(Setting::class, SettingPolicy::class);
         Gate::policy(QuizAttempt::class, QuizAttemptPolicy::class);
+        Gate::policy(Structure::class, StructurePolicy::class);
 
         // RecordVehicleExpenseInLedger lives in app/Listeners, where Laravel's
         // event auto-discovery already finds it by its handle(VehicleExpenseRecorded)

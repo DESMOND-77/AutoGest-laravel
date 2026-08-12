@@ -58,7 +58,7 @@ Un test d'architecture Pest (`tests/Architecture/DomainBoundariesTest.php`) **fa
 - Impact : cohérence — tous les autres domaines utilisent des Policies explicites ; ces deux exceptions cassent le pattern et rendent l'audit d'autorisation moins lisible. Pas de faille de sécurité immédiate tant que le rôle suffit à porter l'autorisation métier.
 - Preuve : `routes/web.php` (`suppliers.store`, `superadmin/structures*`), absence de fichier dans `app/Domain/Store/Policies/` et `app/Domain/Tenancy/Policies/`.
 - Solution recommandée : créer `SupplierPolicy` et `StructurePolicy` pour homogénéiser, même si le comportement actuel (role-only) est fonctionnellement correct.
-- Statut : À corriger (MEDIUM priorité basse)
+- Statut : **CORRIGÉ (2026-08-12)** — `SupplierPolicy` (`create`) et `StructurePolicy` (`viewAny`/`update`/`delete`) créées et enregistrées ; `SupplierController` n'emprunte plus `ProductPolicy` par contournement, `StructureManagementController` appelle désormais `authorize()` sur chaque action comme tous les autres contrôleurs. Tests ajoutés dans `SupplierControllerTest`.
 
 **[LOW] TECH-03 — Mixage de versions Tailwind (core v3 + plugin Vite v4)**
 - Domaine : Frontend build
@@ -66,7 +66,7 @@ Un test d'architecture Pest (`tests/Architecture/DomainBoundariesTest.php`) **fa
 - Impact : risque de build cassé ou de configuration `tailwind.config.js` ignorée selon la résolution effective par Vite ; à vérifier avec `npm run build` avant toute campagne de reconstruction UX.
 - Preuve : `package.json`
 - Solution recommandée : fixer la paire de versions (soit tout v3 + `@tailwindcss/postcss`, soit migration complète v4), puis lancer `npm run build` pour confirmer qu'aucune classe `dark:`/utilitaire n'est perdue silencieusement.
-- Statut : À vérifier avant étape 10 (reconstruction UI/UX)
+- Statut : **CORRIGÉ (2026-08-12)** — investigation : `@tailwindcss/vite` (v4) était présent dans `package.json` mais **jamais importé** dans `vite.config.js` (qui n'utilise que `laravel-vite-plugin`) ni dans `postcss.config.js` (qui utilise la chaîne classique `tailwindcss`/`autoprefixer`, cohérente avec `tailwindcss: ^3.1.0`). Ce n'était donc pas un conflit actif, juste une dépendance morte. Package retiré de `package.json`, `npm run build` reconfirmé identique (même hash de sortie CSS).
 
 **[HIGH] TECH-04 — `instructor_id` non contraint au tenant dans la validation**
 - Domaine : Students

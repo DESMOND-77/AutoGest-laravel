@@ -46,3 +46,23 @@ it('allows two different schools to register admins with the same email', functi
 
     expect(User::where('email', 'shared@example.com')->count())->toBe(2);
 });
+
+it('rate limits repeated registration attempts', function () {
+    for ($i = 0; $i < 6; $i++) {
+        $this->post('/register', [
+            'school_name' => "École $i",
+            'admin_name' => "Admin $i",
+            'admin_email' => "admin{$i}@example.com",
+            'password' => 'password123',
+            'password_confirmation' => 'password123',
+        ]);
+    }
+
+    $this->post('/register', [
+        'school_name' => 'École trop',
+        'admin_name' => 'Admin trop',
+        'admin_email' => 'trop@example.com',
+        'password' => 'password123',
+        'password_confirmation' => 'password123',
+    ])->assertStatus(429);
+});

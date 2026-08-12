@@ -27,7 +27,7 @@ Méthode : lecture statique + revue ciblée du code d'auth, de validation et d'u
 - Impact : les endpoints métier (création de facture, envoi de formulaires) restent exposés à un flood applicatif basique sans limite de débit — risque faible sur une app B2B interne mais à surveiller si l'inscription publique (`StructureRegistrationController`) est exposée publiquement sans captcha.
 - Preuve : `bootstrap/app.php` (aucun throttle générique déclaré).
 - Solution recommandée : ajouter un throttle raisonnable sur les formulaires publics (inscription structure), et envisager un captcha si des abus sont constatés en production.
-- Statut : À surveiller
+- Statut : **CORRIGÉ (2026-08-12)** — `throttle:6,1` ajouté sur `POST /register` (inscription établissement) et `POST /forgot-password` (envoi d'email non throttlé auparavant — vecteur de mail-bombing). Le reste des endpoints métier authentifiés reste sans throttle générique (risque jugé faible pour une app B2B interne) ; un captcha sur l'inscription publique reste une amélioration future si des abus sont constatés en production.
 
 ## 2. Autorisation (RBAC / Policies)
 
