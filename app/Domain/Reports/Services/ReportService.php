@@ -4,6 +4,9 @@ namespace App\Domain\Reports\Services;
 
 use App\Domain\Finance\Enums\LedgerEntryType;
 use App\Domain\Finance\Models\LedgerEntry;
+use App\Domain\Finance\Models\Payment;
+use App\Domain\Fleet\Enums\VehicleStatus;
+use App\Domain\Fleet\Models\Vehicle;
 use App\Domain\Fleet\Services\AlertService;
 use App\Domain\Students\Enums\LifecycleStage;
 use App\Domain\Students\Models\Student;
@@ -90,5 +93,49 @@ class ReportService
     public function fleetAlertCount(): int
     {
         return $this->fleetAlerts->count();
+    }
+
+    /**
+     * @return Collection<int, Payment>
+     */
+    public function recentPayments(int $limit = 5): Collection
+    {
+        return Payment::query()
+            ->whereNull('cancelled_at')
+            ->with('invoice.student')
+            ->latest('paid_at')
+            ->limit($limit)
+            ->get();
+    }
+
+    /**
+     * @return Collection<int, Exam>
+     */
+    public function upcomingExams(int $limit = 5): Collection
+    {
+        return Exam::query()
+            ->where('result', ExamResult::Pending)
+            ->where('exam_date', '>=', now()->toDateString())
+            ->with('student')
+            ->orderBy('exam_date')
+            ->limit($limit)
+            ->get();
+    }
+
+    /**
+     * @return array<string, int> keyed by VehicleStatus label
+     */
+    public function vehicleStatusCounts(): array
+    {
+        $counts = Vehicle::query()
+            ->selectRaw('status, count(*) as total')
+            ->groupBy('status')
+            ->pluck('total', 'status');
+
+        return collect(VehicleStatus::cases())
+            ->mapWithKeys(fn (VehicleStatus $status) => [
+                $status->label() => (int) ($counts[$status->value] ?? 0),
+            ])
+            ->all();
     }
 }

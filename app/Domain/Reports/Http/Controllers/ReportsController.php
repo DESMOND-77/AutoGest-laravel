@@ -21,6 +21,9 @@ class ReportsController extends Controller
             'examStats' => $this->reports->examResultsSummary(),
             'studentsByStage' => $this->reports->studentsByStage(),
             'fleetAlertCount' => $this->reports->fleetAlertCount(),
+            'recentPayments' => $this->reports->recentPayments(),
+            'upcomingExams' => $this->reports->upcomingExams(),
+            'vehicleStatusCounts' => $this->reports->vehicleStatusCounts(),
         ]);
     }
 
