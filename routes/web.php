@@ -131,9 +131,11 @@ Route::middleware(['auth', 'role:eleve'])
     ->prefix('quiz')
     ->name('quiz.')
     ->group(function () {
+        Route::get('play', [QuizController::class, 'play'])->name('play');
         Route::get('/', [QuizController::class, 'index'])->name('index');
         Route::post('/', [QuizController::class, 'store'])->name('store');
         Route::get('results', [QuizController::class, 'results'])->name('results');
+        Route::get('attempts/{attempt}', [QuizController::class, 'showAttempt'])->name('attempts.show');
     });
 
 Route::middleware(['auth', 'role:admin|moniteur'])

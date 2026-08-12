@@ -12,12 +12,27 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\View\View;
 
 class QuizController extends Controller
 {
     public function __construct(
         private readonly QuizGradingService $grading,
     ) {}
+
+    /**
+     * The page shell for the quiz flow (start screen, question-by-question
+     * play, correction, history) — everything after this loads via fetch()
+     * against index()/store()/results()/showAttempt() below. See §24 of the
+     * project's audit roadmap: the grading backend already existed, only
+     * the UI was missing.
+     */
+    public function play(): View
+    {
+        $this->authorize('create', QuizAttempt::class);
+
+        return view('eleve.quiz.play');
+    }
 
     public function index(): AnonymousResourceCollection
     {
@@ -60,6 +75,37 @@ class QuizController extends Controller
         $this->authorize('view', $student);
 
         return $this->attemptsFor($student);
+    }
+
+    /**
+     * Correction detail for one already-completed attempt — unlike index()
+     * (the live question set), this is allowed to reveal is_correct on
+     * every option, since the attempt is already graded and locked. The
+     * question order matches the order the student answered in, not a
+     * fresh random draw.
+     */
+    public function showAttempt(QuizAttempt $attempt): JsonResponse
+    {
+        $this->authorize('view', $attempt);
+
+        $attempt->load('answers.question.options');
+
+        return response()->json([
+            'id' => $attempt->id,
+            'score' => $attempt->score,
+            'total_questions' => $attempt->total_questions,
+            'completed_at' => $attempt->completed_at,
+            'questions' => $attempt->answers->map(fn ($answer) => [
+                'id' => $answer->question->id,
+                'prompt' => $answer->question->prompt,
+                'options' => $answer->question->options->map(fn ($option) => [
+                    'id' => $option->id,
+                    'text' => $option->text,
+                    'is_correct' => $option->is_correct,
+                ]),
+                'chosen_option_id' => $answer->option_id,
+            ]),
+        ]);
     }
 
     private function attemptsFor(Student $student): JsonResponse

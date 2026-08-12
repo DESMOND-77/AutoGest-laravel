@@ -11,6 +11,9 @@
                 <a href="{{ route('eleve.planning') }}" class="text-indigo-600 dark:text-indigo-400 underline">
                     Mon planning &rarr;
                 </a>
+                <a href="{{ route('quiz.play') }}" class="text-indigo-600 dark:text-indigo-400 underline">
+                    Entraînement au code &rarr;
+                </a>
             </div>
 
             <div class="bg-white dark:bg-gray-800 shadow-sm rounded-lg p-6 text-gray-600 dark:text-gray-300">
