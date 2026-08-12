@@ -86,12 +86,12 @@ Ne pas avancer au domaine suivant tant que le précédent n'a pas : logique mét
 
 ## Vue d'ensemble des constats par gravité
 
-| Gravité | Nombre | Domaines principaux |
+| Gravité | Nombre | Statut |
 |---|---|---|
-| CRITICAL | 2 | Multi-tenancy (binding implicite, couverture de tests) |
-| HIGH | 7 | Finance (remboursement, plafond), Multi-tenancy (validation instructor_id, commandes Artisan), Tests (env non exécutable), UX (thème, tableaux responsive) |
-| MEDIUM | 12 | Workflow (audit trail, garde-fous), Scheduling (race condition, véhicule optionnel), RBAC (domaine vide), Policies manquantes, uploads, reporting SQL |
-| LOW | 5 | Rate limiting générique, versions Tailwind, URL signées, écart version PHP |
-| INFO | 12 | Constats positifs à conserver (architecture DDD, transactions financières, stockage privé documents, etc.) |
+| CRITICAL | 2 | **Corrigés (2026-08-12)** — voir `multi-tenancy-audit.md` |
+| HIGH | 7 + 2 découverts en cours de route | **Corrigés (2026-08-12)** |
+| MEDIUM | 9 actionnables + 3 décisions documentées | **Corrigés (2026-08-12)**, sauf TECH-01 (Users/RBAC — différé à l'étape 12, c'est une fonctionnalité pas un correctif) et TECH-06 (couplage MySQL — accepté par choix technique) |
+| LOW | 5 | Non traité dans cette passe (hors périmètre Critical/High/Medium) |
+| INFO | 12 | Constats positifs, aucune action requise |
 
-**Conclusion générale** : le socle technique est **nettement au-dessus de la moyenne** pour ce stade de projet — architecture DDD disciplinée et testée, machine à états métier réelle, transactions financières correctes, documents stockés en privé. Les manques sont **ciblés et connus** : couverture de test d'isolation tenant trop faible face à un mécanisme de protection qui repose sur la discipline humaine, deux trous financiers sérieux (remboursement, plafond), et une UX en retrait par rapport à la référence legacy sur trois points précis (thème, grille planning, quiz). Aucun de ces manques ne remet en cause l'architecture choisie — tous sont corrigeables sans refonte, conformément à la règle absolue de ne pas réécrire l'application.
+**Conclusion générale (mise à jour 2026-08-12)** : les deux CRITICAL, les 7 HIGH initiaux, 2 HIGH découverts en cours de correction (mêmes classes de vulnérabilité, corrigés par le même patron), et les 9 MEDIUM actionnables sont **tous corrigés et couverts par des tests** (138 tests passants, vérifiés dans un environnement complet). Les seuls éléments MEDIUM non traités sont deux décisions produit documentées comme différées (Users/RBAC, dépendance MySQL des rapports) plutôt que des correctifs de code. Reste ouvert : les findings LOW (rate limiting générique, versions Tailwind, URL signées, écart version PHP) et la roadmap fonctionnelle (quiz UI, grille planning visuelle, import CSV historique, mobile money, API publique) — à traiter dans les étapes suivantes du plan (§10 à §14).

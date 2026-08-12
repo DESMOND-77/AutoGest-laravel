@@ -17,7 +17,7 @@
 
             <div class="bg-white dark:bg-gray-800 shadow-sm rounded-lg p-6">
                 <div class="text-sm font-medium text-gray-900 dark:text-gray-100 mb-3">Nouvelle vente</div>
-                <form method="POST" action="{{ route('store.orders.store') }}" class="space-y-3">
+                <form id="orders-create-form" method="POST" action="{{ route('store.orders.store') }}" class="space-y-3">
                     @csrf
                     <div class="grid grid-cols-2 gap-3">
                         <div>
@@ -69,7 +69,13 @@
                                 <td class="px-4 py-3">{{ $order->status->label() }}</td>
                             </tr>
                         @empty
-                            <tr><td colspan="5" class="px-4 py-6 text-center text-gray-500">Aucune commande.</td></tr>
+                            <x-empty-table-row
+                                colspan="5"
+                                title="Aucune vente enregistrée."
+                                message="Enregistrez une vente pour un élève ou un client de passage."
+                                action="#orders-create-form"
+                                action-label="Enregistrer une vente"
+                            />
                         @endforelse
                     </tbody>
                 </table>

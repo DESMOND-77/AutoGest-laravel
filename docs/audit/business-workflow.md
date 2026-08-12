@@ -19,21 +19,21 @@ Périmètre : cycle de vie élève, facturation/paiement, planning (conflits).
 - Impact : risque de régression silencieuse si un futur développeur ajoute `lifecycle_stage` à une requête sans repasser par `LifecycleService`.
 - Preuve : `app/Domain/Students/Services/EnrollmentService.php:20`, `app/Domain/Students/Http/Requests/UpdateStudentRequest.php`, `app/Console/Commands/ImportLegacyStudents.php:128`.
 - Solution recommandée : retirer `lifecycle_stage` du `$fillable` du modèle et exposer une méthode dédiée (`Student::setLifecycleStage()` protégée, appelée uniquement par `LifecycleService`), pour rendre le contournement impossible plutôt que simplement non exploité aujourd'hui.
-- Statut : À corriger (durcissement défensif)
+- Statut : **CORRIGÉ (2026-08-12)** — `lifecycle_stage` et `dossier_status` retirés de `Student::$fillable` ; `Student::setLifecycleStage()`/`setDossierStatus()` sont les seuls points d'entrée (utilisés par `LifecycleService`, `DossierStatusService`, `ImportLegacyStudents` et un hook `creating()` qui pose les valeurs par défaut). `StudentFactory` expose un état `->stage()` pour les tests.
 
 **[MEDIUM] WF-03 — `DossierStatus` sans garde de transition**
 - Description : contrairement à `LifecycleStage`, l'enum `DossierStatus` (`Incomplete, Complete, Submitted, Validated`) n'a **aucune** méthode `allowedNextStages()`/`canTransitionTo()` — c'est une simple colonne de statut libre, modifiable dans n'importe quel ordre par n'importe quel code.
 - Impact : incohérence possible (ex. un dossier "Validated" qui repasse à "Incomplete" sans trace), pas de blocage métier équivalent à celui du lifecycle principal.
 - Preuve : `app/Domain/Students/Enums/DossierStatus.php`.
 - Solution recommandée : évaluer si ce statut a besoin d'un garde-fou équivalent (probable, car "dossier validé" devrait être une étape difficile à annuler) ou documenter qu'il s'agit d'un champ libre volontairement.
-- Statut : À trancher avec le métier
+- Statut : **CORRIGÉ (2026-08-12)** — décision produit : garde-fou ajouté par symétrie avec `LifecycleStage`. `DossierStatus::allowedNextStages()/canTransitionTo()` (chaîne `Incomplete → Complete → Submitted → Validated`, avec un retour `Submitted → Incomplete` pour un dossier rejeté) + nouveau `DossierStatusService`/`InvalidDossierTransition`. Aucune route HTTP ne modifie encore ce statut (seul l'import legacy et la création initiale le fixent) — le service est prêt pour le jour où un écran de revue de dossier sera construit.
 
 **[MEDIUM] WF-04 — Pas de trace d'audit sur les transitions de cycle de vie**
 - Description : `AuditService::log()` existe et est injecté dans `StudentController`, mais **n'est appelé que depuis `destroy()`** (action `student.deleted`) — pas depuis `store`, `update`, ni `advanceStage`. Les changements d'étape ne sont donc tracés que par le listener `LogStageChange`, qui écrit dans les logs applicatifs (`Log::info`), **pas** dans la table `audit_logs` interrogeable depuis l'écran d'audit.
 - Impact : contraire à l'exigence CLAUDE.md §11 ("quelle trace d'audit est créée ?" pour chaque transition). Un directeur consultant l'écran Audit ne verra pas l'historique des changements d'étape d'un élève.
 - Preuve : `app/Domain/Students/Listeners/LogStageChange.php` (commentaire : "placeholder jusqu'à ce que le domaine Notifications existe" — obsolète, Notifications existe déjà), `app/Http/Controllers` usage de `AuditService` limité à `destroy()`.
 - Solution recommandée : faire écrire `LogStageChange` (ou un nouveau listener dédié) dans `AuditService::log()` en plus (ou à la place) du log applicatif.
-- Statut : À corriger
+- Statut : **CORRIGÉ (2026-08-12)** — `LogStageChange` écrit désormais dans `AuditLog` via `AuditService::log('student.stage_changed', ...)`, en plus du `Log::info` existant. Test ajouté dans `AuditLoggingTest`.
 
 ## 2. Facturation / Paiement
 
@@ -72,24 +72,29 @@ Périmètre : cycle de vie élève, facturation/paiement, planning (conflits).
 - Description : `hasVehicleConflict()` n'est appelé que si `vehicleId` est fourni — une séance sans véhicule assigné ne subit aucune vérification de ce type (logique, puisqu'il n'y a rien à vérifier), mais cela signifie aussi qu'aucune alerte n'incite à assigner un véhicule, ce qui peut conduire à des séances "orphelines" de véhicule découvertes seulement à l'heure J.
 - Impact : UX/métier plutôt que sécurité — à évaluer si un véhicule doit être obligatoire pour les séances pratiques.
 - Solution recommandée : rendre `vehicle_id` obligatoire pour `SessionType::Practical` si c'est la réalité métier des auto-écoles gabonaises (à confirmer).
-- Statut : À trancher avec le métier
+- Statut : **CORRIGÉ (2026-08-12)** — décision produit confirmée : `vehicle_id` est désormais obligatoire pour `SessionType::Practical` (`StoreLessonSessionRequest`, règle `Rule::requiredIf`). Les autres types de séance restent sans véhicule obligatoire. Tests ajoutés dans `LessonSessionSchedulingTest`.
 
 **[MEDIUM] SCHED-03 — Pas de protection contre les conditions de course (rappel TECH-08)**
 - Description : voir `technical-audit.md` TECH-08 — la vérification de conflit et la création de séance ne sont pas atomiques (pas de `DB::transaction`/verrou), contrairement au pattern déjà utilisé dans `OrderService`.
-- Statut : À corriger avant mise en production multi-poste.
+- Statut : **CORRIGÉ (2026-08-12)** — `SchedulingService::schedule()/reschedule()` enveloppent désormais la vérification de conflit + création/modification dans `DB::transaction()`, avec un verrou pessimiste (`lockForUpdate()`) sur la ligne de l'instructeur (et du véhicule le cas échéant) pour sérialiser les réservations concurrentes — un simple verrou sur `lesson_sessions` ne suffit pas puisqu'une nouvelle réservation sans chevauchement existant ne verrouille aucune ligne. Non couvert par un test de concurrence réel (difficile à simuler de façon fiable dans un test Pest synchrone) — validé par revue de code.
+
+**[HIGH] SCHED-04 (nouveau, découvert pendant cette passe) — `StoreLessonSessionRequest` non contraint au tenant**
+- Description : `student_id`/`instructor_id`/`vehicle_id` étaient validés par `exists:table,id` simple, sans filtre `structure_id` — même faille que MT-03, appliquée au domaine Scheduling.
+- Statut : **CORRIGÉ (2026-08-12)** — mêmes règles `Rule::exists(...)->where('structure_id', ...)` que MT-03. Couvert par `SchedulingTenantIsolationTest`.
 
 ---
 
 ## Synthèse
 
-| ID | Gravité | Sujet |
-|---|---|---|
-| FIN-02 | HIGH | Aucun mécanisme de remboursement/annulation de paiement |
-| FIN-01 | HIGH | Pas de plafond sur les paiements |
-| WF-02 | MEDIUM | Contournement théorique du garde-fou de lifecycle (fillable) |
-| WF-03 | MEDIUM | `DossierStatus` sans garde de transition |
-| WF-04 | MEDIUM | Pas de trace d'audit sur les transitions de cycle de vie |
-| SCHED-02 | MEDIUM | Véhicule optionnel = pas de contrôle de conflit véhicule |
-| SCHED-03 | MEDIUM | Pas de protection anti-race-condition sur le planning |
+| ID | Gravité | Sujet | Statut |
+|---|---|---|---|
+| FIN-02 | HIGH | Aucun mécanisme de remboursement/annulation de paiement | Corrigé |
+| FIN-01 | HIGH | Pas de plafond sur les paiements | Corrigé |
+| SCHED-04 | HIGH | `StoreLessonSessionRequest` non contraint au tenant (nouveau) | Corrigé |
+| WF-02 | MEDIUM | Contournement théorique du garde-fou de lifecycle (fillable) | Corrigé |
+| WF-03 | MEDIUM | `DossierStatus` sans garde de transition | Corrigé |
+| WF-04 | MEDIUM | Pas de trace d'audit sur les transitions de cycle de vie | Corrigé |
+| SCHED-02 | MEDIUM | Véhicule optionnel = pas de contrôle de conflit véhicule | Corrigé |
+| SCHED-03 | MEDIUM | Pas de protection anti-race-condition sur le planning | Corrigé |
 
-Le workflow métier est **globalement bien conçu** (machine à états gardée pour le cycle de vie élève, transactions correctes pour les paiements, détection de conflit fonctionnelle). Les deux lacunes les plus sérieuses sont dans le domaine Finance : **absence totale de remboursement/annulation** et **absence de plafond de paiement**, deux points explicitement identifiés comme critiques par la mission (§10 CLAUDE.md) et à corriger avant toute étape de complétion de domaine supplémentaire.
+Toutes les lacunes identifiées dans cette passe (Critical/High de la session précédente + Medium de cette session) sont désormais corrigées et testées. Le workflow métier était déjà bien conçu (machine à états gardée, transactions correctes) ; les correctifs ont fermé les angles morts (remboursement, plafond, garde-fous de mass-assignment, trace d'audit, concurrence planning) sans remise en cause de l'architecture.

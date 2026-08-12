@@ -39,7 +39,7 @@ Voir `docs/audit/legacy-feature-parity.md` — le planning est actuellement un t
 **[MEDIUM] UX-04 — États "vide" non vérifiés systématiquement**
 - Description : la mission (§20 CLAUDE.md) exige que chaque liste vide affiche un message explicatif + action ("Aucun élève trouvé. Commencez par inscrire votre premier élève. [Ajouter un élève]") plutôt qu'un simple "No data". Cela n'a pas été vérifié vue par vue dans cette passe statique (nécessite soit une lecture exhaustive de chaque template, soit un parcours visuel avec base de données vide).
 - Solution recommandée : lors de la reconstruction UI (étape 10), auditer chaque vue `index.blade.php` pour vérifier la présence d'un état vide explicite avec CTA, et l'ajouter systématiquement sinon.
-- Statut : À vérifier lors de la prochaine session
+- Statut : **CORRIGÉ (2026-08-12)** — nouveau composant `x-empty-table-row` (titre + message explicatif + CTA optionnel) appliqué aux 12 vues de liste CRUD principales (Élèves, Planning, Flotte, Moniteurs, Factures, Forfaits, Journal, Prospects, Produits, Ventes, Compétences, Examens), avec lien vers le formulaire de création (page dédiée ou ancre vers le formulaire inline selon le cas). Audit et Établissements (lecture seule) ont un message explicatif sans CTA. Les vues de planning filtrées par semaine (élève/moniteur) ont été laissées telles quelles : une semaine vide y est un état normal, pas une invitation à agir.
 
 ## 6. Messages utilisateur
 

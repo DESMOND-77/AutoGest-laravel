@@ -74,9 +74,11 @@
                                 </td>
                             </tr>
                         @empty
-                            <tr>
-                                <td colspan="5" class="px-4 py-6 text-center text-gray-500">Aucun établissement.</td>
-                            </tr>
+                            <x-empty-table-row
+                                colspan="5"
+                                title="Aucun établissement inscrit."
+                                message="Les nouveaux établissements apparaîtront ici après leur inscription publique, en attente de validation."
+                            />
                         @endforelse
                     </tbody>
                 </table>

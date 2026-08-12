@@ -14,7 +14,7 @@
 
             <div class="bg-white dark:bg-gray-800 shadow-sm rounded-lg p-6">
                 <div class="text-sm font-medium text-gray-900 dark:text-gray-100 mb-3">Nouvel examen</div>
-                <form method="POST" action="{{ route('training.exams.store') }}" class="grid grid-cols-4 gap-3 items-end">
+                <form id="exams-create-form" method="POST" action="{{ route('training.exams.store') }}" class="grid grid-cols-4 gap-3 items-end">
                     @csrf
                     <div>
                         <x-input-label for="student_id" value="Élève" />
@@ -66,7 +66,13 @@
                                 </td>
                             </tr>
                         @empty
-                            <tr><td colspan="4" class="px-4 py-6 text-center text-gray-500">Aucun examen.</td></tr>
+                            <x-empty-table-row
+                                colspan="4"
+                                title="Aucun examen planifié."
+                                message="Planifiez un examen pour un élève afin de suivre son résultat."
+                                action="#exams-create-form"
+                                action-label="Planifier un examen"
+                            />
                         @endforelse
                     </tbody>
                 </table>

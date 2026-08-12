@@ -14,7 +14,7 @@
 
             <div class="bg-white dark:bg-gray-800 shadow-sm rounded-lg p-6">
                 <div class="text-sm font-medium text-gray-900 dark:text-gray-100 mb-3">Nouveau produit</div>
-                <form method="POST" action="{{ route('store.products.store') }}" class="grid grid-cols-4 gap-3 items-end">
+                <form id="products-create-form" method="POST" action="{{ route('store.products.store') }}" class="grid grid-cols-4 gap-3 items-end">
                     @csrf
                     <x-text-input name="name" placeholder="Nom" class="block w-full" required />
                     <x-text-input name="category" placeholder="Catégorie" class="block w-full" />
@@ -47,7 +47,13 @@
                                 </td>
                             </tr>
                         @empty
-                            <tr><td colspan="5" class="px-4 py-6 text-center text-gray-500">Aucun produit.</td></tr>
+                            <x-empty-table-row
+                                colspan="5"
+                                title="Aucun produit en boutique."
+                                message="Ajoutez un produit pour commencer à gérer votre stock et vos ventes."
+                                action="#products-create-form"
+                                action-label="Ajouter un produit"
+                            />
                         @endforelse
                     </tbody>
                 </table>

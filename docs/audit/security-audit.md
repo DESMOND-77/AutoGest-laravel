@@ -90,7 +90,7 @@ Voir `docs/audit/multi-tenancy-audit.md` pour le détail complet des policies et
 - Description : `StoreDocumentRequest` n'a pas été inspecté champ par champ pour confirmer la présence systématique de règles `mimes:`/`max:` sur chaque type de document (permis, certificats, documents véhicule/moniteur).
 - Impact : si une règle `mimes:` manque sur un type de document, upload de fichiers exécutables/scripts possible (bien que le stockage privé + non-exécution PHP dans `storage/` limite fortement l'impact réel).
 - Solution recommandée : lors de l'étape 8 du plan, relire `StoreDocumentRequest::rules()` et toute autre requête d'upload (photo élève, logo structure) pour confirmer `mimes:jpg,png,pdf` + `max:<Ko>` sur chacune.
-- Statut : À vérifier
+- Statut : **VÉRIFIÉ (2026-08-12) — aucune lacune trouvée.** `StoreDocumentRequest::rules()` contient déjà `'file' => ['required', 'file', 'max:5120', 'mimes:jpg,jpeg,png,pdf,webp']`. C'est le seul point d'upload de fichier de l'application (`grep` sur `'file'`/`type="file"` dans `app/` et `resources/views/` ne trouve que ce formulaire, réutilisé par les pages Élèves et Flotte). Aucune correction nécessaire.
 
 ## 6. Erreurs et fuite d'information
 

@@ -82,6 +82,13 @@ Toutes les Policies inspectées (`StudentPolicy`, `InvoicePolicy`, `LessonSessio
 - **Exports CSV** (`CsvExporter`, `ReportsController`) : routes sous `role:admin`, données issues de `ReportService` qui interroge via les modèles scopés (`Invoice`, `Exam`, `Student`) — donc scoping hérité automatiquement du Global Scope tant que `TenantContext` est actif au moment de l'export. Non testé spécifiquement par un `*TenantIsolationTest` — à ajouter.
 - **Recherche** : aucun moteur de recherche dédié identifié (pas d'Algolia/Scout/Meilisearch dans composer.json) — recherche probablement faite via requêtes Eloquent standard, donc héritant du scope global. Pas de risque spécifique identifié, mais non vérifié activement.
 
+## 5bis. Nouvelle faille découverte et corrigée pendant la passe MEDIUM
+
+**[HIGH] MT-06 — `StoreLessonSessionRequest` non contraint au tenant**
+- Domaine : Scheduling
+- Description : même faille que MT-03, trouvée en creusant SCHED-02 : `student_id`/`instructor_id`/`vehicle_id` validés par `exists:table,id` simple.
+- Statut : **CORRIGÉ (2026-08-12)** — `Rule::exists(...)->where('structure_id', ...)` appliqué aux trois champs. Voir `business-workflow.md` SCHED-04, testé dans `SchedulingTenantIsolationTest`.
+
 ## 6. Synthèse et checklist de correction
 
 | ID | Gravité | Constat |

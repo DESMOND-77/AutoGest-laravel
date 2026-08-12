@@ -25,8 +25,21 @@ class StudentFactory extends Factory
             'phone' => $this->faker->phoneNumber(),
             'license_category' => LicenseCategory::B,
             'course_type' => CourseType::Normal,
-            'lifecycle_stage' => LifecycleStage::Prospect,
             'registered_at' => now()->toDateString(),
         ];
+    }
+
+    /**
+     * lifecycle_stage is a guarded column (see Student::setLifecycleStage) —
+     * plain mass assignment silently ignores it, so a factory state is the
+     * only way for a test to create a student already past the 'prospect'
+     * database default.
+     */
+    public function stage(LifecycleStage $stage): static
+    {
+        return $this->afterCreating(function (Student $student) use ($stage) {
+            $student->setLifecycleStage($stage);
+            $student->save();
+        });
     }
 }

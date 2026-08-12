@@ -125,10 +125,19 @@ class ImportLegacyStudents extends Command
                 'phone' => $phone ?: null,
                 'course_type' => $this->mapCourseType($cours),
                 'license_category' => $this->mapLicenseCategory($categorie),
-                'lifecycle_stage' => LifecycleStage::Enrollment,
-                'dossier_status' => $remaining > 0 ? DossierStatus::Incomplete : DossierStatus::Complete,
                 'registered_at' => $registeredAt,
             ]);
+
+            // lifecycle_stage/dossier_status are guarded columns (see
+            // Student::setLifecycleStage/setDossierStatus) — imported
+            // students start further along than a fresh registration, so
+            // the database defaults ('prospect'/'incomplete') don't apply
+            // here and must be set explicitly, bypassing the transition
+            // guard since this is an initial import value, not a transition.
+            $student->setLifecycleStage(LifecycleStage::Enrollment);
+            $student->setDossierStatus($remaining > 0 ? DossierStatus::Incomplete : DossierStatus::Complete);
+            $student->save();
+
             $this->stats['students_added']++;
 
             $total = $received + $remaining;

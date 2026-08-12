@@ -15,7 +15,7 @@
             @can('create', \App\Domain\Instructors\Models\Instructor::class)
                 <div class="bg-white dark:bg-gray-800 shadow-sm rounded-lg p-6">
                     <div class="text-sm font-medium text-gray-900 dark:text-gray-100 mb-3">Nouveau moniteur</div>
-                    <form method="POST" action="{{ route('instructors.store') }}" class="grid grid-cols-4 gap-3 items-end">
+                    <form id="instructors-create-form" method="POST" action="{{ route('instructors.store') }}" class="grid grid-cols-4 gap-3 items-end">
                         @csrf
                         <div>
                             <x-input-label for="user_id" value="Utilisateur (id)" />
@@ -60,7 +60,13 @@
                                 <td class="px-4 py-3">{{ optional($instructor->hire_date)->format('d/m/Y') ?? '—' }}</td>
                             </tr>
                         @empty
-                            <tr><td colspan="4" class="px-4 py-6 text-center text-gray-500">Aucun moniteur.</td></tr>
+                            <x-empty-table-row
+                                colspan="4"
+                                title="Aucun moniteur enregistré."
+                                message="Ajoutez votre premier moniteur pour pouvoir lui assigner des séances."
+                                :action="Auth::user()->can('create', \App\Domain\Instructors\Models\Instructor::class) ? '#instructors-create-form' : null"
+                                action-label="Ajouter un moniteur"
+                            />
                         @endforelse
                     </tbody>
                 </table>

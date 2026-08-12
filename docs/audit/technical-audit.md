@@ -50,7 +50,7 @@ Un test d'architecture Pest (`tests/Architecture/DomainBoundariesTest.php`) **fa
 - Impact : pas de UI d'administration des utilisateurs/rôles, pas de granularité au-delà des 4 rôles fixes — limite l'extensibilité future (ex. rôle "comptable" mentionné dans la mission CLAUDE.md n'existe pas).
 - Preuve : `app/Domain/Users/**/.gitkeep`, `database/seeders/RoleSeeder.php:17-19`
 - Solution recommandée : soit renommer/assumer que Users est un domaine "non implémenté" et retirer le scaffold vide, soit l'implémenter réellement lors de l'étape RBAC (section 23 roadmap). Ne pas ajouter de rôle sans besoin confirmé (cf. règle CLAUDE.md §6 : "ne pas créer de rôle inutile").
-- Statut : À corriger (étape RBAC)
+- Statut : **Décision différée** — construire un vrai domaine Users/RBAC (UI d'administration des rôles/permissions) est une fonctionnalité à part entière, pas un correctif ponctuel. Reste planifié à l'étape 12 (complétion des domaines, RBAC) de `docs/audit/roadmap.md`, non traité dans cette passe MEDIUM pour éviter le scope creep sur un audit de correctifs.
 
 **[LOW] TECH-02 — Policies manquantes pour deux ressources routées**
 - Domaine : Store, Tenancy
@@ -106,7 +106,7 @@ Un test d'architecture Pest (`tests/Architecture/DomainBoundariesTest.php`) **fa
 - Impact : deux requêtes concurrentes (ex. deux secrétaires planifiant en même temps) peuvent toutes deux passer le contrôle de conflit avant que l'une des deux insertions ne soit visible à l'autre, créant un double-booking en race condition. Fenêtre étroite mais réelle en usage multi-poste.
 - Preuve : `app/Domain/Scheduling/Services/SchedulingService.php`, comparer avec `app/Domain/Store/Services/OrderService.php:34-85`.
 - Solution recommandée : envelopper `guard()` + création dans `DB::transaction()` avec un verrou approprié (ex. verrou pessimiste sur les séances existantes de l'instructeur/véhicule pour la plage horaire), ou une contrainte d'exclusion au niveau DB si le SGBD le permet.
-- Statut : À corriger avant mise en production commerciale (usage multi-poste garanti pour une auto-école)
+- Statut : **CORRIGÉ (2026-08-12)** — voir `business-workflow.md` SCHED-03.
 
 ---
 

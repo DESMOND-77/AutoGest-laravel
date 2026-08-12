@@ -14,7 +14,7 @@
 
             <div class="bg-white dark:bg-gray-800 shadow-sm rounded-lg p-6">
                 <div class="text-sm font-medium text-gray-900 dark:text-gray-100 mb-3">Nouveau prospect</div>
-                <form method="POST" action="{{ route('crm.leads.store') }}" class="grid grid-cols-4 gap-3 items-end">
+                <form id="leads-create-form" method="POST" action="{{ route('crm.leads.store') }}" class="grid grid-cols-4 gap-3 items-end">
                     @csrf
                     <x-text-input name="name" placeholder="Nom" class="block w-full" required />
                     <x-text-input name="phone" placeholder="Téléphone" class="block w-full" />
@@ -56,7 +56,13 @@
                                 </td>
                             </tr>
                         @empty
-                            <tr><td colspan="4" class="px-4 py-6 text-center text-gray-500">Aucun prospect.</td></tr>
+                            <x-empty-table-row
+                                colspan="4"
+                                title="Aucun prospect enregistré."
+                                message="Ajoutez un prospect pour commencer à suivre vos demandes d'information."
+                                action="#leads-create-form"
+                                action-label="Ajouter un prospect"
+                            />
                         @endforelse
                     </tbody>
                 </table>

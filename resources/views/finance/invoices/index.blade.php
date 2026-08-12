@@ -40,7 +40,13 @@
                                 <td class="px-4 py-3">{{ $invoice->issued_at->format('d/m/Y') }}</td>
                             </tr>
                         @empty
-                            <tr><td colspan="6" class="px-4 py-6 text-center text-gray-500">Aucune facture.</td></tr>
+                            <x-empty-table-row
+                                colspan="6"
+                                title="Aucune facture émise."
+                                message="Les factures se créent depuis la fiche d'un élève."
+                                :action="route('students.index')"
+                                action-label="Voir les élèves"
+                            />
                         @endforelse
                     </tbody>
                 </table>

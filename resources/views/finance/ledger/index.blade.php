@@ -19,7 +19,7 @@
 
             <div class="bg-white dark:bg-gray-800 shadow-sm rounded-lg p-6">
                 <div class="text-sm font-medium text-gray-900 dark:text-gray-100 mb-3">Nouvelle écriture manuelle</div>
-                <form method="POST" action="{{ route('finance.ledger.store') }}" class="grid grid-cols-2 gap-3">
+                <form id="ledger-create-form" method="POST" action="{{ route('finance.ledger.store') }}" class="grid grid-cols-2 gap-3">
                     @csrf
                     <div>
                         <x-input-label for="type" value="Type" />
@@ -63,7 +63,13 @@
                                 <td class="px-4 py-3">{{ $entry->type->isCredit() ? '+' : '-' }}{{ number_format($entry->amount, 0, ',', ' ') }} FCFA</td>
                             </tr>
                         @empty
-                            <tr><td colspan="4" class="px-4 py-6 text-center text-gray-500">Aucune écriture.</td></tr>
+                            <x-empty-table-row
+                                colspan="4"
+                                title="Aucune écriture dans le journal."
+                                message="Les paiements enregistrés et les écritures manuelles apparaîtront ici."
+                                action="#ledger-create-form"
+                                action-label="Ajouter une écriture"
+                            />
                         @endforelse
                     </tbody>
                 </table>

@@ -25,7 +25,7 @@ class LifecycleService
             throw InvalidStageTransition::from($current, $target);
         }
 
-        $student->lifecycle_stage = $target;
+        $student->setLifecycleStage($target);
         $student->save();
 
         Event::dispatch(new StudentStageChanged($student, $current, $target));

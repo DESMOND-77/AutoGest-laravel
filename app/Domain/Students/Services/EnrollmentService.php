@@ -2,7 +2,6 @@
 
 namespace App\Domain\Students\Services;
 
-use App\Domain\Students\Enums\LifecycleStage;
 use App\Domain\Students\Models\Student;
 use App\Domain\Students\Repositories\StudentRepositoryInterface;
 
@@ -12,9 +11,14 @@ class EnrollmentService
         private readonly StudentRepositoryInterface $students,
     ) {}
 
+    /**
+     * lifecycle_stage/dossier_status are intentionally absent from $data —
+     * they're guarded (see Student::setLifecycleStage/setDossierStatus) and
+     * every new student starts at the same defaults ('prospect'/
+     * 'incomplete'), enforced at the database column level.
+     */
     public function register(array $data): Student
     {
-        $data['lifecycle_stage'] ??= LifecycleStage::Prospect->value;
         $data['registered_at'] ??= now()->toDateString();
 
         return $this->students->create($data);

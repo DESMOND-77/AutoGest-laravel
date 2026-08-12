@@ -47,9 +47,13 @@
                                 <td class="px-4 py-3">{{ $student->instructor?->name ?? '—' }}</td>
                             </tr>
                         @empty
-                            <tr>
-                                <td colspan="5" class="px-4 py-6 text-center text-gray-500">Aucun élève.</td>
-                            </tr>
+                            <x-empty-table-row
+                                colspan="5"
+                                title="Aucun élève trouvé."
+                                message="Commencez par inscrire votre premier élève."
+                                :action="route('students.create')"
+                                action-label="Ajouter un élève"
+                            />
                         @endforelse
                     </tbody>
                 </table>

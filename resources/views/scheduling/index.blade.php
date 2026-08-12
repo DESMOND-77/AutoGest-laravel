@@ -22,7 +22,7 @@
 
             <div class="bg-white dark:bg-gray-800 shadow-sm rounded-lg p-6">
                 <div class="text-sm font-medium text-gray-900 dark:text-gray-100 mb-3">Planifier une séance</div>
-                <form method="POST" action="{{ route('scheduling.store') }}" class="grid grid-cols-6 gap-3 items-end">
+                <form id="scheduling-create-form" method="POST" action="{{ route('scheduling.store') }}" class="grid grid-cols-6 gap-3 items-end">
                     @csrf
                     <div class="col-span-2">
                         <x-input-label for="student_id" value="Élève" />
@@ -108,7 +108,13 @@
                                 </td>
                             </tr>
                         @empty
-                            <tr><td colspan="8" class="px-4 py-6 text-center text-gray-500">Aucune séance cette semaine.</td></tr>
+                            <x-empty-table-row
+                                colspan="8"
+                                title="Aucune séance planifiée cette semaine."
+                                message="Planifiez une séance pour un élève avec le formulaire ci-dessus."
+                                action="#scheduling-create-form"
+                                action-label="Planifier une séance"
+                            />
                         @endforelse
                     </tbody>
                 </table>

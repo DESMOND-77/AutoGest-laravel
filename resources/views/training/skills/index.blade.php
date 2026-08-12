@@ -14,7 +14,7 @@
 
             <div class="bg-white dark:bg-gray-800 shadow-sm rounded-lg p-6">
                 <div class="text-sm font-medium text-gray-900 dark:text-gray-100 mb-3">Nouvelle compétence</div>
-                <form method="POST" action="{{ route('training.skills.store') }}" class="grid grid-cols-3 gap-3 items-end">
+                <form id="skills-create-form" method="POST" action="{{ route('training.skills.store') }}" class="grid grid-cols-3 gap-3 items-end">
                     @csrf
                     <div>
                         <x-input-label for="code" value="Code" />
@@ -54,7 +54,13 @@
                                 </td>
                             </tr>
                         @empty
-                            <tr><td colspan="4" class="px-4 py-6 text-center text-gray-500">Aucune compétence.</td></tr>
+                            <x-empty-table-row
+                                colspan="4"
+                                title="Aucune compétence définie."
+                                message="Définissez les compétences évaluées pendant la formation pratique."
+                                action="#skills-create-form"
+                                action-label="Ajouter une compétence"
+                            />
                         @endforelse
                     </tbody>
                 </table>

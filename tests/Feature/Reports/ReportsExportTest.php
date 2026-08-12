@@ -31,7 +31,7 @@ it('exports the exam results CSV', function () {
 });
 
 it('exports the students-by-stage CSV', function () {
-    Student::factory()->create(['structure_id' => $this->structure->id, 'lifecycle_stage' => LifecycleStage::Prospect]);
+    Student::factory()->create(['structure_id' => $this->structure->id]);
 
     $response = $this->actingAs($this->admin)->get(route('reports.students-by-stage.csv'));
 

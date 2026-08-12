@@ -14,7 +14,7 @@
 
             <div class="bg-white dark:bg-gray-800 shadow-sm rounded-lg p-6">
                 <div class="text-sm font-medium text-gray-900 dark:text-gray-100 mb-3">Nouveau forfait</div>
-                <form method="POST" action="{{ route('finance.packages.store') }}" class="grid grid-cols-2 gap-3">
+                <form id="packages-create-form" method="POST" action="{{ route('finance.packages.store') }}" class="grid grid-cols-2 gap-3">
                     @csrf
                     <div>
                         <x-input-label for="name" value="Nom" />
@@ -65,7 +65,13 @@
                                 </td>
                             </tr>
                         @empty
-                            <tr><td colspan="5" class="px-4 py-6 text-center text-gray-500">Aucun forfait.</td></tr>
+                            <x-empty-table-row
+                                colspan="5"
+                                title="Aucun forfait de formation."
+                                message="Créez un forfait pour pouvoir facturer rapidement vos élèves."
+                                action="#packages-create-form"
+                                action-label="Ajouter un forfait"
+                            />
                         @endforelse
                     </tbody>
                 </table>

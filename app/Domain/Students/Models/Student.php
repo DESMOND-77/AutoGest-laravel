@@ -23,6 +23,31 @@ class Student extends Model
         return StudentFactory::new();
     }
 
+    /**
+     * Mirrors BelongsToTenant's own creating() hook for structure_id: the
+     * database column defaults ('prospect'/'incomplete') cover a raw insert,
+     * but Eloquent never reads them back into the in-memory model after
+     * create() — so without this, a freshly created Student has a null
+     * lifecycle_stage/dossier_status in memory until reloaded from the DB.
+     * Setting them here (bypassing $fillable, like setLifecycleStage/
+     * setDossierStatus do) keeps every newly created Student consistent
+     * immediately, in memory and in the database.
+     */
+    protected static function booted(): void
+    {
+        static::creating(function (Student $student) {
+            $student->lifecycle_stage ??= LifecycleStage::Prospect;
+            $student->dossier_status ??= DossierStatus::Incomplete;
+        });
+    }
+
+    /**
+     * lifecycle_stage and dossier_status are deliberately excluded — they
+     * are guarded transitions (LifecycleService/DossierStatusService are the
+     * only callers allowed to change them, via setLifecycleStage()/
+     * setDossierStatus() below), not plain mass-assignable columns. See
+     * WF-02 in docs/audit/business-workflow.md.
+     */
     protected $fillable = [
         'structure_id',
         'user_id',
@@ -38,8 +63,6 @@ class Student extends Model
         'neph',
         'license_category',
         'course_type',
-        'lifecycle_stage',
-        'dossier_status',
         'registered_at',
     ];
 
@@ -65,5 +88,23 @@ class Student extends Model
     public function fullName(): string
     {
         return "{$this->first_name} {$this->last_name}";
+    }
+
+    /**
+     * Bypasses $fillable on purpose — call only from LifecycleService or
+     * from initial-creation code that sets the starting stage.
+     */
+    public function setLifecycleStage(LifecycleStage $stage): void
+    {
+        $this->setAttribute('lifecycle_stage', $stage);
+    }
+
+    /**
+     * Bypasses $fillable on purpose — call only from DossierStatusService or
+     * from initial-creation code that sets the starting status.
+     */
+    public function setDossierStatus(DossierStatus $status): void
+    {
+        $this->setAttribute('dossier_status', $status);
     }
 }

@@ -15,7 +15,7 @@
             @can('create', \App\Domain\Fleet\Models\Vehicle::class)
                 <div class="bg-white dark:bg-gray-800 shadow-sm rounded-lg p-6">
                     <div class="text-sm font-medium text-gray-900 dark:text-gray-100 mb-3">Nouveau véhicule</div>
-                    <form method="POST" action="{{ route('fleet.store') }}" class="grid grid-cols-4 gap-3 items-end">
+                    <form id="fleet-create-form" method="POST" action="{{ route('fleet.store') }}" class="grid grid-cols-4 gap-3 items-end">
                         @csrf
                         <div>
                             <x-input-label for="plate" value="Immatriculation" />
@@ -74,7 +74,13 @@
                                 </td>
                             </tr>
                         @empty
-                            <tr><td colspan="5" class="px-4 py-6 text-center text-gray-500">Aucun véhicule.</td></tr>
+                            <x-empty-table-row
+                                colspan="5"
+                                title="Aucun véhicule enregistré."
+                                message="Ajoutez votre premier véhicule pour commencer à planifier des séances de conduite."
+                                :action="Auth::user()->can('create', \App\Domain\Fleet\Models\Vehicle::class) ? '#fleet-create-form' : null"
+                                action-label="Ajouter un véhicule"
+                            />
                         @endforelse
                     </tbody>
                 </table>

@@ -64,9 +64,9 @@ it('computes the exam pass rate only from decided exams', function () {
 });
 
 it('groups students by lifecycle stage including empty stages at zero', function () {
-    Student::factory()->create(['structure_id' => $this->structure->id, 'lifecycle_stage' => LifecycleStage::Prospect]);
-    Student::factory()->create(['structure_id' => $this->structure->id, 'lifecycle_stage' => LifecycleStage::Prospect]);
-    Student::factory()->create(['structure_id' => $this->structure->id, 'lifecycle_stage' => LifecycleStage::FormerStudent]);
+    Student::factory()->create(['structure_id' => $this->structure->id]);
+    Student::factory()->create(['structure_id' => $this->structure->id]);
+    Student::factory()->stage(LifecycleStage::FormerStudent)->create(['structure_id' => $this->structure->id]);
 
     $result = app(ReportService::class)->studentsByStage();
 
