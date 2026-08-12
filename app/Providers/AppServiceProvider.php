@@ -22,6 +22,8 @@ use App\Domain\Instructors\Models\Instructor;
 use App\Domain\Instructors\Policies\InstructorPolicy;
 use App\Domain\Instructors\Repositories\EloquentInstructorRepository;
 use App\Domain\Instructors\Repositories\InstructorRepositoryInterface;
+use App\Domain\Notifications\Contracts\SmsGateway;
+use App\Domain\Notifications\Services\LogSmsGateway;
 use App\Domain\Scheduling\Models\LessonSession;
 use App\Domain\Scheduling\Policies\LessonSessionPolicy;
 use App\Domain\Scheduling\Repositories\EloquentLessonSessionRepository;
@@ -63,6 +65,13 @@ class AppServiceProvider extends ServiceProvider
         $this->app->bind(InvoiceRepositoryInterface::class, EloquentInvoiceRepository::class);
         $this->app->bind(LessonSessionRepositoryInterface::class, EloquentLessonSessionRepository::class);
         $this->app->bind(InstructorRepositoryInterface::class, EloquentInstructorRepository::class);
+
+        // 'log' is the only driver until a real Gabonese SMS provider is
+        // chosen (see SmsGateway's docblock) — swapping it is a match()
+        // arm here, not a rewrite of any call site.
+        $this->app->bind(SmsGateway::class, fn () => match (config('services.sms.driver', 'log')) {
+            default => new LogSmsGateway,
+        });
     }
 
     /**
