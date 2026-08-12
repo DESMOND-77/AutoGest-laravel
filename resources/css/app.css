@@ -5,3 +5,76 @@
 [x-cloak] {
     display: none !important;
 }
+
+/*
+ * Soft Neumorphic design tokens for the authenticated app shell (dashboard,
+ * students, scheduling, finance, ...). The landing page keeps its own
+ * separate token set (ink/route/signal/cream/paper/slate/line/asphalt in
+ * tailwind.config.js) — deliberately untouched, per the brief: the landing
+ * page is acceptable as-is and this pass is scoped to the authenticated app.
+ *
+ * RGB triplets (not hex) so Tailwind's `rgb(var(--x) / <alpha-value>)`
+ * pattern can still apply opacity modifiers (bg-surface/50, etc).
+ * Light values live on :root; :root.dark overrides them — matching the
+ * `dark` class toggled on <html> by components/theme-toggle.blade.php.
+ */
+:root {
+    --color-background: 232 237 243;
+    --color-surface: 232 237 243;
+    --color-surface-elevated: 240 244 248;
+    --color-surface-inset: 220 226 234;
+
+    --color-content: 23 32 51;
+    --color-content-secondary: 102 112 133;
+    --color-content-muted: 152 162 179;
+
+    --color-border: 210 217 227;
+
+    --color-primary: 79 70 229;
+    --color-primary-content: 255 255 255;
+    --color-success: 22 163 74;
+    --color-warning: 180 90 6;
+    --color-danger: 220 38 38;
+    --color-info: 8 137 178;
+
+    --radius-sm: 0.625rem;
+    --radius-md: 0.875rem;
+    --radius-lg: 1.25rem;
+    --radius-xl: 1.75rem;
+
+    --shadow-soft-sm: -4px -4px 8px rgba(255, 255, 255, 0.75), 4px 4px 10px rgba(163, 177, 198, 0.5);
+    --shadow-soft: -6px -6px 14px rgba(255, 255, 255, 0.8), 8px 8px 18px rgba(163, 177, 198, 0.55);
+    --shadow-soft-hover: -8px -8px 18px rgba(255, 255, 255, 0.85), 10px 10px 22px rgba(163, 177, 198, 0.6);
+    --shadow-inset: inset -3px -3px 7px rgba(255, 255, 255, 0.7), inset 3px 3px 7px rgba(163, 177, 198, 0.45);
+    --shadow-inset-focus:
+        inset -2px -2px 5px rgba(255, 255, 255, 0.6), inset 2px 2px 5px rgba(163, 177, 198, 0.4),
+        0 0 0 3px rgba(79, 70, 229, 0.35);
+}
+
+:root.dark {
+    --color-background: 21 26 33;
+    --color-surface: 27 34 43;
+    --color-surface-elevated: 34 42 53;
+    --color-surface-inset: 17 21 27;
+
+    --color-content: 236 240 245;
+    --color-content-secondary: 170 180 195;
+    --color-content-muted: 116 128 145;
+
+    --color-border: 47 56 68;
+
+    --color-primary: 108 111 246;
+    --color-primary-content: 255 255 255;
+    --color-success: 45 191 108;
+    --color-warning: 217 143 32;
+    --color-danger: 240 94 94;
+    --color-info: 45 178 209;
+
+    --shadow-soft-sm: -4px -4px 8px rgba(255, 255, 255, 0.025), 4px 4px 10px rgba(0, 0, 0, 0.5);
+    --shadow-soft: -6px -6px 14px rgba(255, 255, 255, 0.03), 8px 8px 18px rgba(0, 0, 0, 0.55);
+    --shadow-soft-hover: -8px -8px 18px rgba(255, 255, 255, 0.035), 10px 10px 22px rgba(0, 0, 0, 0.6);
+    --shadow-inset: inset -3px -3px 7px rgba(255, 255, 255, 0.02), inset 3px 3px 7px rgba(0, 0, 0, 0.5);
+    --shadow-inset-focus:
+        inset -2px -2px 5px rgba(255, 255, 255, 0.015), inset 2px 2px 5px rgba(0, 0, 0, 0.45),
+        0 0 0 3px rgba(108, 111, 246, 0.4);
+}

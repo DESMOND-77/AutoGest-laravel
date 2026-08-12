@@ -14,7 +14,7 @@ export default {
     theme: {
         extend: {
             fontFamily: {
-                sans: ['Figtree', ...defaultTheme.fontFamily.sans],
+                sans: ['Inter', ...defaultTheme.fontFamily.sans],
                 // Condensed road-sign lettering — landing page display type only.
                 display: ['"Barlow Condensed"', ...defaultTheme.fontFamily.sans],
                 mono: ['"IBM Plex Mono"', ...defaultTheme.fontFamily.mono],
@@ -48,6 +48,42 @@ export default {
                     DEFAULT: '#0E1526',
                     2: '#151F38',
                 },
+
+                // Soft Neumorphic tokens for the authenticated app shell —
+                // see resources/css/app.css for the underlying CSS custom
+                // properties (light + dark values). Kept separate from the
+                // landing-page palette above on purpose.
+                background: 'rgb(var(--color-background) / <alpha-value>)',
+                surface: 'rgb(var(--color-surface) / <alpha-value>)',
+                'surface-elevated': 'rgb(var(--color-surface-elevated) / <alpha-value>)',
+                'surface-inset': 'rgb(var(--color-surface-inset) / <alpha-value>)',
+                border: 'rgb(var(--color-border) / <alpha-value>)',
+                content: {
+                    DEFAULT: 'rgb(var(--color-content) / <alpha-value>)',
+                    secondary: 'rgb(var(--color-content-secondary) / <alpha-value>)',
+                    muted: 'rgb(var(--color-content-muted) / <alpha-value>)',
+                },
+                primary: {
+                    DEFAULT: 'rgb(var(--color-primary) / <alpha-value>)',
+                    content: 'rgb(var(--color-primary-content) / <alpha-value>)',
+                },
+                success: 'rgb(var(--color-success) / <alpha-value>)',
+                warning: 'rgb(var(--color-warning) / <alpha-value>)',
+                danger: 'rgb(var(--color-danger) / <alpha-value>)',
+                info: 'rgb(var(--color-info) / <alpha-value>)',
+            },
+            borderRadius: {
+                'ui-sm': 'var(--radius-sm)',
+                'ui-md': 'var(--radius-md)',
+                'ui-lg': 'var(--radius-lg)',
+                'ui-xl': 'var(--radius-xl)',
+            },
+            boxShadow: {
+                'soft-sm': 'var(--shadow-soft-sm)',
+                soft: 'var(--shadow-soft)',
+                'soft-hover': 'var(--shadow-soft-hover)',
+                inset: 'var(--shadow-inset)',
+                'inset-focus': 'var(--shadow-inset-focus)',
             },
             keyframes: {
                 'dash-drift': {
