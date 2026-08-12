@@ -40,7 +40,7 @@ it('does not let an admin of school B edit a student belonging to school A', fun
             'license_category' => 'B',
             'course_type' => 'normal',
         ])
-        ->assertForbidden();
+        ->assertNotFound();
 
     expect($this->studentA->fresh()->last_name)->toBe('Mabika');
 });
@@ -48,7 +48,7 @@ it('does not let an admin of school B edit a student belonging to school A', fun
 it('does not let an admin of school B delete a student belonging to school A', function () {
     $this->actingAs($this->adminB)
         ->delete(route('students.destroy', $this->studentA))
-        ->assertForbidden();
+        ->assertNotFound();
 
     expect(Student::withoutGlobalScopes()->find($this->studentA->id))->not->toBeNull();
 });
@@ -56,7 +56,7 @@ it('does not let an admin of school B delete a student belonging to school A', f
 it('does not let an admin of school B view a student belonging to school A', function () {
     $this->actingAs($this->adminB)
         ->get(route('students.show', $this->studentA))
-        ->assertForbidden();
+        ->assertNotFound();
 });
 
 it('scopes the student index to the current tenant', function () {
@@ -67,6 +67,23 @@ it('scopes the student index to the current tenant', function () {
     $response->assertOk();
     $response->assertSee('Mabika');
     $response->assertDontSee('Autre');
+});
+
+it('does not let an admin assign a student to an instructor from another school', function () {
+    $instructorB = User::factory()->create(['structure_id' => $this->schoolB->id]);
+    $instructorB->assignRole('moniteur');
+
+    $this->actingAs($this->adminA)
+        ->post(route('students.store'), [
+            'last_name' => 'Nouveau',
+            'first_name' => 'Eleve',
+            'license_category' => 'B',
+            'course_type' => 'normal',
+            'instructor_id' => $instructorB->id,
+        ])
+        ->assertSessionHasErrors('instructor_id');
+
+    expect(Student::query()->where('last_name', 'Nouveau')->exists())->toBeFalse();
 });
 
 it('lets a moniteur view only students assigned to them', function () {

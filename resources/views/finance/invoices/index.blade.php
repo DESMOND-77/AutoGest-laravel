@@ -13,7 +13,8 @@
             @endif
 
             <div class="bg-white dark:bg-gray-800 shadow-sm sm:rounded-lg overflow-hidden">
-                <table class="w-full text-sm text-left">
+                <div class="overflow-x-auto">
+                    <table class="w-full text-sm text-left">
                     <thead class="bg-gray-50 dark:bg-gray-700 text-gray-600 dark:text-gray-300">
                         <tr>
                             <th class="px-4 py-3">Élève</th>
@@ -43,6 +44,7 @@
                         @endforelse
                     </tbody>
                 </table>
+                </div>
             </div>
 
             {{ $invoices->links() }}

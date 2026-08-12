@@ -64,6 +64,87 @@ it('marks the invoice paid once payments cover the full amount', function () {
     expect($this->invoice->balanceDue())->toBe(0.0);
 });
 
+it('rejects a payment larger than the invoice balance due', function () {
+    $this->actingAs($this->admin)
+        ->post(route('finance.invoices.payments.store', $this->invoice), [
+            'amount' => 250000,
+            'method' => 'cash',
+        ])
+        ->assertSessionHasErrors('amount');
+
+    expect((float) $this->invoice->refresh()->amount_paid)->toBe(0.0);
+});
+
+it('rejects a payment that would exceed the remaining balance after a partial payment', function () {
+    $this->actingAs($this->admin)->post(route('finance.invoices.payments.store', $this->invoice), [
+        'amount' => 150000, 'method' => 'cash',
+    ]);
+
+    $this->actingAs($this->admin)
+        ->post(route('finance.invoices.payments.store', $this->invoice), [
+            'amount' => 50001,
+            'method' => 'cash',
+        ])
+        ->assertSessionHasErrors('amount');
+
+    expect((float) $this->invoice->refresh()->amount_paid)->toBe(150000.0);
+});
+
+it('cancels a payment, reverses the invoice balance, and journals a compensating entry', function () {
+    $this->actingAs($this->admin)->post(route('finance.invoices.payments.store', $this->invoice), [
+        'amount' => 80000, 'method' => 'cash',
+    ]);
+
+    $payment = $this->invoice->payments()->sole();
+
+    $this->actingAs($this->admin)
+        ->post(route('finance.payments.cancel', $payment), ['reason' => 'Erreur de saisie'])
+        ->assertRedirect(route('finance.invoices.show', $this->invoice));
+
+    $payment->refresh();
+    expect($payment->isCancelled())->toBeTrue();
+    expect($payment->cancellation_reason)->toBe('Erreur de saisie');
+
+    $this->invoice->refresh();
+    expect((float) $this->invoice->amount_paid)->toBe(0.0);
+    expect($this->invoice->status)->toBe(InvoiceStatus::Unpaid);
+
+    $entries = LedgerEntry::query()->where('structure_id', $this->structure->id)->get();
+    expect($entries)->toHaveCount(2);
+    expect($entries->firstWhere('type', LedgerEntryType::Expense))->not->toBeNull();
+});
+
+it('does not let a payment be cancelled twice', function () {
+    $this->actingAs($this->admin)->post(route('finance.invoices.payments.store', $this->invoice), [
+        'amount' => 80000, 'method' => 'cash',
+    ]);
+
+    $payment = $this->invoice->payments()->sole();
+
+    $this->actingAs($this->admin)->post(route('finance.payments.cancel', $payment));
+
+    $this->actingAs($this->admin)
+        ->post(route('finance.payments.cancel', $payment))
+        ->assertSessionHasErrors('payment');
+});
+
+it('a cancelled payment frees up balance for a new payment within the cap', function () {
+    $this->actingAs($this->admin)->post(route('finance.invoices.payments.store', $this->invoice), [
+        'amount' => 200000, 'method' => 'cash',
+    ]);
+
+    $payment = $this->invoice->payments()->sole();
+    $this->actingAs($this->admin)->post(route('finance.payments.cancel', $payment));
+
+    $this->actingAs($this->admin)
+        ->post(route('finance.invoices.payments.store', $this->invoice), [
+            'amount' => 200000, 'method' => 'cash',
+        ])
+        ->assertRedirect(route('finance.invoices.show', $this->invoice));
+
+    expect($this->invoice->refresh()->status)->toBe(InvoiceStatus::Paid);
+});
+
 it('editing a student never changes any invoice or payment', function () {
     $this->actingAs($this->admin)->post(route('finance.invoices.payments.store', $this->invoice), [
         'amount' => 50000, 'method' => 'cash',

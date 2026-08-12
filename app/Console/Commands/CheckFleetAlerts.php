@@ -25,27 +25,32 @@ class CheckFleetAlerts extends Command
         Structure::query()->each(function (Structure $structure) use ($alerts) {
             TenantContext::set($structure);
 
-            $vehicles = $alerts->expiringSoon();
+            try {
+                $vehicles = $alerts->expiringSoon();
 
-            if ($vehicles->isEmpty()) {
+                if ($vehicles->isEmpty()) {
+                    return;
+                }
+
+                $admins = User::role('admin')->where('structure_id', $structure->id)->get();
+
+                foreach ($vehicles as $vehicle) {
+                    $notification = new AlertNotification(
+                        title: 'Document véhicule bientôt expiré',
+                        message: "Le véhicule {$vehicle->plate} a un contrôle technique ou une assurance qui expire sous 30 jours",
+                        link: route('fleet.show', $vehicle, absolute: false),
+                    );
+
+                    $admins->each(fn (User $admin) => $admin->notify($notification));
+                }
+            } finally {
+                // A failure partway through this structure's alerts (e.g. a
+                // bad notification channel) must not leave TenantContext
+                // pointed at this structure for the next iteration of the
+                // loop — that would leak this structure's tenant scope onto
+                // the next one's queries.
                 TenantContext::clear();
-
-                return;
             }
-
-            $admins = User::role('admin')->where('structure_id', $structure->id)->get();
-
-            foreach ($vehicles as $vehicle) {
-                $notification = new AlertNotification(
-                    title: 'Document véhicule bientôt expiré',
-                    message: "Le véhicule {$vehicle->plate} a un contrôle technique ou une assurance qui expire sous 30 jours",
-                    link: route('fleet.show', $vehicle, absolute: false),
-                );
-
-                $admins->each(fn (User $admin) => $admin->notify($notification));
-            }
-
-            TenantContext::clear();
         });
 
         $this->info('Fleet alerts checked.');

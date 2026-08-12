@@ -33,13 +33,13 @@ beforeEach(function () {
 it('does not let an admin of school B view an instructor belonging to school A', function () {
     $this->actingAs($this->adminB)
         ->get(route('instructors.show', $this->instructorA))
-        ->assertForbidden();
+        ->assertNotFound();
 });
 
 it('does not let an admin of school B delete an instructor belonging to school A', function () {
     $this->actingAs($this->adminB)
         ->delete(route('instructors.destroy', $this->instructorA))
-        ->assertForbidden();
+        ->assertNotFound();
 
     expect(Instructor::withoutGlobalScopes()->find($this->instructorA->id))->not->toBeNull();
 });

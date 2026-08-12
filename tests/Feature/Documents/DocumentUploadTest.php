@@ -71,5 +71,5 @@ it('does not let an admin of another school download the document', function () 
 
     $this->actingAs($otherAdmin)
         ->get(route('documents.download', $document))
-        ->assertForbidden();
+        ->assertNotFound();
 });

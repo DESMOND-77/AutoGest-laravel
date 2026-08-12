@@ -12,6 +12,10 @@
                 <div class="bg-green-100 text-green-800 text-sm rounded-md p-3">{{ session('status') }}</div>
             @endif
 
+            @error('payment')
+                <div class="bg-red-100 text-red-800 text-sm rounded-md p-3">{{ $message }}</div>
+            @enderror
+
             <div class="bg-white dark:bg-gray-800 shadow-sm rounded-lg p-6 grid grid-cols-2 gap-4 text-sm">
                 <div><span class="text-gray-500">Libellé</span><br>{{ $invoice->label }}</div>
                 <div><span class="text-gray-500">Statut</span><br>{{ $invoice->status->label() }}</div>
@@ -23,23 +27,36 @@
 
             <div class="bg-white dark:bg-gray-800 shadow-sm rounded-lg p-6">
                 <div class="text-sm font-medium text-gray-900 dark:text-gray-100 mb-3">Paiements</div>
-                <table class="w-full text-sm text-left mb-4">
-                    <thead class="text-gray-500">
-                        <tr><th class="py-1">Date</th><th class="py-1">Montant</th><th class="py-1">Moyen</th><th class="py-1">Enregistré par</th></tr>
-                    </thead>
-                    <tbody class="divide-y divide-gray-100 dark:divide-gray-700">
-                        @forelse ($invoice->payments as $payment)
-                            <tr>
-                                <td class="py-1">{{ $payment->paid_at->format('d/m/Y') }}</td>
-                                <td class="py-1">{{ number_format($payment->amount, 0, ',', ' ') }} FCFA</td>
-                                <td class="py-1">{{ $payment->method->label() }}</td>
-                                <td class="py-1">{{ $payment->recordedBy?->name ?? '—' }}</td>
-                            </tr>
-                        @empty
-                            <tr><td colspan="4" class="py-3 text-center text-gray-500">Aucun paiement.</td></tr>
-                        @endforelse
-                    </tbody>
-                </table>
+                <div class="overflow-x-auto mb-4">
+                    <table class="w-full text-sm text-left">
+                        <thead class="text-gray-500">
+                            <tr><th class="py-1">Date</th><th class="py-1">Montant</th><th class="py-1">Moyen</th><th class="py-1">Enregistré par</th><th class="py-1">Statut</th><th class="py-1"></th></tr>
+                        </thead>
+                        <tbody class="divide-y divide-gray-100 dark:divide-gray-700">
+                            @forelse ($invoice->payments as $payment)
+                                <tr class="{{ $payment->isCancelled() ? 'text-gray-400 dark:text-gray-500 line-through' : '' }}">
+                                    <td class="py-1">{{ $payment->paid_at->format('d/m/Y') }}</td>
+                                    <td class="py-1">{{ number_format($payment->amount, 0, ',', ' ') }} FCFA</td>
+                                    <td class="py-1">{{ $payment->method->label() }}</td>
+                                    <td class="py-1">{{ $payment->recordedBy?->name ?? '—' }}</td>
+                                    <td class="py-1">{{ $payment->isCancelled() ? 'Annulé' : 'Actif' }}</td>
+                                    <td class="py-1">
+                                        @can('cancel', $payment)
+                                            @if (! $payment->isCancelled())
+                                                <form method="POST" action="{{ route('finance.payments.cancel', $payment) }}" class="inline">
+                                                    @csrf
+                                                    <button type="submit" class="text-red-600 hover:underline">Annuler</button>
+                                                </form>
+                                            @endif
+                                        @endcan
+                                    </td>
+                                </tr>
+                            @empty
+                                <tr><td colspan="6" class="py-3 text-center text-gray-500">Aucun paiement.</td></tr>
+                            @endforelse
+                        </tbody>
+                    </table>
+                </div>
 
                 @can('recordPayment', $invoice)
                     @if ($invoice->balanceDue() > 0)

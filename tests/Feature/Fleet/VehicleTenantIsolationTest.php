@@ -24,13 +24,13 @@ it('does not let an admin of school B log maintenance on a vehicle belonging to 
             'type' => 'vidange',
             'performed_on' => now()->toDateString(),
         ])
-        ->assertForbidden();
+        ->assertNotFound();
 });
 
 it('does not let an admin of school B delete a vehicle belonging to school A', function () {
     $this->actingAs($this->adminB)
         ->delete(route('fleet.destroy', $this->vehicleA))
-        ->assertForbidden();
+        ->assertNotFound();
 
     expect(Vehicle::withoutGlobalScopes()->find($this->vehicleA->id))->not->toBeNull();
 });

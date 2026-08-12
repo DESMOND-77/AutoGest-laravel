@@ -9,8 +9,10 @@ use App\Domain\CRM\Policies\LeadPolicy;
 use App\Domain\Documents\Models\Document;
 use App\Domain\Documents\Policies\DocumentPolicy;
 use App\Domain\Finance\Models\Invoice;
+use App\Domain\Finance\Models\Payment;
 use App\Domain\Finance\Models\TrainingPackage;
 use App\Domain\Finance\Policies\InvoicePolicy;
+use App\Domain\Finance\Policies\PaymentPolicy;
 use App\Domain\Finance\Policies\TrainingPackagePolicy;
 use App\Domain\Finance\Repositories\EloquentInvoiceRepository;
 use App\Domain\Finance\Repositories\InvoiceRepositoryInterface;
@@ -66,6 +68,7 @@ class AppServiceProvider extends ServiceProvider
     {
         Gate::policy(Student::class, StudentPolicy::class);
         Gate::policy(Invoice::class, InvoicePolicy::class);
+        Gate::policy(Payment::class, PaymentPolicy::class);
         Gate::policy(TrainingPackage::class, TrainingPackagePolicy::class);
         Gate::policy(LessonSession::class, LessonSessionPolicy::class);
         Gate::policy(Skill::class, SkillPolicy::class);

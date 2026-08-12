@@ -26,7 +26,7 @@ beforeEach(function () {
 it('does not let an admin of school B view an invoice belonging to school A', function () {
     $this->actingAs($this->adminB)
         ->get(route('finance.invoices.show', $this->invoiceA))
-        ->assertForbidden();
+        ->assertNotFound();
 });
 
 it('does not let an admin of school B record a payment on an invoice belonging to school A', function () {
@@ -35,7 +35,25 @@ it('does not let an admin of school B record a payment on an invoice belonging t
             'amount' => 1000,
             'method' => 'cash',
         ])
-        ->assertForbidden();
+        ->assertNotFound();
 
     expect((float) $this->invoiceA->fresh()->amount_paid)->toBe(0.0);
+});
+
+it('does not let an admin of school B cancel a payment belonging to school A', function () {
+    $adminA = User::factory()->create(['structure_id' => $this->schoolA->id]);
+    $adminA->assignRole('admin');
+
+    $this->actingAs($adminA)->post(route('finance.invoices.payments.store', $this->invoiceA), [
+        'amount' => 1000,
+        'method' => 'cash',
+    ]);
+
+    $payment = $this->invoiceA->payments()->sole();
+
+    $this->actingAs($this->adminB)
+        ->post(route('finance.payments.cancel', $payment))
+        ->assertNotFound();
+
+    expect((float) $this->invoiceA->fresh()->amount_paid)->toBe(1000.0);
 });

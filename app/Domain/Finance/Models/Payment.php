@@ -28,12 +28,16 @@ class Payment extends Model
         'amount',
         'method',
         'paid_at',
+        'cancelled_at',
+        'cancelled_by',
+        'cancellation_reason',
     ];
 
     protected $casts = [
         'amount' => 'decimal:2',
         'method' => PaymentMethod::class,
         'paid_at' => 'date',
+        'cancelled_at' => 'datetime',
     ];
 
     public function invoice(): BelongsTo
@@ -46,8 +50,18 @@ class Payment extends Model
         return $this->belongsTo(User::class, 'recorded_by');
     }
 
+    public function cancelledBy(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'cancelled_by');
+    }
+
     public function ledgerEntry(): HasOne
     {
         return $this->hasOne(LedgerEntry::class);
+    }
+
+    public function isCancelled(): bool
+    {
+        return $this->cancelled_at !== null;
     }
 }

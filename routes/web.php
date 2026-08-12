@@ -82,6 +82,7 @@ Route::middleware(['auth', 'role:admin'])
         Route::post('students/{student}/invoices', [InvoiceController::class, 'store'])->name('invoices.store');
         Route::get('invoices/{invoice}', [InvoiceController::class, 'show'])->name('invoices.show');
         Route::post('invoices/{invoice}/payments', [PaymentController::class, 'store'])->name('invoices.payments.store');
+        Route::post('payments/{payment}/cancel', [PaymentController::class, 'cancel'])->name('payments.cancel');
 
         Route::get('packages', [TrainingPackageController::class, 'index'])->name('packages.index');
         Route::post('packages', [TrainingPackageController::class, 'store'])->name('packages.store');
