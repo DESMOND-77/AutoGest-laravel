@@ -98,6 +98,7 @@ Route::middleware(['auth', 'role:admin'])
     ->name('scheduling.')
     ->group(function () {
         Route::get('/', [LessonSessionController::class, 'index'])->name('index');
+        Route::get('export.csv', [LessonSessionController::class, 'exportCsv'])->name('export.csv');
         Route::post('/', [LessonSessionController::class, 'store'])->name('store');
         Route::delete('{session}', [LessonSessionController::class, 'destroy'])->name('destroy');
     });

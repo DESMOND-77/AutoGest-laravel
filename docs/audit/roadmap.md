@@ -36,9 +36,9 @@ Cette roadmap suit strictement l'ordre d'exécution imposé (§41 CLAUDE.md) : n
 
 Ordre recommandé, du plus impactant au moins impactant :
 
-1. **UX-01** — Sélecteur de thème Light/Dark/Système persistant (exploite `Setting.default_theme` déjà existant en base).
-2. **Planning en grille** (legacy-feature-parity) — reconstruire une vue jour/semaine visuelle façon grille, remplaçant le tableau plat actuel de `scheduling/index.blade.php`, `moniteur/agenda.blade.php`, `eleve/planning.blade.php`.
-3. **Interface Quiz** (legacy-feature-parity) — le backend (`QuizController`, `QuizGradingService`) est déjà complet ; il ne manque que les vues Blade (question → réponses → timer → correction → score → historique). Le plus rapide des trois gains UX majeurs.
+1. **UX-01** — **FAIT (2026-08-12)** — Sélecteur de thème Light/Dark/Système persistant (exploite `Setting.default_theme` déjà existant en base).
+2. **Planning en grille** (legacy-feature-parity) — **FAIT (2026-08-12)** — vue jour/semaine visuelle façon grille (`resources/views/components/planning-grid.blade.php`), remplaçant le tableau plat de `scheduling/index.blade.php`, `moniteur/agenda.blade.php`, `eleve/planning.blade.php`. Positionnement par horaire exact (pas de calage sur l'heure pleine, contrairement au bug legacy), filtres élève/moniteur/véhicule, clic pour préremplir, repli en cartes sur mobile.
+3. **Interface Quiz** (legacy-feature-parity) — **FAIT (2026-08-12)** — le backend (`QuizController`, `QuizGradingService`) était déjà complet ; vues Blade ajoutées (question → réponses → chronomètre → correction → score → historique) sous `resources/views/eleve/quiz/`.
 4. UX-04 — États vides explicites avec CTA sur toutes les listes.
 5. UX-05 — Généraliser le composant de bannière aux 4 niveaux (success/error/warning/info).
 6. TECH-03 — Fixer la version Tailwind avant de commencer (risque de build cassé sinon).
@@ -67,8 +67,8 @@ Ne pas avancer au domaine suivant tant que le précédent n'a pas : logique mét
 ## Étape 13 — Fonctionnalités restantes de la roadmap produit
 
 **Uniquement après** validation des étapes 8-12. Ordre suggéré par effort/valeur :
-1. Interface quiz (déjà couverte étape 10, gain rapide).
-2. Import CSV plannings historiques (`etp*.csv`/`ett*.csv`) — n'a jamais existé, à concevoir de zéro (Preview → Mapping → Confirmation → Import transactionnel, §25 CLAUDE.md), priorité basse (aucune régression, pure nouveauté).
+1. Interface quiz — **FAIT (2026-08-12)**, voir étape 10.
+2. Import CSV plannings historiques (`etp*.csv`/`ett*.csv`) — **FAIT (2026-08-12)** — n'avait jamais existé (ni dans l'ancienne app, ni dans celle-ci), conçu de zéro après analyse réelle des 5 fichiers `autoecole_jh/data/*.csv`. Commande `php artisan import:legacy-planning {structure} {path} [--dry-run]`, workflow Preview(`--dry-run`)→Rapport conforme à §25 CLAUDE.md. Le format réel s'est avéré plus ambigu que prévu : certaines cellules regroupent plusieurs élèves ou moniteurs sans séparateur fiable (ex. `"MOUBOTY      YACKOUNDA"`) — ces lignes sont explicitement ignorées et listées dans le rapport plutôt que devinées. Vérifié sur les fichiers réels (32 séances importées, 5 lignes ambiguës correctement écartées) et testé (idempotence incluse — y compris pour les séances "Annulé", qui échappent normalement à la détection de conflit). Export CSV symétrique ajouté sur l'écran planning (`GET planning/export.csv`).
 3. Notifications SMS.
 4. Paiements Airtel Money / Moov Money — vérifier au préalable la disponibilité réelle des API/sandbox/CGU avant tout développement (§26 CLAUDE.md — ne jamais inventer une API). `PaymentMethod` enum est déjà prêt à les recevoir.
 5. API publique versionnée (`/api/v1/`) avec Sanctum — seulement quand le domaine interne est stable.

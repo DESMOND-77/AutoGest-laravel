@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Domain\Reports\Support;
+namespace App\Support;
 
 use Symfony\Component\HttpFoundation\StreamedResponse;
 

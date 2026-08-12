@@ -19,6 +19,7 @@
                 <div class="flex gap-3 text-sm">
                     <a href="{{ route('scheduling.index', array_merge($filters, ['week' => $week->copy()->subWeek()->toDateString()])) }}" class="underline">&larr; Semaine précédente</a>
                     <a href="{{ route('scheduling.index', array_merge($filters, ['week' => $week->copy()->addWeek()->toDateString()])) }}" class="underline">Semaine suivante &rarr;</a>
+                    <a href="{{ route('scheduling.export.csv', array_merge($filters, ['week' => $week->toDateString()])) }}" class="underline">Exporter en CSV</a>
                 </div>
 
                 <form method="GET" action="{{ route('scheduling.index') }}" class="flex flex-wrap items-end gap-2 text-sm">

@@ -11,10 +11,13 @@ use App\Domain\Scheduling\Services\SchedulingService;
 use App\Domain\Students\Models\Student;
 use App\Http\Controllers\Controller;
 use App\Models\User;
+use App\Support\CsvExporter;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Illuminate\View\View;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class LessonSessionController extends Controller
 {
@@ -26,29 +29,42 @@ class LessonSessionController extends Controller
     {
         $this->authorize('viewAny', LessonSession::class);
 
-        $week = $request->query('week')
-            ? Carbon::parse($request->query('week'))->startOfWeek()
-            : now()->startOfWeek();
-
-        $filters = $request->only(['instructor_id', 'vehicle_id', 'student_id']);
-
-        $sessions = LessonSession::query()
-            ->whereBetween('scheduled_date', [$week->toDateString(), $week->copy()->endOfWeek()->toDateString()])
-            ->when($filters['instructor_id'] ?? null, fn ($query, $value) => $query->where('instructor_id', $value))
-            ->when($filters['vehicle_id'] ?? null, fn ($query, $value) => $query->where('vehicle_id', $value))
-            ->when($filters['student_id'] ?? null, fn ($query, $value) => $query->where('student_id', $value))
-            ->with(['student', 'instructor', 'vehicle'])
-            ->orderBy('scheduled_date')->orderBy('starts_at')
-            ->get();
+        $week = $this->weekFrom($request);
+        $sessions = $this->filteredSessions($request, $week);
 
         return view('scheduling.index', [
             'sessions' => $sessions,
             'week' => $week,
-            'filters' => $filters,
+            'filters' => $request->only(['instructor_id', 'vehicle_id', 'student_id']),
             'students' => Student::query()->orderBy('last_name')->get(),
             'instructors' => User::role('moniteur')->orderBy('name')->get(),
             'vehicles' => Vehicle::query()->orderBy('plate')->get(),
         ]);
+    }
+
+    public function exportCsv(Request $request): StreamedResponse
+    {
+        $this->authorize('viewAny', LessonSession::class);
+
+        $week = $this->weekFrom($request);
+        $sessions = $this->filteredSessions($request, $week);
+
+        $rows = $sessions->map(fn (LessonSession $session) => [
+            $session->scheduled_date->format('d/m/Y'),
+            substr($session->starts_at, 0, 5),
+            substr($session->ends_at, 0, 5),
+            $session->student->fullName(),
+            $session->instructor->name,
+            $session->vehicle->plate ?? '',
+            $session->type->label(),
+            $session->presence->label(),
+        ]);
+
+        return CsvExporter::stream(
+            "planning-semaine-{$week->toDateString()}.csv",
+            ['Date', 'Début', 'Fin', 'Élève', 'Moniteur', 'Véhicule', 'Type', 'Présence'],
+            $rows,
+        );
     }
 
     public function store(StoreLessonSessionRequest $request): RedirectResponse
@@ -82,5 +98,29 @@ class LessonSessionController extends Controller
         $this->scheduling->markPresence($session, $status);
 
         return back()->with('status', 'Présence mise à jour.');
+    }
+
+    private function weekFrom(Request $request): Carbon
+    {
+        return $request->query('week')
+            ? Carbon::parse($request->query('week'))->startOfWeek()
+            : now()->startOfWeek();
+    }
+
+    /**
+     * @return Collection<int, LessonSession>
+     */
+    private function filteredSessions(Request $request, Carbon $week): Collection
+    {
+        $filters = $request->only(['instructor_id', 'vehicle_id', 'student_id']);
+
+        return LessonSession::query()
+            ->whereBetween('scheduled_date', [$week->toDateString(), $week->copy()->endOfWeek()->toDateString()])
+            ->when($filters['instructor_id'] ?? null, fn ($query, $value) => $query->where('instructor_id', $value))
+            ->when($filters['vehicle_id'] ?? null, fn ($query, $value) => $query->where('vehicle_id', $value))
+            ->when($filters['student_id'] ?? null, fn ($query, $value) => $query->where('student_id', $value))
+            ->with(['student', 'instructor', 'vehicle'])
+            ->orderBy('scheduled_date')->orderBy('starts_at')
+            ->get();
     }
 }

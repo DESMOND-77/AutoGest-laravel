@@ -145,3 +145,34 @@ it('renders the presence control and cancel action for an admin', function () {
         ->assertSee(route('scheduling.presence', $session), false)
         ->assertSee(route('scheduling.destroy', $session), false);
 });
+
+it('exports the filtered week as a CSV', function () {
+    $sessionA = LessonSession::factory()->create([
+        'structure_id' => $this->structure->id,
+        'student_id' => $this->studentA->id,
+        'instructor_id' => $this->instructorA->id,
+        'scheduled_date' => $this->monday->toDateString(),
+        'starts_at' => '08:00',
+        'ends_at' => '09:00',
+    ]);
+    LessonSession::factory()->create([
+        'structure_id' => $this->structure->id,
+        'student_id' => $this->studentB->id,
+        'instructor_id' => $this->instructorB->id,
+        'scheduled_date' => $this->monday->toDateString(),
+    ]);
+
+    $response = $this->actingAs($this->admin)->get(route('scheduling.export.csv', [
+        'week' => $this->monday->toDateString(),
+        'instructor_id' => $this->instructorA->id,
+    ]));
+
+    $response->assertOk();
+    $response->assertHeader('content-disposition');
+
+    $content = $response->streamedContent();
+    expect($content)->toContain('Date,Début,Fin,Élève,Moniteur,Véhicule,Type,Présence');
+    expect($content)->toContain($sessionA->student->fullName());
+    expect($content)->toContain('08:00,09:00');
+    expect($content)->not->toContain($this->studentB->fullName());
+});

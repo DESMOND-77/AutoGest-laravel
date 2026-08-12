@@ -3,8 +3,8 @@
 namespace App\Domain\Reports\Http\Controllers;
 
 use App\Domain\Reports\Services\ReportService;
-use App\Domain\Reports\Support\CsvExporter;
 use App\Http\Controllers\Controller;
+use App\Support\CsvExporter;
 use Illuminate\View\View;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
