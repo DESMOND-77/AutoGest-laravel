@@ -1,64 +1,68 @@
 <x-app-layout>
-    <x-slot name="header">
-        <h2 class="font-semibold text-xl text-gray-800 dark:text-gray-200 leading-tight">
-            Établissements
-        </h2>
-    </x-slot>
+    <x-slot name="header">Établissements</x-slot>
 
-    <div class="py-12">
-        <div class="max-w-7xl mx-auto sm:px-6 lg:px-8 space-y-4">
+    <div class="py-6 space-y-5 max-w-7xl mx-auto">
+        @if (session('status'))
+            <x-alert variant="success">{{ session('status') }}</x-alert>
+        @endif
 
-            @if (session('status'))
-                <div class="bg-green-100 text-green-800 text-sm rounded-md p-3">
-                    {{ session('status') }}
-                </div>
-            @endif
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <x-kpi-card icon="building-office" label="Auto-écoles" :value="$statusCounts->sum()" />
+            <x-kpi-card icon="shield-check" label="Tenants actifs" :value="$statusCounts->get('active', 0)" />
+            <x-kpi-card icon="exclamation-triangle" label="Tenants suspendus" :value="$statusCounts->get('suspended', 0)" />
+        </div>
 
-            <div class="flex gap-2 text-sm">
-                <a href="{{ route('superadmin.structures.index') }}"
-                   class="px-3 py-1 rounded-md {{ $currentStatus ? 'bg-gray-200 dark:bg-gray-700' : 'bg-indigo-600 text-white' }}">
-                    Tous
+        <div class="flex flex-wrap gap-2 text-sm">
+            <a href="{{ route('superadmin.structures.index') }}" @class([
+                'px-3.5 py-1.5 rounded-ui-md font-medium transition',
+                'bg-primary text-primary-content' => ! $currentStatus,
+                'bg-surface-inset text-content-secondary hover:text-content' => $currentStatus,
+            ])>
+                Tous
+            </a>
+            @foreach ($statuses as $status)
+                <a href="{{ route('superadmin.structures.index', ['status' => $status->value]) }}" @class([
+                    'px-3.5 py-1.5 rounded-ui-md font-medium transition',
+                    'bg-primary text-primary-content' => $currentStatus === $status->value,
+                    'bg-surface-inset text-content-secondary hover:text-content' => $currentStatus !== $status->value,
+                ])>
+                    {{ $status->value }}
                 </a>
-                @foreach ($statuses as $status)
-                    <a href="{{ route('superadmin.structures.index', ['status' => $status->value]) }}"
-                       class="px-3 py-1 rounded-md {{ $currentStatus === $status->value ? 'bg-indigo-600 text-white' : 'bg-gray-200 dark:bg-gray-700' }}">
-                        {{ $status->value }}
-                    </a>
-                @endforeach
-            </div>
+            @endforeach
+        </div>
 
-            <div class="bg-white dark:bg-gray-800 shadow-sm sm:rounded-lg overflow-hidden">
-                <div class="overflow-x-auto">
-                    <table class="w-full text-sm text-left">
-                    <thead class="bg-gray-50 dark:bg-gray-700 text-gray-600 dark:text-gray-300">
+        <x-card :padded="false">
+            <div class="overflow-x-auto">
+                <table class="w-full text-sm text-left">
+                    <thead class="text-content-muted">
                         <tr>
-                            <th class="px-4 py-3">Nom</th>
-                            <th class="px-4 py-3">E-mail</th>
-                            <th class="px-4 py-3">Utilisateurs</th>
-                            <th class="px-4 py-3">Statut</th>
-                            <th class="px-4 py-3">Actions</th>
+                            <th class="px-5 py-3 font-medium">Nom</th>
+                            <th class="px-5 py-3 font-medium">E-mail</th>
+                            <th class="px-5 py-3 font-medium">Utilisateurs</th>
+                            <th class="px-5 py-3 font-medium">Statut</th>
+                            <th class="px-5 py-3 font-medium">Actions</th>
                         </tr>
                     </thead>
-                    <tbody class="divide-y divide-gray-100 dark:divide-gray-700">
+                    <tbody class="divide-y divide-border/60">
                         @forelse ($structures as $structure)
-                            <tr>
-                                <td class="px-4 py-3 font-medium text-gray-900 dark:text-gray-100">{{ $structure->name }}</td>
-                                <td class="px-4 py-3">{{ $structure->email }}</td>
-                                <td class="px-4 py-3">{{ $structure->users_count }}</td>
-                                <td class="px-4 py-3">
-                                    <span class="px-2 py-0.5 rounded-full text-xs bg-gray-100 dark:bg-gray-700">
+                            <tr class="hover:bg-surface-elevated/60 transition">
+                                <td class="px-5 py-3 font-medium text-content">{{ $structure->name }}</td>
+                                <td class="px-5 py-3 text-content-secondary">{{ $structure->email }}</td>
+                                <td class="px-5 py-3 text-content-secondary">{{ $structure->users_count }}</td>
+                                <td class="px-5 py-3">
+                                    <x-badge :variant="$structure->status->value === 'active' ? 'success' : ($structure->status->value === 'suspended' ? 'danger' : 'neutral')">
                                         {{ $structure->status->value }}
-                                    </span>
+                                    </x-badge>
                                 </td>
-                                <td class="px-4 py-3">
-                                    <div class="flex flex-wrap gap-2">
+                                <td class="px-5 py-3">
+                                    <div class="flex flex-wrap gap-3">
                                         @foreach ($statuses as $status)
                                             @unless ($status === $structure->status)
                                                 <form method="POST" action="{{ route('superadmin.structures.status', $structure) }}">
                                                     @csrf
                                                     @method('PATCH')
                                                     <input type="hidden" name="status" value="{{ $status->value }}">
-                                                    <button type="submit" class="underline text-xs text-gray-600 dark:text-gray-400">
+                                                    <button type="submit" class="text-xs text-primary hover:underline">
                                                         {{ $status->value }}
                                                     </button>
                                                 </form>
@@ -68,7 +72,7 @@
                                               onsubmit="return confirm('Supprimer définitivement cet établissement et toutes ses données ?');">
                                             @csrf
                                             @method('DELETE')
-                                            <button type="submit" class="underline text-xs text-red-600">Supprimer</button>
+                                            <button type="submit" class="text-xs text-danger hover:underline">Supprimer</button>
                                         </form>
                                     </div>
                                 </td>
@@ -82,10 +86,9 @@
                         @endforelse
                     </tbody>
                 </table>
-                </div>
             </div>
+        </x-card>
 
-            {{ $structures->links() }}
-        </div>
+        {{ $structures->links() }}
     </div>
 </x-app-layout>

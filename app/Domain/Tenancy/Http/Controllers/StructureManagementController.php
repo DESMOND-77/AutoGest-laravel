@@ -40,6 +40,10 @@ class StructureManagementController extends Controller
             'structures' => $structures,
             'statuses' => StructureStatus::cases(),
             'currentStatus' => $status,
+            'statusCounts' => Structure::query()
+                ->selectRaw('status, count(*) as total')
+                ->groupBy('status')
+                ->pluck('total', 'status'),
         ]);
     }
 

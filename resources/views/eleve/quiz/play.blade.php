@@ -1,54 +1,50 @@
 <x-app-layout>
-    <x-slot name="header">
-        <h2 class="font-semibold text-xl text-gray-800 dark:text-gray-200 leading-tight">
-            Entraînement au code
-        </h2>
-    </x-slot>
+    <x-slot name="header">Entraînement au code</x-slot>
 
-    <div class="py-12" x-data="quizApp()" x-init="init()">
-        <div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
+    <div class="py-6" x-data="quizApp()" x-init="init()">
+        <div class="max-w-3xl mx-auto space-y-6">
 
-            <div x-show="errorMessage" x-cloak class="bg-red-100 text-red-800 text-sm rounded-md p-3" x-text="errorMessage"></div>
+            <div x-show="errorMessage" x-cloak class="rounded-ui-md p-4 text-sm bg-danger/10 text-danger" x-text="errorMessage"></div>
 
             {{-- START --}}
             <template x-if="phase === 'start'">
                 <div class="space-y-6">
-                    <div class="bg-white dark:bg-gray-800 shadow-sm rounded-lg p-6 text-center space-y-4">
-                        <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100">Prêt à vous entraîner ?</h3>
-                        <p class="text-sm text-gray-500">
+                    <div class="bg-surface shadow-soft rounded-ui-lg p-6 text-center space-y-4">
+                        <h3 class="text-lg font-semibold text-content">Prêt à vous entraîner ?</h3>
+                        <p class="text-sm text-content-secondary">
                             20 questions tirées au hasard, 45 secondes par question en moyenne.
                             Le score n'est calculé qu'une fois le test terminé.
                         </p>
                         <button
                             @click="start()"
-                            class="inline-flex items-center px-6 py-3 bg-gray-800 dark:bg-gray-200 border border-transparent rounded-md font-semibold text-sm text-white dark:text-gray-800 uppercase tracking-widest hover:bg-gray-700 dark:hover:bg-white"
+                            class="inline-flex items-center rounded-ui-md bg-primary px-6 py-3 font-semibold text-sm text-primary-content shadow-soft-sm hover:shadow-soft-hover transition"
                         >
                             Commencer le test
                         </button>
                     </div>
 
-                    <div class="bg-white dark:bg-gray-800 shadow-sm rounded-lg p-6">
-                        <div class="text-sm font-medium text-gray-900 dark:text-gray-100 mb-3">Historique</div>
+                    <div class="bg-surface shadow-soft rounded-ui-lg p-6">
+                        <div class="text-sm font-semibold text-content mb-3">Historique</div>
                         <template x-if="history.length === 0">
-                            <p class="text-sm text-gray-500">Aucun test passé pour l'instant.</p>
+                            <p class="text-sm text-content-muted">Aucun test passé pour l'instant.</p>
                         </template>
                         <table class="w-full text-sm text-left" x-show="history.length > 0">
-                            <thead class="text-gray-500">
+                            <thead class="text-content-muted">
                                 <tr>
-                                    <th class="py-1">Date</th>
-                                    <th class="py-1">Score</th>
-                                    <th class="py-1">Résultat</th>
+                                    <th class="py-1 font-medium">Date</th>
+                                    <th class="py-1 font-medium">Score</th>
+                                    <th class="py-1 font-medium">Résultat</th>
                                 </tr>
                             </thead>
-                            <tbody class="divide-y divide-gray-100 dark:divide-gray-700">
+                            <tbody class="divide-y divide-border/60">
                                 <template x-for="entry in history" :key="entry.id">
                                     <tr>
-                                        <td class="py-1" x-text="formatDate(entry.completed_at)"></td>
-                                        <td class="py-1" x-text="entry.score + ' / ' + entry.total_questions"></td>
-                                        <td class="py-1">
+                                        <td class="py-2 text-content-secondary" x-text="formatDate(entry.completed_at)"></td>
+                                        <td class="py-2 text-content" x-text="entry.score + ' / ' + entry.total_questions"></td>
+                                        <td class="py-2">
                                             <span
                                                 class="px-2 py-0.5 rounded-full text-xs"
-                                                :class="passed(entry.score, entry.total_questions) ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'"
+                                                :class="passed(entry.score, entry.total_questions) ? 'bg-success/10 text-success' : 'bg-danger/10 text-danger'"
                                                 x-text="passed(entry.score, entry.total_questions) ? 'Réussi' : 'Insuffisant'"
                                             ></span>
                                         </td>
@@ -62,7 +58,7 @@
 
             {{-- LOADING / SUBMITTING --}}
             <template x-if="phase === 'loading' || phase === 'submitting'">
-                <div class="bg-white dark:bg-gray-800 shadow-sm rounded-lg p-6 text-center text-gray-500">
+                <div class="bg-surface shadow-soft rounded-ui-lg p-6 text-center text-content-muted">
                     <span x-text="phase === 'loading' ? 'Chargement des questions…' : 'Correction en cours…'"></span>
                 </div>
             </template>
@@ -70,53 +66,49 @@
             {{-- PLAYING --}}
             <template x-if="phase === 'playing' && currentQuestion">
                 <div class="space-y-4">
-                    <div class="flex items-center justify-between text-sm text-gray-500">
+                    <div class="flex items-center justify-between text-sm text-content-secondary">
                         <span x-text="'Question ' + (current + 1) + ' / ' + questions.length"></span>
-                        <span class="font-mono" :class="secondsLeft <= 30 ? 'text-red-600 font-semibold' : ''" x-text="formattedTime"></span>
+                        <span class="font-mono" :class="secondsLeft <= 30 ? 'text-danger font-semibold' : ''" x-text="formattedTime"></span>
                     </div>
 
-                    <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
-                        <div class="bg-gray-800 dark:bg-gray-200 h-2 rounded-full transition-all" :style="`width: ${progressPercent}%`"></div>
+                    <div class="w-full bg-surface-inset rounded-full h-2">
+                        <div class="bg-primary h-2 rounded-full transition-all" :style="`width: ${progressPercent}%`"></div>
                     </div>
 
-                    <div class="bg-white dark:bg-gray-800 shadow-sm rounded-lg p-6 space-y-4">
-                        <p class="text-base font-medium text-gray-900 dark:text-gray-100" x-text="currentQuestion.prompt"></p>
+                    <div class="bg-surface shadow-soft rounded-ui-lg p-6 space-y-4">
+                        <p class="text-base font-medium text-content" x-text="currentQuestion.prompt"></p>
 
                         <div class="space-y-2">
                             <template x-for="option in currentQuestion.options" :key="option.id">
                                 <label
-                                    class="flex items-center gap-3 p-3 border rounded-md cursor-pointer"
+                                    class="flex items-center gap-3 p-3 rounded-ui-md cursor-pointer transition"
                                     :class="answers[currentQuestion.id] === option.id
-                                        ? 'border-gray-800 dark:border-gray-200 bg-gray-50 dark:bg-gray-700'
-                                        : 'border-gray-200 dark:border-gray-700'"
+                                        ? 'shadow-inset bg-surface-inset'
+                                        : 'bg-surface-elevated hover:shadow-soft-sm'"
                                 >
                                     <input
                                         type="radio"
-                                        class="shrink-0"
+                                        class="shrink-0 text-primary focus:ring-primary"
                                         :name="'question-' + currentQuestion.id"
                                         :checked="answers[currentQuestion.id] === option.id"
                                         @change="choose(option.id)"
                                     >
-                                    <span class="text-sm text-gray-700 dark:text-gray-300" x-text="option.text"></span>
+                                    <span class="text-sm text-content" x-text="option.text"></span>
                                 </label>
                             </template>
                         </div>
                     </div>
 
                     <div class="flex justify-between">
-                        <button
-                            @click="previous()"
-                            :disabled="current === 0"
-                            class="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md text-sm text-gray-700 dark:text-gray-300 disabled:opacity-40"
-                        >
+                        <x-secondary-button @click="previous()" x-bind:disabled="current === 0">
                             &larr; Précédent
-                        </button>
+                        </x-secondary-button>
 
                         <button
                             x-show="current < questions.length - 1"
                             @click="next()"
                             :disabled="!answers[currentQuestion.id]"
-                            class="px-4 py-2 bg-gray-800 dark:bg-gray-200 rounded-md text-sm text-white dark:text-gray-800 disabled:opacity-40"
+                            class="rounded-ui-md bg-primary px-4 py-2.5 text-sm font-medium text-primary-content shadow-soft-sm hover:shadow-soft-hover transition disabled:opacity-40 disabled:pointer-events-none"
                         >
                             Suivant &rarr;
                         </button>
@@ -125,7 +117,7 @@
                             x-show="current === questions.length - 1"
                             @click="submit()"
                             :disabled="answeredCount === 0"
-                            class="px-4 py-2 bg-gray-800 dark:bg-gray-200 rounded-md text-sm text-white dark:text-gray-800 disabled:opacity-40"
+                            class="rounded-ui-md bg-primary px-4 py-2.5 text-sm font-medium text-primary-content shadow-soft-sm hover:shadow-soft-hover transition disabled:opacity-40 disabled:pointer-events-none"
                         >
                             Terminer le test
                         </button>
@@ -136,27 +128,27 @@
             {{-- RESULT / CORRECTION --}}
             <template x-if="phase === 'result' && correction">
                 <div class="space-y-4">
-                    <div class="bg-white dark:bg-gray-800 shadow-sm rounded-lg p-6 text-center space-y-2">
-                        <p class="text-3xl font-bold text-gray-900 dark:text-gray-100" x-text="correction.score + ' / ' + correction.total_questions"></p>
+                    <div class="bg-surface shadow-soft rounded-ui-lg p-6 text-center space-y-2">
+                        <p class="text-3xl font-bold text-content" x-text="correction.score + ' / ' + correction.total_questions"></p>
                         <span
                             class="inline-block px-3 py-1 rounded-full text-sm"
-                            :class="passed(correction.score, correction.total_questions) ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'"
+                            :class="passed(correction.score, correction.total_questions) ? 'bg-success/10 text-success' : 'bg-danger/10 text-danger'"
                             x-text="passed(correction.score, correction.total_questions) ? 'Réussi' : 'Insuffisant (70% requis)'"
                         ></span>
                     </div>
 
                     <div class="space-y-3">
                         <template x-for="(question, index) in correction.questions" :key="question.id">
-                            <div class="bg-white dark:bg-gray-800 shadow-sm rounded-lg p-4">
-                                <p class="text-sm font-medium text-gray-900 dark:text-gray-100 mb-2" x-text="(index + 1) + '. ' + question.prompt"></p>
+                            <div class="bg-surface shadow-soft rounded-ui-lg p-4">
+                                <p class="text-sm font-medium text-content mb-2" x-text="(index + 1) + '. ' + question.prompt"></p>
                                 <div class="space-y-1">
                                     <template x-for="option in question.options" :key="option.id">
                                         <div
-                                            class="text-sm px-3 py-2 rounded-md"
+                                            class="text-sm px-3 py-2 rounded-ui-sm"
                                             :class="{
-                                                'bg-green-100 text-green-800': option.is_correct,
-                                                'bg-red-100 text-red-800': !option.is_correct && option.id === question.chosen_option_id,
-                                                'text-gray-500': !option.is_correct && option.id !== question.chosen_option_id,
+                                                'bg-success/10 text-success': option.is_correct,
+                                                'bg-danger/10 text-danger': !option.is_correct && option.id === question.chosen_option_id,
+                                                'text-content-muted': !option.is_correct && option.id !== question.chosen_option_id,
                                             }"
                                         >
                                             <span x-text="option.text"></span>
@@ -171,7 +163,7 @@
                     <div class="text-center">
                         <button
                             @click="restart()"
-                            class="inline-flex items-center px-6 py-3 bg-gray-800 dark:bg-gray-200 border border-transparent rounded-md font-semibold text-sm text-white dark:text-gray-800 uppercase tracking-widest hover:bg-gray-700 dark:hover:bg-white"
+                            class="inline-flex items-center rounded-ui-md bg-primary px-6 py-3 font-semibold text-sm text-primary-content shadow-soft-sm hover:shadow-soft-hover transition"
                         >
                             Recommencer
                         </button>

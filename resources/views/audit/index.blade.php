@@ -1,30 +1,25 @@
 <x-app-layout>
-    <x-slot name="header">
-        <h2 class="font-semibold text-xl text-gray-800 dark:text-gray-200 leading-tight">
-            Journal d'audit
-        </h2>
-    </x-slot>
+    <x-slot name="header">Journal d'audit</x-slot>
 
-    <div class="py-12">
-        <div class="max-w-4xl mx-auto sm:px-6 lg:px-8">
-            <div class="bg-white dark:bg-gray-800 shadow-sm sm:rounded-lg overflow-hidden">
-                <div class="overflow-x-auto">
-                    <table class="w-full text-sm text-left">
-                    <thead class="bg-gray-50 dark:bg-gray-700 text-gray-600 dark:text-gray-300">
+    <div class="py-6 max-w-4xl mx-auto">
+        <x-card :padded="false">
+            <div class="overflow-x-auto">
+                <table class="w-full text-sm text-left">
+                    <thead class="text-content-muted">
                         <tr>
-                            <th class="px-4 py-3">Date</th>
-                            <th class="px-4 py-3">Utilisateur</th>
-                            <th class="px-4 py-3">Action</th>
-                            <th class="px-4 py-3">Cible</th>
+                            <th class="px-5 py-3 font-medium">Date</th>
+                            <th class="px-5 py-3 font-medium">Utilisateur</th>
+                            <th class="px-5 py-3 font-medium">Action</th>
+                            <th class="px-5 py-3 font-medium">Cible</th>
                         </tr>
                     </thead>
-                    <tbody class="divide-y divide-gray-100 dark:divide-gray-700">
+                    <tbody class="divide-y divide-border/60">
                         @forelse ($logs as $log)
-                            <tr>
-                                <td class="px-4 py-3">{{ $log->created_at->format('d/m/Y H:i') }}</td>
-                                <td class="px-4 py-3">{{ $log->user?->name ?? 'Système' }}</td>
-                                <td class="px-4 py-3">{{ $log->action }}</td>
-                                <td class="px-4 py-3">{{ class_basename($log->auditable_type ?? '') }} #{{ $log->auditable_id }}</td>
+                            <tr class="hover:bg-surface-elevated/60 transition">
+                                <td class="px-5 py-3 text-content-secondary">{{ $log->created_at->format('d/m/Y H:i') }}</td>
+                                <td class="px-5 py-3 text-content">{{ $log->user?->name ?? 'Système' }}</td>
+                                <td class="px-5 py-3 text-content-secondary">{{ $log->action }}</td>
+                                <td class="px-5 py-3 text-content-secondary">{{ class_basename($log->auditable_type ?? '') }} #{{ $log->auditable_id }}</td>
                             </tr>
                         @empty
                             <x-empty-table-row
@@ -35,10 +30,9 @@
                         @endforelse
                     </tbody>
                 </table>
-                </div>
             </div>
+        </x-card>
 
-            {{ $logs->links() }}
-        </div>
+        <div class="mt-4">{{ $logs->links() }}</div>
     </div>
 </x-app-layout>
