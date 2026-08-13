@@ -41,4 +41,11 @@ return [
         'driver' => env('SMS_DRIVER', 'log'),
     ],
 
+    'student_registration' => [
+        // How long a freshly generated public registration link stays
+        // usable before it needs to be regenerated. See
+        // docs/features/student-public-registration.md.
+        'link_ttl_days' => env('STUDENT_REGISTRATION_LINK_TTL_DAYS', 90),
+    ],
+
 ];

@@ -39,7 +39,9 @@ use App\Domain\Store\Policies\SupplierPolicy;
 use App\Domain\Students\Events\StudentStageChanged;
 use App\Domain\Students\Listeners\LogStageChange;
 use App\Domain\Students\Models\Student;
+use App\Domain\Students\Models\StudentRegistrationLink;
 use App\Domain\Students\Policies\StudentPolicy;
+use App\Domain\Students\Policies\StudentRegistrationLinkPolicy;
 use App\Domain\Students\Repositories\EloquentStudentRepository;
 use App\Domain\Students\Repositories\StudentRepositoryInterface;
 use App\Domain\Tenancy\Models\Structure;
@@ -80,6 +82,7 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
         Gate::policy(Student::class, StudentPolicy::class);
+        Gate::policy(StudentRegistrationLink::class, StudentRegistrationLinkPolicy::class);
         Gate::policy(Invoice::class, InvoicePolicy::class);
         Gate::policy(Payment::class, PaymentPolicy::class);
         Gate::policy(TrainingPackage::class, TrainingPackagePolicy::class);

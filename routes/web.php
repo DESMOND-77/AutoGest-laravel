@@ -19,7 +19,9 @@ use App\Domain\Settings\Http\Controllers\SettingController;
 use App\Domain\Store\Http\Controllers\OrderController;
 use App\Domain\Store\Http\Controllers\ProductController;
 use App\Domain\Store\Http\Controllers\SupplierController;
+use App\Domain\Students\Http\Controllers\PublicStudentRegistrationController;
 use App\Domain\Students\Http\Controllers\StudentController;
+use App\Domain\Students\Http\Controllers\StudentRegistrationLinkController;
 use App\Domain\Tenancy\Http\Controllers\StructureManagementController;
 use App\Domain\Training\Http\Controllers\EvaluationController;
 use App\Domain\Training\Http\Controllers\ExamController;
@@ -188,6 +190,35 @@ Route::middleware(['auth', 'role:admin'])
     ->group(function () {
         Route::get('/', [SettingController::class, 'show'])->name('show');
         Route::patch('/', [SettingController::class, 'update'])->name('update');
+
+        Route::prefix('student-registration')
+            ->name('student-registration.')
+            ->group(function () {
+                Route::get('/', [StudentRegistrationLinkController::class, 'show'])->name('show');
+                Route::post('generate', [StudentRegistrationLinkController::class, 'generate'])->name('generate');
+                Route::post('regenerate', [StudentRegistrationLinkController::class, 'regenerate'])->name('regenerate');
+                Route::post('revoke', [StudentRegistrationLinkController::class, 'revoke'])->name('revoke');
+            });
+    });
+
+// Public, unauthenticated: a prospective student opens the link an
+// auto-école generated above. The tenant comes from the token alone — see
+// PublicStudentRegistrationController's docblock — so this group carries no
+// 'auth' *or* 'guest' middleware, only per-IP throttling against token
+// brute-forcing and submission spam (§33-34 of the spec).
+Route::prefix('register/student')
+    ->name('public-registration.')
+    ->group(function () {
+        Route::get('/', [PublicStudentRegistrationController::class, 'show'])
+            ->middleware('throttle:30,1')
+            ->name('show');
+
+        Route::post('/', [PublicStudentRegistrationController::class, 'store'])
+            ->middleware('throttle:6,1')
+            ->name('store');
+
+        Route::get('success', [PublicStudentRegistrationController::class, 'success'])
+            ->name('success');
     });
 
 Route::middleware(['auth', 'role:admin'])
