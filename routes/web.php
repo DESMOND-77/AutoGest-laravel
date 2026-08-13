@@ -100,6 +100,8 @@ Route::middleware(['auth', 'role:admin'])
         Route::get('/', [LessonSessionController::class, 'index'])->name('index');
         Route::get('export.csv', [LessonSessionController::class, 'exportCsv'])->name('export.csv');
         Route::post('/', [LessonSessionController::class, 'store'])->name('store');
+        Route::patch('{session}', [LessonSessionController::class, 'update'])->name('update');
+        Route::post('{session}/duplicate', [LessonSessionController::class, 'duplicate'])->name('duplicate');
         Route::delete('{session}', [LessonSessionController::class, 'destroy'])->name('destroy');
     });
 

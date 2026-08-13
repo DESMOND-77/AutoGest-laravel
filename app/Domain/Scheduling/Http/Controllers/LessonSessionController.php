@@ -6,6 +6,7 @@ use App\Domain\Fleet\Models\Vehicle;
 use App\Domain\Scheduling\Enums\PresenceStatus;
 use App\Domain\Scheduling\Exceptions\SchedulingConflict;
 use App\Domain\Scheduling\Http\Requests\StoreLessonSessionRequest;
+use App\Domain\Scheduling\Http\Requests\UpdateLessonSessionRequest;
 use App\Domain\Scheduling\Models\LessonSession;
 use App\Domain\Scheduling\Services\SchedulingService;
 use App\Domain\Students\Models\Student;
@@ -76,6 +77,44 @@ class LessonSessionController extends Controller
         }
 
         return back()->with('status', 'Séance planifiée.');
+    }
+
+    public function update(UpdateLessonSessionRequest $request, LessonSession $session): RedirectResponse
+    {
+        try {
+            $this->scheduling->reschedule($session, $request->validated());
+        } catch (SchedulingConflict $e) {
+            return back()->withErrors(['starts_at' => $e->getMessage()])->withInput()->with('editingSessionId', $session->id);
+        }
+
+        return back()->with('status', 'Séance mise à jour.');
+    }
+
+    public function duplicate(Request $request, LessonSession $session): RedirectResponse
+    {
+        $this->authorize('create', LessonSession::class);
+
+        $data = $request->validate([
+            'scheduled_date' => ['required', 'date'],
+            'starts_at' => ['required', 'date_format:H:i'],
+            'ends_at' => ['required', 'date_format:H:i', 'after:starts_at'],
+        ]);
+
+        try {
+            $this->scheduling->schedule([
+                'student_id' => $session->student_id,
+                'instructor_id' => $session->instructor_id,
+                'vehicle_id' => $session->vehicle_id,
+                'type' => $session->type->value,
+                'scheduled_date' => $data['scheduled_date'],
+                'starts_at' => $data['starts_at'],
+                'ends_at' => $data['ends_at'],
+            ]);
+        } catch (SchedulingConflict $e) {
+            return back()->withErrors(['duplicate' => $e->getMessage()])->with('duplicatingSessionId', $session->id);
+        }
+
+        return back()->with('status', 'Séance dupliquée.');
     }
 
     public function destroy(LessonSession $session): RedirectResponse

@@ -23,16 +23,16 @@
     $hourMarks = range($dayStartHour, $dayEndHour - 1);
 @endphp
 
-<div {{ $attributes->merge(['class' => 'bg-white dark:bg-gray-800 shadow-sm rounded-lg p-4']) }}>
+<div {{ $attributes->class(['bg-surface rounded-ui-lg shadow-soft p-4']) }}>
     {{-- Legend --}}
-    <div class="flex flex-wrap gap-3 text-xs text-gray-600 dark:text-gray-300 mb-4">
+    <div class="flex flex-wrap gap-3 text-xs text-content-secondary mb-4">
         @foreach (\App\Domain\Scheduling\Enums\SessionType::cases() as $case)
             @php
                 $dotClasses = [
-                    'theoretical' => 'bg-purple-400',
-                    'practical' => 'bg-blue-400',
-                    'code' => 'bg-amber-400',
-                    'mock_exam' => 'bg-red-400',
+                    'theoretical' => 'bg-info',
+                    'practical' => 'bg-primary',
+                    'code' => 'bg-warning',
+                    'mock_exam' => 'bg-danger',
                 ][$case->value];
             @endphp
             <span class="inline-flex items-center gap-1">
@@ -41,7 +41,7 @@
             </span>
         @endforeach
         <span class="inline-flex items-center gap-1">
-            <span class="w-2.5 h-2.5 rounded-full bg-gray-300 dark:bg-gray-600"></span>
+            <span class="w-2.5 h-2.5 rounded-full bg-content-muted"></span>
             Annulée
         </span>
     </div>
@@ -52,7 +52,7 @@
             <div class="grid" style="grid-template-columns: 56px repeat({{ $daysCount }}, minmax(0, 1fr));">
                 <div></div>
                 @foreach ($dayDates as $date)
-                    <div class="text-center text-xs font-medium text-gray-600 dark:text-gray-300 pb-2 capitalize">
+                    <div class="text-center text-xs font-medium text-content-secondary pb-2 capitalize">
                         {{ $date->translatedFormat('D d/m') }}
                     </div>
                 @endforeach
@@ -62,7 +62,7 @@
                 <div class="relative" style="height: {{ $gridHeight }}px;">
                     @foreach ($hourMarks as $hour)
                         <div
-                            class="absolute right-2 -translate-y-1/2 text-[11px] text-gray-400 dark:text-gray-500"
+                            class="absolute right-2 -translate-y-1/2 text-[11px] text-content-muted"
                             style="top: {{ ($hour - $dayStartHour) * $pixelsPerHour }}px;"
                         >
                             {{ sprintf('%02d:00', $hour) }}
@@ -72,7 +72,7 @@
 
                 @foreach ($dayDates as $date)
                     <div
-                        class="relative border-l border-gray-100 dark:border-gray-700"
+                        class="relative border-l border-border/60"
                         style="height: {{ $gridHeight }}px;"
                         data-day-column
                         data-date="{{ $date->toDateString() }}"
@@ -81,7 +81,7 @@
                     >
                         @foreach ($hourMarks as $hour)
                             <div
-                                class="absolute left-0 right-0 border-t border-gray-100 dark:border-gray-700"
+                                class="absolute left-0 right-0 border-t border-border/40"
                                 style="top: {{ ($hour - $dayStartHour) * $pixelsPerHour }}px;"
                             ></div>
                         @endforeach
@@ -120,11 +120,11 @@
                     ->sortBy('starts_at');
             @endphp
             <div>
-                <div class="text-xs font-medium text-gray-600 dark:text-gray-300 mb-2 capitalize">
+                <div class="text-xs font-medium text-content-secondary mb-2 capitalize">
                     {{ $date->translatedFormat('l d/m') }}
                 </div>
                 @if ($daySessions->isEmpty())
-                    <p class="text-xs text-gray-400">Aucune séance.</p>
+                    <p class="text-xs text-content-muted">Aucune séance.</p>
                 @else
                     <div class="space-y-2">
                         @foreach ($daySessions as $session)

@@ -2,7 +2,7 @@
     $user = auth()->user();
 @endphp
 
-<header class="sticky top-0 z-20 flex items-center gap-3 px-4 sm:px-6 py-4">
+<header class="sticky top-0 z-20 flex items-center gap-3 bg-background px-4 sm:px-6 py-4">
     <button
         @click="mobileMenuOpen = true"
         class="lg:hidden shrink-0 rounded-ui-md bg-surface p-2.5 text-content-secondary shadow-soft-sm hover:text-content"

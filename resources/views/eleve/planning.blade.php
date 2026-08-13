@@ -1,31 +1,26 @@
 <x-app-layout>
-    <x-slot name="header">
-        <h2 class="font-semibold text-xl text-gray-800 dark:text-gray-200 leading-tight">
-            Mon planning — semaine du {{ $week->format('d/m/Y') }}
-        </h2>
-    </x-slot>
+    <x-slot name="header">Mon planning — semaine du {{ $week->format('d/m/Y') }}</x-slot>
 
-    <div class="py-12">
-        <div class="max-w-5xl mx-auto sm:px-6 lg:px-8 space-y-6">
+    <div class="py-6 space-y-5 max-w-5xl mx-auto">
+        @if (! $student)
+            <x-card>
+                <p class="text-sm text-content-secondary">Votre dossier est en cours de traitement.</p>
+            </x-card>
+        @else
+            <div class="flex gap-4 text-sm">
+                <a href="{{ route('eleve.planning', ['week' => $week->copy()->subWeek()->toDateString()]) }}" class="text-content-secondary hover:text-primary transition">&larr; Semaine précédente</a>
+                <a href="{{ route('eleve.planning', ['week' => $week->copy()->addWeek()->toDateString()]) }}" class="text-content-secondary hover:text-primary transition">Semaine suivante &rarr;</a>
+            </div>
 
-            @if (! $student)
-                <div class="bg-white dark:bg-gray-800 shadow-sm rounded-lg p-6 text-gray-600 dark:text-gray-300">
-                    Votre dossier est en cours de traitement.
-                </div>
-            @else
-                <div class="flex gap-3 text-sm">
-                    <a href="{{ route('eleve.planning', ['week' => $week->copy()->subWeek()->toDateString()]) }}" class="underline">&larr; Semaine précédente</a>
-                    <a href="{{ route('eleve.planning', ['week' => $week->copy()->addWeek()->toDateString()]) }}" class="underline">Semaine suivante &rarr;</a>
-                </div>
-
-                @if ($sessions->isEmpty())
-                    <div class="bg-white dark:bg-gray-800 shadow-sm rounded-lg p-10 text-center">
-                        <p class="text-sm font-medium text-gray-700 dark:text-gray-300">Aucune séance cette semaine.</p>
+            @if ($sessions->isEmpty())
+                <x-card>
+                    <div class="text-center py-8">
+                        <p class="text-sm font-medium text-content">Aucune séance cette semaine.</p>
                     </div>
-                @else
-                    <x-planning-grid :sessions="$sessions" :week="$week" />
-                @endif
+                </x-card>
+            @else
+                <x-planning-grid :sessions="$sessions" :week="$week" />
             @endif
-        </div>
+        @endif
     </div>
 </x-app-layout>

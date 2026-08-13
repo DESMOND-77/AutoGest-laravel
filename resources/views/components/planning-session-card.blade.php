@@ -2,23 +2,39 @@
 
 @php
     $typeStyles = [
-        'theoretical' => 'bg-purple-100 border-purple-400 text-purple-900 dark:bg-purple-900/50 dark:border-purple-500 dark:text-purple-100',
-        'practical' => 'bg-blue-100 border-blue-400 text-blue-900 dark:bg-blue-900/50 dark:border-blue-500 dark:text-blue-100',
-        'code' => 'bg-amber-100 border-amber-400 text-amber-900 dark:bg-amber-900/50 dark:border-amber-500 dark:text-amber-100',
-        'mock_exam' => 'bg-red-100 border-red-400 text-red-900 dark:bg-red-900/50 dark:border-red-500 dark:text-red-100',
+        'theoretical' => 'bg-info/15 border-info text-content',
+        'practical' => 'bg-primary/15 border-primary text-content',
+        'code' => 'bg-warning/15 border-warning text-content',
+        'mock_exam' => 'bg-danger/15 border-danger text-content',
     ];
 
     $isCancelled = $session->presence === \App\Domain\Scheduling\Enums\PresenceStatus::Cancelled;
     $colorClasses = $isCancelled
-        ? 'bg-gray-100 border-gray-300 text-gray-400 dark:bg-gray-800 dark:border-gray-600 dark:text-gray-500'
+        ? 'bg-surface-inset border-border text-content-muted'
         : ($typeStyles[$session->type->value] ?? $typeStyles['practical']);
 
     $canMarkPresence = auth()->user()->can('markPresence', $session);
     $canCancel = auth()->user()->can('update', $session) && ! $isCancelled;
+    $canEdit = auth()->user()->can('update', $session);
     $canLinkToEvaluation = auth()->user()->hasAnyRole(['admin', 'moniteur']) && auth()->user()->can('view', $session->student);
+
+    $sessionPayload = [
+        'id' => $session->id,
+        'student_name' => $session->student->fullName(),
+        'instructor_id' => $session->instructor_id,
+        'vehicle_id' => $session->vehicle_id,
+        'type' => $session->type->value,
+        'scheduled_date' => $session->scheduled_date->toDateString(),
+        'starts_at' => substr($session->starts_at, 0, 5),
+        'ends_at' => substr($session->ends_at, 0, 5),
+    ];
 @endphp
 
-<div class="{{ $colorClasses }} border-l-4 rounded-md {{ $dense ? 'px-1 py-0.5' : 'px-3 py-2' }} text-xs leading-tight {{ $isCancelled ? 'line-through' : '' }}">
+<div
+    data-session-card
+    @if ($canEdit) @click="editingSession = {{ Illuminate\Support\Js::from($sessionPayload) }}; showEditModal = true" @endif
+    class="{{ $colorClasses }} border-l-4 rounded-ui-sm {{ $dense ? 'px-1.5 py-1' : 'px-3 py-2' }} text-xs leading-tight {{ $isCancelled ? 'line-through' : '' }} {{ $canEdit ? 'cursor-pointer hover:shadow-soft-sm transition' : '' }}"
+>
     <div class="font-semibold {{ $dense ? '' : 'text-sm' }}">
         {{ substr($session->starts_at, 0, 5) }}–{{ substr($session->ends_at, 0, 5) }}
         @unless ($dense)
@@ -28,7 +44,7 @@
 
     <div class="truncate">
         @if ($canLinkToEvaluation)
-            <a href="{{ route('training.evaluation.show', $session->student) }}" class="hover:underline">{{ $session->student->fullName() }}</a>
+            <a href="{{ route('training.evaluation.show', $session->student) }}" @click.stop class="hover:underline">{{ $session->student->fullName() }}</a>
         @else
             {{ $session->student->fullName() }}
         @endif
@@ -48,14 +64,14 @@
         {{-- Compact controls: an icon-sized presence select and a small
              cancel button, so even a 1-hour slot has room for both without
              the card content overflowing its time-proportional height. --}}
-        <div class="mt-0.5 flex items-center gap-1">
+        <div class="mt-0.5 flex items-center gap-1" @click.stop>
             @if ($canMarkPresence)
                 <form method="POST" action="{{ route('scheduling.presence', $session) }}" class="inline">
                     @csrf
                     @method('PATCH')
                     <select
                         name="presence"
-                        class="text-[10px] leading-none py-0 pl-0.5 pr-3 border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 rounded"
+                        class="text-[10px] leading-none py-0 pl-0.5 pr-3 border-0 bg-transparent text-content rounded"
                         onchange="this.form.submit()"
                         aria-label="Changer la présence"
                     >
@@ -72,12 +88,12 @@
                 <form method="POST" action="{{ route('scheduling.destroy', $session) }}" class="inline" onsubmit="return confirm('Annuler cette séance ?');">
                     @csrf
                     @method('DELETE')
-                    <button type="submit" class="text-red-700 dark:text-red-300 leading-none" title="Annuler la séance" aria-label="Annuler la séance">&times;</button>
+                    <button type="submit" class="text-danger leading-none" title="Annuler la séance" aria-label="Annuler la séance">&times;</button>
                 </form>
             @endif
         </div>
     @else
-        <div class="mt-1 flex items-center gap-2 flex-wrap">
+        <div class="mt-1 flex items-center gap-2 flex-wrap" @click.stop>
             <span class="opacity-80">{{ $session->presence->label() }}</span>
 
             @if ($canMarkPresence)
@@ -86,7 +102,7 @@
                     @method('PATCH')
                     <select
                         name="presence"
-                        class="text-[11px] py-0 pl-1 pr-5 border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 rounded"
+                        class="text-[11px] py-0 pl-1 pr-5 border-0 bg-transparent text-content rounded"
                         onchange="this.form.submit()"
                         aria-label="Changer la présence"
                     >
@@ -101,7 +117,7 @@
                 <form method="POST" action="{{ route('scheduling.destroy', $session) }}" class="inline" onsubmit="return confirm('Annuler cette séance ?');">
                     @csrf
                     @method('DELETE')
-                    <button type="submit" class="text-red-700 dark:text-red-300 underline">Annuler</button>
+                    <button type="submit" class="text-danger underline">Annuler</button>
                 </form>
             @endif
         </div>
