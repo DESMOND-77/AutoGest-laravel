@@ -3,9 +3,11 @@
 namespace App\Domain\Students\Enums;
 
 /**
- * The student lifecycle validated in the architecture proposal (§9):
- * Prospect -> ... -> PermisObtenu -> AncienEleve, with a single allowed
- * back-edge from ExamenPratique to EvaluationContinue on failure.
+ * The student lifecycle from the 2026-08-23 design (docs/superpowers/specs/
+ * 2026-08-23-inscription-eleve-otp-dossier-design.md): Prospect -> ... ->
+ * LicenseObtained -> FormerStudent, with two allowed back-edges — Validation
+ * -> DossierSetup on a rejected document, and PracticalExam ->
+ * ContinuousEvaluation on a failed exam.
  */
 enum LifecycleStage: string
 {
@@ -32,11 +34,11 @@ enum LifecycleStage: string
     {
         return match ($this) {
             self::Prospect => [self::PreEnrollment],
-            self::PreEnrollment => [self::Enrollment],
-            self::Enrollment => [self::Payment],
-            self::Payment => [self::DossierSetup],
+            self::PreEnrollment => [self::DossierSetup],
             self::DossierSetup => [self::Validation],
-            self::Validation => [self::TheoryCourse],
+            self::Validation => [self::Enrollment, self::DossierSetup],
+            self::Enrollment => [self::Payment],
+            self::Payment => [self::TheoryCourse],
             self::TheoryCourse => [self::MockExams],
             self::MockExams => [self::CodeObtained],
             self::CodeObtained => [self::PracticalCourse],
