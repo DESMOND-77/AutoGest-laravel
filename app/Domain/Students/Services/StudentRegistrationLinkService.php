@@ -69,15 +69,19 @@ class StudentRegistrationLinkService
 
     /**
      * The only entry point that turns a raw public token into a trusted
-     * link + tenant. Looked up with token_hash alone — no tenant scope is
-     * active yet, so this legitimately searches across every tenant (see
-     * StudentRegistrationLink's docblock).
+     * link + tenant. Looked up with token_hash alone, explicitly bypassing
+     * the tenant global scope: this route carries no 'auth'/'guest'
+     * middleware (see routes/web.php), so a visitor who is already
+     * authenticated from an earlier registration in the same browser
+     * session can still reach this with an ambient TenantContext set by
+     * ResolveTenant — this must keep searching across every tenant
+     * regardless (see StudentRegistrationLink's docblock).
      *
      * @throws InvalidRegistrationLink
      */
     public function validate(string $plainToken): StudentRegistrationLink
     {
-        $link = StudentRegistrationLink::query()
+        $link = StudentRegistrationLink::withoutTenantScope()
             ->where('token_hash', hash('sha256', $plainToken))
             ->first();
 

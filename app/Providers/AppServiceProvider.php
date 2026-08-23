@@ -54,8 +54,11 @@ use App\Domain\Training\Models\Skill;
 use App\Domain\Training\Policies\ExamPolicy;
 use App\Domain\Training\Policies\QuizAttemptPolicy;
 use App\Domain\Training\Policies\SkillPolicy;
+use Illuminate\Cache\RateLimiting\Limit;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
@@ -108,5 +111,16 @@ class AppServiceProvider extends ServiceProvider
         // type-hint — registering it again here would fire it twice.
         Event::listen(StudentStageChanged::class, LogStageChange::class);
         Event::listen(StudentEmailVerified::class, ActivateStudentAfterEmailVerification::class);
+
+        // The numeric 'throttle:N,1' syntax keys by the authenticated user
+        // once one exists on the request, not by IP. The public
+        // registration endpoint logs the visitor in as part of a
+        // successful submission, so a naive 'throttle:6,1' would silently
+        // stop limiting by IP after the first success (each new account is
+        // a fresh key) — defeating the anti-spam/brute-force intent these
+        // routes document (§33-34, §51 of the spec). Force IP-based keying
+        // explicitly instead.
+        RateLimiter::for('public-registration-lookup', fn (Request $request) => Limit::perMinute(30)->by($request->ip()));
+        RateLimiter::for('public-registration-submit', fn (Request $request) => Limit::perMinute(6)->by($request->ip()));
     }
 }

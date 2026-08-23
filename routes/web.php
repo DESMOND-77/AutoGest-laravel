@@ -211,11 +211,11 @@ Route::prefix('register/student')
     ->name('public-registration.')
     ->group(function () {
         Route::get('/', [PublicStudentRegistrationController::class, 'show'])
-            ->middleware('throttle:30,1')
+            ->middleware('throttle:public-registration-lookup')
             ->name('show');
 
         Route::post('/', [PublicStudentRegistrationController::class, 'store'])
-            ->middleware('throttle:6,1')
+            ->middleware('throttle:public-registration-submit')
             ->name('store');
     });
 

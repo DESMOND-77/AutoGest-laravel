@@ -54,8 +54,13 @@ class PublicStudentRegistrationService
                 // "still usable" + "increment usage_count" check has to
                 // happen against a locked row, not the copy validate()
                 // already returned. See §50 of the original registration-
-                // link spec.
-                $locked = StudentRegistrationLink::query()
+                // link spec. Unscoped for the same reason validate() is
+                // (see its docblock): this route carries no 'auth'/'guest'
+                // middleware, so an already-authenticated visitor still
+                // carries an ambient TenantContext from their own tenant —
+                // scoping this lookup by it would 404 a perfectly valid
+                // link belonging to a *different* tenant.
+                $locked = StudentRegistrationLink::withoutTenantScope()
                     ->whereKey($link->id)
                     ->lockForUpdate()
                     ->firstOrFail();
