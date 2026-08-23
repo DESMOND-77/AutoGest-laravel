@@ -36,7 +36,9 @@ use App\Domain\Store\Models\Supplier;
 use App\Domain\Store\Policies\OrderPolicy;
 use App\Domain\Store\Policies\ProductPolicy;
 use App\Domain\Store\Policies\SupplierPolicy;
+use App\Domain\Students\Events\StudentEmailVerified;
 use App\Domain\Students\Events\StudentStageChanged;
+use App\Domain\Students\Listeners\ActivateStudentAfterEmailVerification;
 use App\Domain\Students\Listeners\LogStageChange;
 use App\Domain\Students\Models\Student;
 use App\Domain\Students\Models\StudentRegistrationLink;
@@ -105,5 +107,6 @@ class AppServiceProvider extends ServiceProvider
         // event auto-discovery already finds it by its handle(VehicleExpenseRecorded)
         // type-hint — registering it again here would fire it twice.
         Event::listen(StudentStageChanged::class, LogStageChange::class);
+        Event::listen(StudentEmailVerified::class, ActivateStudentAfterEmailVerification::class);
     }
 }
