@@ -216,9 +216,6 @@ Route::prefix('register/student')
         Route::post('/', [PublicStudentRegistrationController::class, 'store'])
             ->middleware('throttle:6,1')
             ->name('store');
-
-        Route::get('success', [PublicStudentRegistrationController::class, 'success'])
-            ->name('success');
     });
 
 Route::middleware(['auth', 'role:admin'])

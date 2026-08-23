@@ -57,11 +57,12 @@ class PublicStudentRegistrationController extends Controller
         $token = $request->validated('registration_token');
 
         try {
-            $this->registration->register($token, $request->studentData());
+            $this->registration->register($token, $request->accountData(), $request->studentData());
         } catch (InvalidRegistrationLink $e) {
             return view('register.student', ['state' => $e->reason]);
         } catch (DuplicateRegistration $e) {
-            $request->flash();
+            // Never flash a password back into the session.
+            $request->flashExcept(['password', 'password_confirmation']);
             $link = $this->safeLink($token);
 
             return view('register.student', [
@@ -74,12 +75,9 @@ class PublicStudentRegistrationController extends Controller
             ]);
         }
 
-        return redirect()->route('public-registration.success');
-    }
+        $request->session()->regenerate();
 
-    public function success(): View
-    {
-        return view('register.student-success');
+        return redirect()->route('eleve.otp.show');
     }
 
     /**

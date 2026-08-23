@@ -8,14 +8,17 @@ use App\Domain\Students\Exceptions\DuplicateRegistration;
 use App\Domain\Students\Exceptions\InvalidRegistrationLink;
 use App\Domain\Students\Models\Student;
 use App\Domain\Students\Models\StudentRegistrationLink;
+use App\Models\User;
 use App\Support\TenantContext;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
 
 /**
  * The only place a public, unauthenticated visitor's request is allowed to
- * turn into a Student row. Ordering matters and mirrors §58 of the spec
- * exactly: the token is validated and locked *before* TenantContext is
+ * turn into a User+Student pair. Ordering matters and mirrors §68 of the
+ * spec exactly: the token is validated and locked *before* TenantContext is
  * touched, so nothing here can ever be tricked into resolving a tenant from
  * anything the client sent directly.
  */
@@ -24,18 +27,20 @@ class PublicStudentRegistrationService
     public function __construct(
         private readonly StudentRegistrationLinkService $links,
         private readonly EnrollmentService $enrollment,
+        private readonly EmailOtpService $otps,
         private readonly AuditService $audit,
     ) {}
 
     /**
-     * @param  array<string, mixed>  $data  Already validated by
-     *                                      PublicStudentRegistrationRequest — never trusted for tenant_id/
-     *                                      structure_id, which aren't even accepted fields on that request.
+     * @param  array{name: string, email: string, password: string}  $accountData
+     * @param  array<string, mixed>  $studentData  Already validated by
+     *                                             PublicStudentRegistrationRequest — never trusted for tenant_id/
+     *                                             structure_id, which aren't even accepted fields on that request.
      *
      * @throws InvalidRegistrationLink
      * @throws DuplicateRegistration
      */
-    public function register(string $plainToken, array $data): Student
+    public function register(string $plainToken, array $accountData, array $studentData): Student
     {
         // Validated once outside the transaction so a token that's
         // obviously wrong (unknown, expired, revoked) never even opens a
@@ -43,12 +48,13 @@ class PublicStudentRegistrationService
         $link = $this->links->validate($plainToken);
 
         try {
-            return DB::transaction(function () use ($link, $data) {
+            return DB::transaction(function () use ($link, $accountData, $studentData) {
                 // Re-fetch with a row lock: two concurrent requests can both
                 // pass validate() above before either commits, so the real
                 // "still usable" + "increment usage_count" check has to
                 // happen against a locked row, not the copy validate()
-                // already returned. See §50 of the spec.
+                // already returned. See §50 of the original registration-
+                // link spec.
                 $locked = StudentRegistrationLink::query()
                     ->whereKey($link->id)
                     ->lockForUpdate()
@@ -60,13 +66,25 @@ class PublicStudentRegistrationService
 
                 TenantContext::set($locked->structure);
 
-                if ($this->duplicateExists($data)) {
+                if ($this->duplicateAccountEmail($accountData['email']) || $this->duplicateStudent($studentData)) {
                     throw new DuplicateRegistration;
                 }
 
-                $student = $this->enrollment->register($data);
+                $user = User::query()->create([
+                    'name' => $accountData['name'],
+                    'email' => $accountData['email'],
+                    'password' => Hash::make($accountData['password']),
+                ]);
+                $user->assignRole('eleve');
+
+                $student = $this->enrollment->register($studentData + [
+                    'user_id' => $user->id,
+                    'email' => $accountData['email'],
+                ]);
 
                 $locked->markUsed();
+
+                $this->otps->generate($user);
 
                 $this->audit->log('student.public_registration_completed', $student, [], [
                     'registration_link_id' => $locked->id,
@@ -79,6 +97,8 @@ class PublicStudentRegistrationService
                     'registration_link_id' => $locked->id,
                     'student_id' => $student->id,
                 ]);
+
+                Auth::login($user);
 
                 return $student;
             });
@@ -95,11 +115,22 @@ class PublicStudentRegistrationService
     }
 
     /**
-     * Scoped implicitly to the tenant just activated by TenantContext::set()
-     * above — Student's BelongsToTenant global scope does the filtering, the
-     * same way every other tenant-scoped query in this codebase works.
+     * Global, unscoped on purpose: a self-service account's email is its
+     * login credential, so a duplicate anywhere (any tenant) must be
+     * rejected — but the message never says which school the existing
+     * account belongs to (§ edge cases: "sans révéler à quel établissement
+     * ce compte est déjà rattaché").
      */
-    private function duplicateExists(array $data): bool
+    private function duplicateAccountEmail(string $email): bool
+    {
+        return User::query()->withoutTenantScope()->where('email', $email)->exists();
+    }
+
+    /**
+     * Scoped implicitly to the tenant just activated by TenantContext::set()
+     * above — Student's BelongsToTenant global scope does the filtering.
+     */
+    private function duplicateStudent(array $data): bool
     {
         $email = $data['email'] ?? null;
         $phone = $data['phone'] ?? null;
