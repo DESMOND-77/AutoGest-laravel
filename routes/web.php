@@ -19,6 +19,7 @@ use App\Domain\Settings\Http\Controllers\SettingController;
 use App\Domain\Store\Http\Controllers\OrderController;
 use App\Domain\Store\Http\Controllers\ProductController;
 use App\Domain\Store\Http\Controllers\SupplierController;
+use App\Domain\Students\Http\Controllers\EmailOtpController;
 use App\Domain\Students\Http\Controllers\PublicStudentRegistrationController;
 use App\Domain\Students\Http\Controllers\StudentController;
 use App\Domain\Students\Http\Controllers\StudentRegistrationLinkController;
@@ -132,7 +133,7 @@ Route::middleware(['auth', 'role:admin|moniteur'])
         Route::post('students/{student}/evaluation', [EvaluationController::class, 'store'])->name('evaluation.store');
     });
 
-Route::middleware(['auth', 'role:eleve'])
+Route::middleware(['auth', 'role:eleve', 'otp.verified'])
     ->prefix('quiz')
     ->name('quiz.')
     ->group(function () {
@@ -268,6 +269,17 @@ Route::middleware(['auth', 'role:moniteur'])
     });
 
 Route::middleware(['auth', 'role:eleve'])
+    ->prefix('eleve')
+    ->name('eleve.')
+    ->group(function () {
+        Route::get('verification-otp', [EmailOtpController::class, 'show'])->name('otp.show');
+        Route::post('verification-otp', [EmailOtpController::class, 'verify'])->name('otp.verify');
+        Route::post('verification-otp/resend', [EmailOtpController::class, 'resend'])
+            ->middleware('throttle:1,1')
+            ->name('otp.resend');
+    });
+
+Route::middleware(['auth', 'role:eleve', 'otp.verified'])
     ->name('eleve.')
     ->group(function () {
         Route::view('eleve/dashboard', 'eleve.dashboard')->name('dashboard');
