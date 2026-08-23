@@ -76,6 +76,40 @@ Ne pas avancer au domaine suivant tant que le précédent n'a pas : logique mét
 
 **Fonctionnalités legacy à trancher avec le métier avant réintégration** (voir `legacy-feature-parity.md`) : Recyclage, vente de codes Rousseau, feuille de route moniteur, inscription élève en self-service. Ne pas les recréer par défaut — confirmer d'abord qu'elles répondent à un besoin réel du marché gabonais actuel.
 
+### Étape 13bis — Écarts confirmés par navigation réelle (vanilla vs Laravel)
+
+Source : `docs/audit/comparaison-vanilla-vs-laravel.md` (navigation réelle des deux applications avec comptes superadmin/admin/moniteur, recoupée avec le code). Complète et affine la liste ci-dessus — notamment en confirmant que Recyclage et Code Rousseau sont **réellement utilisés et alimentés en données** dans la version vanilla (pas des écrans morts), ce qui renforce l'hypothèse d'un besoin réel plutôt qu'une fonctionnalité obsolète.
+
+| # | Élément | Nature | Effort relatif |
+|---|---|---|---|
+| 1 | Écran unifié Utilisateurs (créer/gérer comptes admin/moniteur/élève, reset mot de passe) | Absent — domaine `Users` vide | Élevé (tranche TECH-01) |
+| 2 | Champs examen (lieu, inspecteur, fautes, commentaire) dans le formulaire | Backend prêt, UI manquante | Faible |
+| 3 | Écran de revue de dossier (`dossier_status`) côté admin | Backend prêt, UI manquante | Faible-moyen |
+| 4 | Espace élève : Ma Progression / Paiements / Mon Dossier | Absent | Moyen (réutilise des données déjà exposées côté admin/moniteur) |
+| 5 | Feuille de route moniteur (vue consolidée par élève) | Absent | Moyen |
+| 6 | KPIs caisse (solde, reste à collecter) + flux d'activité du jour sur le dashboard admin | Absent | Faible (données déjà calculables) |
+| 7 | Compétences groupées par catégorie + date de validation | Backend partiel (category existe, pas de date de validation) | Faible-moyen |
+| 8 | Inscription atomique (élève + dossier + facture + paiement en un écran) | Différence de workflow | Moyen-élevé (implique de revoir `EnrollmentService`) |
+| 9 | Module Recyclage & Tests | Absent | Moyen — à confirmer avec le métier avant recréation |
+| 10 | Module Code Rousseau | Absent | Moyen — à confirmer avec le métier, le module Store pourrait suffire selon le besoin réel |
+
+### Étape 13ter — Recommandations issues de l'étude de marché (Gabon / Afrique centrale)
+
+Source : `docs/audit/etude-marche-fonctionnalites.md` (comparaison avec le marché SaaS auto-école international + spécificités réglementaires/technologiques gabonaises). Le socle métier actuel est déjà au niveau ou au-dessus des concurrents ; les manques se situent côté engagement élève en libre-service.
+
+| # | Fonctionnalité | Justification marché/local | Effort estimé | Dépendance |
+|---|---|---|---|---|
+| 1 | Rappels automatiques de séance (WhatsApp Business API en priorité, SMS en repli) | Canal réellement utilisé au Gabon (85%+ des échanges PME↔clients), gain no-show démontré ; infrastructure `Notifications` déjà prête à recevoir un nouveau canal | Moyen | Vérifier CGU/coût Meta Cloud API avant de s'engager (§26 CLAUDE.md) |
+| 2 | Réservation de créneau en libre-service par l'élève, avec décompte du forfait | Fonctionnalité standard chez tous les concurrents (Rdv360, Colibri, Goldie) ; la détection de conflit backend est prête à la recevoir | Moyen-élevé | Définir règles métier (délai min. avant annulation, plafond de réservations simultanées) |
+| 3 | Paiement mobile money via agrégateur (type PVit) plutôt qu'intégration directe double Airtel/Moov | Mode de paiement dominant et incontournable au Gabon (4 087 milliards FCFA de volume 2024) ; un agrégateur réduit le risque technique et couvre la zone CEMAC | Élevé | Vérifier CGU/API réelles avant développement (affine le point 4 de l'étape 13) |
+| 4 | PWA avec cache offline pour l'espace élève et l'agenda moniteur | Contrainte de connectivité/coût de la donnée en Afrique centrale ; alternative moins coûteuse qu'une app mobile native | Moyen | À positionner avant/à la place du point "Application mobile éventuelle" de l'étape 13 |
+| 5 | Tableau de bord dirigeant avec KPIs visuels (taux de réussite, occupation véhicules/moniteurs, CA) | Standard marché ; recoupe le point 6 de l'étape 13bis (KPIs caisse) | Faible-moyen | Aucune, données déjà disponibles via `ReportsController` |
+| 6 | Solde de forfait visible côté élève (heures restantes, montant dû) | Attendu par défaut dans les espaces élève concurrents ; recoupe le point 4 de l'étape 13bis (écran Paiements élève) | Faible | `TrainingPackage`/`Invoice` déjà modélisés |
+| 7 | Veille sur une future API DGTT/CNEPC (permis digitalisé gabonais, lancé le 24/03/2026) | Trop récent pour qu'une API publique existe ; à surveiller, ne rien développer avant spécification officielle | Nul aujourd'hui | Clause de veille uniquement |
+| 8 | Mettre à jour `legacy-feature-parity.md` : marquer l'auto-inscription élève comme faite, dépriorisier "Recyclage"/"Codes Rousseau" sauf confirmation métier | Cohérence documentaire | Nul (doc uniquement) | — |
+
+**À ne pas faire** : copier telle quelle une fonctionnalité "France" (codes Rousseau, stage de récupération de points) sans vérifier son existence réglementaire au Gabon ; développer une intégration Airtel/Moov/API DGTT avant vérification concrète des CGU/coûts/disponibilité ; prioriser une app mobile native avant d'avoir chiffré le coût/bénéfice d'une PWA offline.
+
 ## Étape 14-15 — Préparation production / audit pré-production
 
 - Aligner `composer.json` PHP `^8.2` vs CLAUDE.md "8.5" (TECH-09).
