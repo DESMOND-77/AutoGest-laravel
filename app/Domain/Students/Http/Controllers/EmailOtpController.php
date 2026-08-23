@@ -10,6 +10,7 @@ use App\Domain\Students\Services\EmailOtpService;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 use Illuminate\View\View;
 
 class EmailOtpController extends Controller
@@ -39,8 +40,13 @@ class EmailOtpController extends Controller
 
         $user->forceFill(['email_verified_at' => now()])->save();
 
-        $student = Student::query()->where('user_id', $user->id)->firstOrFail();
-        StudentEmailVerified::dispatch($student);
+        $student = Student::query()->where('user_id', $user->id)->first();
+
+        if ($student) {
+            StudentEmailVerified::dispatch($student);
+        } else {
+            Log::warning('eleve.otp.verified_without_student', ['user_id' => $user->id]);
+        }
 
         return redirect()->route('eleve.dashboard')->with('status', 'Adresse e-mail vérifiée.');
     }
