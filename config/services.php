@@ -48,4 +48,12 @@ return [
         'link_ttl_days' => env('STUDENT_REGISTRATION_LINK_TTL_DAYS', 90),
     ],
 
+    'email_otp' => [
+        // How long a freshly generated OTP code stays valid, and how many
+        // wrong guesses are allowed before it must be reissued. See
+        // docs/features/student-public-registration.md.
+        'expiry_minutes' => env('EMAIL_OTP_EXPIRY_MINUTES', 10),
+        'max_attempts' => env('EMAIL_OTP_MAX_ATTEMPTS', 5),
+    ],
+
 ];
