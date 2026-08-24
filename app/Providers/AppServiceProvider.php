@@ -40,8 +40,10 @@ use App\Domain\Students\Events\StudentEmailVerified;
 use App\Domain\Students\Events\StudentStageChanged;
 use App\Domain\Students\Listeners\ActivateStudentAfterEmailVerification;
 use App\Domain\Students\Listeners\LogStageChange;
+use App\Domain\Students\Models\RequiredDocumentType;
 use App\Domain\Students\Models\Student;
 use App\Domain\Students\Models\StudentRegistrationLink;
+use App\Domain\Students\Policies\RequiredDocumentTypePolicy;
 use App\Domain\Students\Policies\StudentPolicy;
 use App\Domain\Students\Policies\StudentRegistrationLinkPolicy;
 use App\Domain\Students\Repositories\EloquentStudentRepository;
@@ -88,6 +90,7 @@ class AppServiceProvider extends ServiceProvider
     {
         Gate::policy(Student::class, StudentPolicy::class);
         Gate::policy(StudentRegistrationLink::class, StudentRegistrationLinkPolicy::class);
+        Gate::policy(RequiredDocumentType::class, RequiredDocumentTypePolicy::class);
         Gate::policy(Invoice::class, InvoicePolicy::class);
         Gate::policy(Payment::class, PaymentPolicy::class);
         Gate::policy(TrainingPackage::class, TrainingPackagePolicy::class);
