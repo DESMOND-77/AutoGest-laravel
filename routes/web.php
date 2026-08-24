@@ -21,6 +21,7 @@ use App\Domain\Store\Http\Controllers\ProductController;
 use App\Domain\Store\Http\Controllers\SupplierController;
 use App\Domain\Students\Http\Controllers\EmailOtpController;
 use App\Domain\Students\Http\Controllers\PublicStudentRegistrationController;
+use App\Domain\Students\Http\Controllers\RequiredDocumentTypeController;
 use App\Domain\Students\Http\Controllers\StudentController;
 use App\Domain\Students\Http\Controllers\StudentRegistrationLinkController;
 use App\Domain\Tenancy\Http\Controllers\StructureManagementController;
@@ -199,6 +200,14 @@ Route::middleware(['auth', 'role:admin'])
                 Route::post('generate', [StudentRegistrationLinkController::class, 'generate'])->name('generate');
                 Route::post('regenerate', [StudentRegistrationLinkController::class, 'regenerate'])->name('regenerate');
                 Route::post('revoke', [StudentRegistrationLinkController::class, 'revoke'])->name('revoke');
+            });
+
+        Route::prefix('documents-requis')
+            ->name('document-types.')
+            ->group(function () {
+                Route::get('/', [RequiredDocumentTypeController::class, 'index'])->name('index');
+                Route::post('/', [RequiredDocumentTypeController::class, 'store'])->name('store');
+                Route::patch('{requiredDocumentType}', [RequiredDocumentTypeController::class, 'update'])->name('update');
             });
     });
 

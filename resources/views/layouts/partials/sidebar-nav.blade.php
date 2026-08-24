@@ -92,6 +92,7 @@
                 @if ($user?->hasRole('admin'))
                     <x-sidebar-link :href="route('settings.show')" :active="request()->routeIs('settings.show')" icon="cog">Paramètres</x-sidebar-link>
                     <x-sidebar-link :href="route('settings.student-registration.show')" :active="request()->routeIs('settings.student-registration.*')" icon="user-plus">Inscription publique</x-sidebar-link>
+                    <x-sidebar-link :href="route('settings.document-types.index')" :active="request()->routeIs('settings.document-types.*')" icon="clipboard-list">Pièces requises</x-sidebar-link>
                 @endif
                 <x-sidebar-link :href="route('audit.index')" :active="request()->routeIs('audit.*')" icon="shield-check">Audit</x-sidebar-link>
                 @if ($user?->hasRole('superadmin'))
