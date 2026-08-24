@@ -192,7 +192,7 @@ regardless of its review status.
 
 Review happens **per document**, not per dossier: an admin approves or
 rejects each one individually from the `dossiers` queue (students currently
-at `Validation`) or from a student's own profile. Rejecting one immediately
+at `Validation`). Rejecting one immediately
 sends the student back to `DossierSetup` (`Validation → DossierSetup`),
 regardless of the other documents' state; approving the *last* remaining
 pending/rejected active-type document advances the student to `Enrollment`.

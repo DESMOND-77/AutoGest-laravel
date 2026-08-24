@@ -27,6 +27,14 @@ beforeEach(function () {
     ]);
 });
 
+it('renders the dossiers queue with the student\'s pending documents', function () {
+    $response = $this->actingAs($this->admin)->get(route('dossiers.index'));
+
+    $response->assertOk();
+    $response->assertSee($this->student->fullName());
+    $response->assertSee($this->type->label);
+});
+
 it('sends the student back to dossier setup when the only document is rejected', function () {
     $this->actingAs($this->admin)->post(route('documents.reject', $this->document), ['reason' => 'Illisible']);
 
@@ -86,4 +94,47 @@ it('denies a non-admin role from reviewing documents', function () {
     $moniteur->assignRole('moniteur');
 
     $this->actingAs($moniteur)->post(route('documents.approve', $this->document))->assertForbidden();
+});
+
+it('does not let a new required document type added after submission retroactively block enrollment', function () {
+    // Baseline: the student's single required document is approved and
+    // advances them, proving the normal path still works.
+    $this->actingAs($this->admin)->post(route('documents.approve', $this->document));
+    expect($this->student->fresh()->lifecycle_stage)->toBe(LifecycleStage::Enrollment);
+
+    // Now the retroactive case: a second student is at Validation with one
+    // document for the tenant's one required type. A new required type is
+    // then added to the tenant AFTER the student is already at Validation.
+    $secondStudent = Student::factory()->stage(LifecycleStage::Validation)->create(['structure_id' => $this->structure->id]);
+    $secondDocument = Document::factory()->create([
+        'structure_id' => $this->structure->id,
+        'documentable_type' => Student::class,
+        'documentable_id' => $secondStudent->id,
+        'required_document_type_id' => $this->type->id,
+        'review_status' => DocumentReviewStatus::Pending,
+        'is_current' => true,
+    ]);
+
+    RequiredDocumentType::factory()->create(['structure_id' => $this->structure->id]);
+
+    $this->actingAs($this->admin)->post(route('documents.approve', $secondDocument));
+
+    expect($secondStudent->fresh()->lifecycle_stage)->toBe(LifecycleStage::Enrollment);
+});
+
+it('refuses to review a non-dossier document via the dossier review endpoints', function () {
+    $nonDossierDocument = Document::factory()->create([
+        'structure_id' => $this->structure->id,
+        'documentable_type' => Student::class,
+        'documentable_id' => $this->student->id,
+        'required_document_type_id' => null,
+        'review_status' => DocumentReviewStatus::Pending,
+        'is_current' => true,
+    ]);
+
+    $this->actingAs($this->admin)
+        ->post(route('documents.reject', $nonDossierDocument), ['reason' => 'Illisible'])
+        ->assertNotFound();
+
+    expect($this->student->fresh()->lifecycle_stage)->toBe(LifecycleStage::Validation);
 });

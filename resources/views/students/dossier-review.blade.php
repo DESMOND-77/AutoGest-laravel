@@ -21,9 +21,9 @@
                                     @csrf
                                     <button type="submit" class="text-xs font-semibold text-success hover:underline">Approuver</button>
                                 </form>
-                                <form method="POST" action="{{ route('documents.reject', $document) }}" onsubmit="return confirm('Motif du rejet ?');">
+                                <form method="POST" action="{{ route('documents.reject', $document) }}" class="flex items-center gap-2" onsubmit="return confirm('Rejeter ce document ?');">
                                     @csrf
-                                    <input type="hidden" name="reason" value="Document non conforme">
+                                    <x-text-input type="text" name="reason" class="text-xs py-1" placeholder="Motif du rejet" required />
                                     <button type="submit" class="text-xs font-semibold text-danger hover:underline">Rejeter</button>
                                 </form>
                             </div>

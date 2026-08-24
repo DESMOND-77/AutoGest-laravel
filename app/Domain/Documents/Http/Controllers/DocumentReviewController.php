@@ -6,7 +6,6 @@ use App\Domain\Documents\Enums\DocumentReviewStatus;
 use App\Domain\Documents\Http\Requests\RejectDossierDocumentRequest;
 use App\Domain\Documents\Models\Document;
 use App\Domain\Students\Enums\LifecycleStage;
-use App\Domain\Students\Models\RequiredDocumentType;
 use App\Domain\Students\Models\Student;
 use App\Domain\Students\Services\LifecycleService;
 use App\Http\Controllers\Controller;
@@ -51,6 +50,7 @@ class DocumentReviewController extends Controller
         $student = $document->documentable;
 
         abort_unless($student instanceof Student && $student->lifecycle_stage === LifecycleStage::Validation, 403);
+        abort_unless($document->required_document_type_id !== null, 404);
 
         $document->update([
             'review_status' => $status,
@@ -65,9 +65,20 @@ class DocumentReviewController extends Controller
             return;
         }
 
-        $activeTypeIds = RequiredDocumentType::query()->where('structure_id', $student->structure_id)->active()->pluck('id');
+        // Scope the completeness check to the required types the student's
+        // own current dossier documents reference — not the tenant's live
+        // list of active types. A RequiredDocumentType added after the
+        // student reached Validation must not retroactively block them from
+        // ever completing their dossier. See "Cas limite: ajout d'une pièce
+        // requise après soumission" in the design spec.
+        $ownTypeIds = Document::query()
+            ->where('documentable_type', $student->getMorphClass())
+            ->where('documentable_id', $student->id)
+            ->where('is_current', true)
+            ->whereNotNull('required_document_type_id')
+            ->pluck('required_document_type_id');
 
-        $allApproved = $activeTypeIds->isEmpty() ? false : $activeTypeIds->every(
+        $allApproved = $ownTypeIds->isEmpty() ? false : $ownTypeIds->every(
             fn (int $typeId) => Document::query()
                 ->where('documentable_type', $student->getMorphClass())
                 ->where('documentable_id', $student->id)

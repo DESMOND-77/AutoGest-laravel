@@ -2,6 +2,7 @@
 
 namespace App\Domain\Students\Models;
 
+use App\Domain\Documents\Models\Document;
 use App\Domain\Students\Database\Factories\StudentFactory;
 use App\Domain\Students\Enums\CourseType;
 use App\Domain\Students\Enums\DossierStatus;
@@ -13,6 +14,7 @@ use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\MorphMany;
 
 class Student extends Model
 {
@@ -83,6 +85,11 @@ class Student extends Model
     public function instructor(): BelongsTo
     {
         return $this->belongsTo(User::class, 'instructor_id');
+    }
+
+    public function documents(): MorphMany
+    {
+        return $this->morphMany(Document::class, 'documentable');
     }
 
     public function fullName(): string
