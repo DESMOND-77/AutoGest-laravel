@@ -30,6 +30,7 @@
                 <x-sidebar-link :href="route('students.index')" :active="request()->routeIs('students.*')" icon="users">Élèves</x-sidebar-link>
                 @if ($user?->hasRole('admin'))
                     <x-sidebar-link :href="route('crm.leads.index')" :active="request()->routeIs('crm.*')" icon="user-plus">Prospects</x-sidebar-link>
+                    <x-sidebar-link :href="route('dossiers.index')" :active="request()->routeIs('dossiers.*')" icon="clipboard-list">Dossiers en attente</x-sidebar-link>
                 @endif
                 @can('viewAny', \App\Domain\Instructors\Models\Instructor::class)
                     <x-sidebar-link :href="route('instructors.index')" :active="request()->routeIs('instructors.*')" icon="academic-cap">Moniteurs</x-sidebar-link>

@@ -3,6 +3,7 @@
 use App\Domain\Audit\Http\Controllers\AuditLogController;
 use App\Domain\CRM\Http\Controllers\LeadController;
 use App\Domain\Documents\Http\Controllers\DocumentController;
+use App\Domain\Documents\Http\Controllers\DocumentReviewController;
 use App\Domain\Finance\Http\Controllers\InvoiceController;
 use App\Domain\Finance\Http\Controllers\LedgerController;
 use App\Domain\Finance\Http\Controllers\PaymentController;
@@ -261,6 +262,9 @@ Route::middleware('auth')->group(function () {
 Route::middleware(['auth', 'role:admin'])->group(function () {
     Route::post('students/{student}/documents', [DocumentController::class, 'storeForStudent'])->name('students.documents.store');
     Route::post('fleet/{vehicle}/documents', [DocumentController::class, 'storeForVehicle'])->name('fleet.documents.store');
+    Route::get('dossiers', [DocumentReviewController::class, 'index'])->name('dossiers.index');
+    Route::post('documents/{document}/approve', [DocumentReviewController::class, 'approve'])->name('documents.approve');
+    Route::post('documents/{document}/reject', [DocumentReviewController::class, 'reject'])->name('documents.reject');
 });
 
 Route::middleware('auth')
