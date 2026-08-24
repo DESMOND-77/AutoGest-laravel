@@ -23,6 +23,7 @@ use App\Domain\Students\Http\Controllers\EmailOtpController;
 use App\Domain\Students\Http\Controllers\PublicStudentRegistrationController;
 use App\Domain\Students\Http\Controllers\RequiredDocumentTypeController;
 use App\Domain\Students\Http\Controllers\StudentController;
+use App\Domain\Students\Http\Controllers\StudentDossierController;
 use App\Domain\Students\Http\Controllers\StudentRegistrationLinkController;
 use App\Domain\Tenancy\Http\Controllers\StructureManagementController;
 use App\Domain\Training\Http\Controllers\EvaluationController;
@@ -293,6 +294,9 @@ Route::middleware(['auth', 'role:eleve', 'otp.verified'])
     ->group(function () {
         Route::view('eleve/dashboard', 'eleve.dashboard')->name('dashboard');
         Route::get('eleve/planning', StudentPlanningController::class)->name('planning');
+        Route::get('eleve/dossier', [StudentDossierController::class, 'show'])->name('dossier.show');
+        Route::post('eleve/dossier/submit', [StudentDossierController::class, 'submit'])->name('dossier.submit');
+        Route::post('eleve/dossier/{requiredDocumentType}', [StudentDossierController::class, 'upload'])->name('dossier.upload');
     });
 
 require __DIR__.'/auth.php';

@@ -59,6 +59,7 @@
             <p x-show="!collapsed" x-cloak class="px-3 text-[11px] font-semibold uppercase tracking-wider text-content-muted mb-1">Formation</p>
             <div class="space-y-1">
                 <x-sidebar-link :href="route('eleve.planning')" :active="request()->routeIs('eleve.planning')" icon="calendar">Mon planning</x-sidebar-link>
+                <x-sidebar-link :href="route('eleve.dossier.show')" :active="request()->routeIs('eleve.dossier.*')" icon="clipboard-list">Mon dossier</x-sidebar-link>
                 <x-sidebar-link :href="route('quiz.play')" :active="request()->routeIs('quiz.*')" icon="star">Entraînement au code</x-sidebar-link>
             </div>
         </div>
