@@ -75,6 +75,7 @@ class Student extends Model
         'dossier_status' => DossierStatus::class,
         'birth_date' => 'date',
         'registered_at' => 'date',
+        'document_submitted' => 'boolean',
     ];
 
     public function user(): BelongsTo
@@ -113,5 +114,23 @@ class Student extends Model
     public function setDossierStatus(DossierStatus $status): void
     {
         $this->setAttribute('dossier_status', $status);
+    }
+
+    /**
+     * Bypasses $fillable on purpose - call only from DossierStatusService
+     * (dossier submission) or RequiredDocumentTypeController (reset on a new
+     * required piece being added).
+     */
+    public function setDocumentSubmitted(bool $submitted): void
+    {
+        $this->setAttribute('document_submitted', $submitted);
+    }
+
+    /**
+     * Bypasses $fillable on purpose - same callers as setDocumentSubmitted().
+     */
+    public function setDocumentsZipPath(?string $path): void
+    {
+        $this->setAttribute('documents_zip_path', $path);
     }
 }
