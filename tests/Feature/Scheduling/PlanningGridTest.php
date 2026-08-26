@@ -146,6 +146,17 @@ it('renders the presence control and cancel action for an admin', function () {
         ->assertSee(route('scheduling.destroy', $session), false);
 });
 
+it('excludes a deactivated moniteur from the instructor picker', function () {
+    $this->instructorA->update(['is_active' => false]);
+
+    $response = $this->actingAs($this->admin)->get(route('scheduling.index', ['week' => $this->monday->toDateString()]));
+
+    $response->assertOk();
+    $instructorIds = $response->viewData('instructors')->pluck('id');
+    expect($instructorIds)->not->toContain($this->instructorA->id);
+    expect($instructorIds)->toContain($this->instructorB->id);
+});
+
 it('exports the filtered week as a CSV', function () {
     $sessionA = LessonSession::factory()->create([
         'structure_id' => $this->structure->id,

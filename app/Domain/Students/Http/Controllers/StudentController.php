@@ -120,6 +120,6 @@ class StudentController extends Controller
 
     private function instructors()
     {
-        return User::role('moniteur')->orderBy('name')->get();
+        return User::role('moniteur')->active()->orderBy('name')->get();
     }
 }
