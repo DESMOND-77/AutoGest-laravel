@@ -31,6 +31,7 @@ use App\Domain\Training\Http\Controllers\EvaluationController;
 use App\Domain\Training\Http\Controllers\ExamController;
 use App\Domain\Training\Http\Controllers\QuizController;
 use App\Domain\Training\Http\Controllers\SkillController;
+use App\Domain\Users\Http\Controllers\UserManagementController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
@@ -210,6 +211,16 @@ Route::middleware(['auth', 'role:admin'])
                 Route::get('/', [RequiredDocumentTypeController::class, 'index'])->name('index');
                 Route::post('/', [RequiredDocumentTypeController::class, 'store'])->name('store');
                 Route::patch('{requiredDocumentType}', [RequiredDocumentTypeController::class, 'update'])->name('update');
+            });
+
+        Route::prefix('users')
+            ->name('users.')
+            ->group(function () {
+                Route::get('/', [UserManagementController::class, 'index'])->name('index');
+                Route::post('/', [UserManagementController::class, 'store'])->name('store');
+                Route::post('{user}/reset-password', [UserManagementController::class, 'sendPasswordReset'])->name('reset-password');
+                Route::post('{user}/deactivate', [UserManagementController::class, 'deactivate'])->name('deactivate');
+                Route::post('{user}/reactivate', [UserManagementController::class, 'reactivate'])->name('reactivate');
             });
     });
 
