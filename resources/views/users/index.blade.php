@@ -79,7 +79,7 @@
                     <li class="px-5 py-3 flex items-center justify-between gap-3 text-sm">
                         <div class="min-w-0">
                             <p class="text-content font-medium">{{ $user->name }}</p>
-                            <p class="text-content-muted text-xs">{{ $user->email }}</p>
+                            <p class="text-content-muted text-xs">{{ $user->email }} · ID {{ $user->id }}</p>
                         </div>
                         <div class="flex items-center gap-3 shrink-0">
                             @foreach ($user->roles as $role)
@@ -93,10 +93,12 @@
                                 <button type="submit" class="text-xs text-primary hover:underline">Réinitialiser le mot de passe</button>
                             </form>
                             @if ($user->is_active)
-                                <form method="POST" action="{{ route('settings.users.deactivate', $user) }}" onsubmit="return confirm('Désactiver ce compte ?');">
-                                    @csrf
-                                    <button type="submit" class="text-xs text-danger hover:underline">Désactiver</button>
-                                </form>
+                                @unless ($user->is(auth()->user()))
+                                    <form method="POST" action="{{ route('settings.users.deactivate', $user) }}" onsubmit="return confirm('Désactiver ce compte ?');">
+                                        @csrf
+                                        <button type="submit" class="text-xs text-danger hover:underline">Désactiver</button>
+                                    </form>
+                                @endunless
                             @else
                                 <form method="POST" action="{{ route('settings.users.reactivate', $user) }}">
                                     @csrf
