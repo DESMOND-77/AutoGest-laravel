@@ -10,6 +10,7 @@ use Database\Seeders\RoleSeeder;
 use Illuminate\Auth\Notifications\ResetPassword;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Notification;
+use Illuminate\Support\Facades\Password;
 
 beforeEach(function () {
     $this->seed(RoleSeeder::class);
@@ -91,11 +92,25 @@ it('deactivates and reactivates an account, logging both to the audit trail', fu
     expect($logs)->toContain('user.deactivated', 'user.reactivated');
 });
 
-it('sends a password-reset link on demand for an existing account', function () {
+it('sends a password-reset link on demand for an existing account and reports success', function () {
     Notification::fake();
     $target = User::factory()->create(['structure_id' => $this->structure->id]);
 
-    $this->service->sendPasswordReset($target);
+    $sent = $this->service->sendPasswordReset($target);
 
+    expect($sent)->toBeTrue();
     Notification::assertSentTo($target, ResetPassword::class);
+});
+
+it('reports failure when the password broker throttles the reset link', function () {
+    $target = User::factory()->create(['structure_id' => $this->structure->id]);
+
+    Password::shouldReceive('sendResetLink')
+        ->once()
+        ->with(['email' => $target->email])
+        ->andReturn(Password::RESET_THROTTLED);
+
+    $sent = $this->service->sendPasswordReset($target);
+
+    expect($sent)->toBeFalse();
 });

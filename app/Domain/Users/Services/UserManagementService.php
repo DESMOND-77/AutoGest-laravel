@@ -7,6 +7,7 @@ use App\Domain\Students\Models\Student;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Password;
 use Illuminate\Support\Str;
 
@@ -58,7 +59,14 @@ class UserManagementService
 
             $this->audit->log('user.created', $user, [], ['role' => $data['role']], $actor);
 
-            Password::sendResetLink(['email' => $user->email]);
+            $status = Password::sendResetLink(['email' => $user->email]);
+
+            if ($status !== Password::RESET_LINK_SENT) {
+                Log::warning('User creation reset-link send failed or was throttled.', [
+                    'user_id' => $user->id,
+                    'status' => $status,
+                ]);
+            }
 
             return $user;
         });
@@ -78,8 +86,8 @@ class UserManagementService
         $this->audit->log('user.reactivated', $target, [], [], $actor);
     }
 
-    public function sendPasswordReset(User $target): void
+    public function sendPasswordReset(User $target): bool
     {
-        Password::sendResetLink(['email' => $target->email]);
+        return Password::sendResetLink(['email' => $target->email]) === Password::RESET_LINK_SENT;
     }
 }
