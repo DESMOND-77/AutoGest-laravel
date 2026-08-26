@@ -14,11 +14,10 @@
                         <div class="py-3 flex items-center justify-between gap-4">
                             <div>
                                 <p class="text-sm text-content">{{ $document->requiredDocumentType?->label }}</p>
-                                <a href="{{ route('documents.download', $document) }}" target="_blank" rel="noopener" class="text-xs text-primary hover:underline">
-                                    {{ $document->original_name }} &rarr;
-                                </a>
+                                <p class="text-xs text-content-muted">{{ $document->original_name }}</p>
                             </div>
                             <div class="flex items-center gap-2">
+                                <a href="{{ route('documents.show', $document) }}" class="text-xs font-semibold text-primary hover:underline">Visualiser</a>
                                 <form method="POST" action="{{ route('documents.approve', $document) }}">
                                     @csrf
                                     <button type="submit" class="text-xs font-semibold text-success hover:underline">Approuver</button>

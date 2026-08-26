@@ -271,6 +271,11 @@ Route::middleware('auth')
     ->get('documents/{document}/download', [DocumentController::class, 'download'])
     ->name('documents.download');
 
+Route::middleware('auth')->group(function () {
+    Route::get('documents/{document}', [DocumentController::class, 'show'])->name('documents.show');
+    Route::get('documents/{document}/stream', [DocumentController::class, 'stream'])->name('documents.stream');
+});
+
 Route::middleware(['auth', 'role:admin|superadmin'])
     ->get('audit', [AuditLogController::class, 'index'])
     ->name('audit.index');
