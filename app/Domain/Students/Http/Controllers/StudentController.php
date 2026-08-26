@@ -18,6 +18,7 @@ use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\View\View;
 
 class StudentController extends Controller
@@ -60,14 +61,18 @@ class StudentController extends Controller
 
     public function store(StoreStudentRequest $request): RedirectResponse
     {
-        $student = $this->enrollment->register($request->validated());
+        $student = DB::transaction(function () use ($request) {
+            $student = $this->enrollment->register($request->validated());
 
-        $this->users->createAccount([
-            'name' => $student->fullName(),
-            'email' => $student->email,
-            'role' => 'eleve',
-            'student_id' => $student->id,
-        ], Auth::user());
+            $this->users->createAccount([
+                'name' => $student->fullName(),
+                'email' => $student->email,
+                'role' => 'eleve',
+                'student_id' => $student->id,
+            ], Auth::user());
+
+            return $student;
+        });
 
         return redirect()->route('students.show', $student)
             ->with('status', 'Élève créé. Un lien de définition de mot de passe lui a été envoyé.');
@@ -106,6 +111,10 @@ class StudentController extends Controller
         $this->authorize('delete', $student);
 
         $this->audit->log('student.deleted', $student, $student->only(['first_name', 'last_name']), [], Auth::user());
+
+        if ($student->user_id) {
+            $this->users->deactivate(User::query()->findOrFail($student->user_id), Auth::user());
+        }
 
         $this->students->delete($student);
 

@@ -77,3 +77,16 @@ it('lets an admin list instructors for their own school', function () {
         ->get(route('instructors.index'))
         ->assertOk();
 });
+
+it('deactivates the linked moniteur account instead of leaving it orphaned when an instructor is deleted', function () {
+    $moniteur = User::factory()->create(['structure_id' => $this->structure->id, 'is_active' => true]);
+    $moniteur->assignRole('moniteur');
+    $instructor = Instructor::factory()->create(['structure_id' => $this->structure->id, 'user_id' => $moniteur->id]);
+
+    $this->actingAs($this->admin)
+        ->delete(route('instructors.destroy', $instructor))
+        ->assertRedirect(route('instructors.index'));
+
+    expect(Instructor::query()->find($instructor->id))->toBeNull();
+    expect(User::query()->findOrFail($moniteur->id)->is_active)->toBeFalse();
+});

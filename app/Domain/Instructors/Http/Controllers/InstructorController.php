@@ -8,6 +8,7 @@ use App\Domain\Instructors\Models\Instructor;
 use App\Domain\Instructors\Repositories\InstructorRepositoryInterface;
 use App\Domain\Users\Services\UserManagementService;
 use App\Http\Controllers\Controller;
+use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\View\View;
@@ -76,6 +77,8 @@ class InstructorController extends Controller
     public function destroy(Instructor $instructor): RedirectResponse
     {
         $this->authorize('delete', $instructor);
+
+        $this->users->deactivate(User::query()->findOrFail($instructor->user_id), Auth::user());
 
         $instructor->delete();
 

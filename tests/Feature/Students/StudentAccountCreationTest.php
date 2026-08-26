@@ -98,3 +98,26 @@ it('refuses to create an account for a student with no email on file', function 
 
     expect($student->fresh()->user_id)->toBeNull();
 });
+
+it('deactivates the linked eleve account instead of leaving it orphaned when a student is deleted', function () {
+    $linkedUser = User::factory()->create(['structure_id' => $this->structure->id, 'is_active' => true]);
+    $linkedUser->assignRole('eleve');
+    $student = Student::factory()->create(['structure_id' => $this->structure->id, 'user_id' => $linkedUser->id]);
+
+    $this->actingAs($this->admin)
+        ->delete(route('students.destroy', $student))
+        ->assertRedirect(route('students.index'));
+
+    expect(Student::query()->find($student->id))->toBeNull();
+    expect(User::query()->findOrFail($linkedUser->id)->is_active)->toBeFalse();
+});
+
+it('deletes a student with no linked account without error', function () {
+    $student = Student::factory()->create(['structure_id' => $this->structure->id]);
+
+    $this->actingAs($this->admin)
+        ->delete(route('students.destroy', $student))
+        ->assertRedirect(route('students.index'));
+
+    expect(Student::query()->find($student->id))->toBeNull();
+});
