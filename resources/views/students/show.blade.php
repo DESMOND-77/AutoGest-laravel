@@ -308,25 +308,6 @@
                             </li>
                         @endforeach
                     </ol>
-
-                    @can('update', $student)
-                        @php $nextDossierStatuses = $student->dossier_status->allowedNextStages(); @endphp
-                        @if (count($nextDossierStatuses))
-                            <div class="flex flex-wrap gap-2 mt-4 pt-4 border-t border-border/60">
-                                @foreach ($nextDossierStatuses as $status)
-                                    <form method="POST" action="{{ route('students.dossier-status', $student) }}">
-                                        @csrf
-                                        @method('PATCH')
-                                        <input type="hidden" name="dossier_status" value="{{ $status->value }}">
-                                        <button type="submit"
-                                            class="inline-flex items-center gap-1 text-sm bg-surface-inset px-3 py-1.5 rounded-ui-md text-content hover:shadow-soft-sm transition">
-                                            <x-icon name="chevron-right" class="w-4 h-4" /> {{ $status->label() }}
-                                        </button>
-                                    </form>
-                                @endforeach
-                            </div>
-                        @endif
-                    @endcan
                 </x-card>
 
                 <x-card>

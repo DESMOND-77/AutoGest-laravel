@@ -82,10 +82,6 @@ Route::middleware(['auth', 'role:admin|moniteur'])->group(function () {
 });
 
 Route::middleware(['auth', 'role:admin'])
-    ->patch('students/{student}/dossier-status', [StudentController::class, 'updateDossierStatus'])
-    ->name('students.dossier-status');
-
-Route::middleware(['auth', 'role:admin'])
     ->prefix('finance')
     ->name('finance.')
     ->group(function () {

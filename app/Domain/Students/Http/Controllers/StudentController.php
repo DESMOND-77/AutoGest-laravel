@@ -4,16 +4,12 @@ namespace App\Domain\Students\Http\Controllers;
 
 use App\Domain\Audit\Services\AuditService;
 use App\Domain\Students\Enums\CourseType;
-use App\Domain\Students\Enums\DossierStatus;
 use App\Domain\Students\Enums\LicenseCategory;
 use App\Domain\Students\Enums\LifecycleStage;
-use App\Domain\Students\Exceptions\InvalidDossierTransition;
 use App\Domain\Students\Http\Requests\StoreStudentRequest;
-use App\Domain\Students\Http\Requests\UpdateDossierStatusRequest;
 use App\Domain\Students\Http\Requests\UpdateStudentRequest;
 use App\Domain\Students\Models\Student;
 use App\Domain\Students\Repositories\StudentRepositoryInterface;
-use App\Domain\Students\Services\DossierStatusService;
 use App\Domain\Students\Services\EnrollmentService;
 use App\Domain\Students\Services\LifecycleService;
 use App\Domain\Users\Services\UserManagementService;
@@ -31,7 +27,6 @@ class StudentController extends Controller
         private readonly StudentRepositoryInterface $students,
         private readonly EnrollmentService $enrollment,
         private readonly LifecycleService $lifecycle,
-        private readonly DossierStatusService $dossier,
         private readonly AuditService $audit,
         private readonly UserManagementService $users,
     ) {}
@@ -139,20 +134,6 @@ class StudentController extends Controller
 
         return redirect()->route('students.show', $student)
             ->with('status', 'Étape mise à jour.');
-    }
-
-    public function updateDossierStatus(UpdateDossierStatusRequest $request, Student $student): RedirectResponse
-    {
-        $target = DossierStatus::from($request->validated('dossier_status'));
-
-        try {
-            $this->dossier->transitionTo($student, $target);
-        } catch (InvalidDossierTransition $e) {
-            return back()->withErrors(['dossier_status' => $e->getMessage()]);
-        }
-
-        return redirect()->route('students.show', $student)
-            ->with('status', 'Statut du dossier mis à jour.');
     }
 
     public function createAccount(Student $student): RedirectResponse
