@@ -7,6 +7,7 @@ use App\Domain\Documents\Http\Requests\RejectDossierDocumentRequest;
 use App\Domain\Documents\Models\Document;
 use App\Domain\Students\Enums\LifecycleStage;
 use App\Domain\Students\Models\Student;
+use App\Domain\Students\Services\DossierStatusService;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Auth;
@@ -23,6 +24,10 @@ use Illuminate\View\View;
  */
 class DocumentReviewController extends Controller
 {
+    public function __construct(
+        private readonly DossierStatusService $dossierStatus,
+    ) {}
+
     public function index(): View
     {
         $students = Student::query()
@@ -63,5 +68,7 @@ class DocumentReviewController extends Controller
             'reviewed_by_id' => Auth::id(),
             'reviewed_at' => now(),
         ]);
+
+        $this->dossierStatus->syncFor($student);
     }
 }

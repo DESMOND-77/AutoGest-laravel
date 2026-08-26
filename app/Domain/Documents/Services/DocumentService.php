@@ -6,6 +6,8 @@ use App\Domain\Documents\Enums\DocumentReviewStatus;
 use App\Domain\Documents\Enums\DocumentType;
 use App\Domain\Documents\Models\Document;
 use App\Domain\Students\Models\RequiredDocumentType;
+use App\Domain\Students\Models\Student;
+use App\Domain\Students\Services\DossierStatusService;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\UploadedFile;
@@ -26,6 +28,10 @@ use Illuminate\Support\Facades\DB;
  */
 class DocumentService
 {
+    public function __construct(
+        private readonly DossierStatusService $dossierStatus,
+    ) {}
+
     public function upload(
         UploadedFile $file,
         Model $documentable,
@@ -50,7 +56,7 @@ class DocumentService
 
             $path = $file->store('documents', 'local');
 
-            return Document::query()->create([
+            $document = Document::query()->create([
                 'documentable_type' => $documentable->getMorphClass(),
                 'documentable_id' => $documentable->getKey(),
                 'type' => $type->value,
@@ -64,6 +70,12 @@ class DocumentService
                 'required_document_type_id' => $requiredDocumentType?->id,
                 'review_status' => DocumentReviewStatus::Pending,
             ]);
+
+            if ($documentable instanceof Student) {
+                $this->dossierStatus->syncFor($documentable);
+            }
+
+            return $document;
         });
     }
 }
