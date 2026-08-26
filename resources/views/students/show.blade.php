@@ -290,7 +290,45 @@
             </div>
 
             {{-- Documents --}}
-            <div x-show="tab === 'documents'" x-cloak>
+            <div x-show="tab === 'documents'" x-cloak class="space-y-5">
+                <x-card>
+                    <div class="flex items-center justify-between mb-3">
+                        <div class="text-sm font-semibold text-content">Dossier administratif</div>
+                        <x-badge variant="info">{{ $student->dossier_status->label() }}</x-badge>
+                    </div>
+
+                    <ol class="flex flex-wrap gap-1.5">
+                        @foreach (\App\Domain\Students\Enums\DossierStatus::cases() as $status)
+                            <li @class([
+                                'px-2.5 py-1 rounded-ui-md text-xs font-medium',
+                                'bg-primary text-primary-content' => $status === $student->dossier_status,
+                                'bg-surface-inset text-content-secondary' => $status !== $student->dossier_status,
+                            ])>
+                                {{ $status->label() }}
+                            </li>
+                        @endforeach
+                    </ol>
+
+                    @can('update', $student)
+                        @php $nextDossierStatuses = $student->dossier_status->allowedNextStages(); @endphp
+                        @if (count($nextDossierStatuses))
+                            <div class="flex flex-wrap gap-2 mt-4 pt-4 border-t border-border/60">
+                                @foreach ($nextDossierStatuses as $status)
+                                    <form method="POST" action="{{ route('students.dossier-status', $student) }}">
+                                        @csrf
+                                        @method('PATCH')
+                                        <input type="hidden" name="dossier_status" value="{{ $status->value }}">
+                                        <button type="submit"
+                                            class="inline-flex items-center gap-1 text-sm bg-surface-inset px-3 py-1.5 rounded-ui-md text-content hover:shadow-soft-sm transition">
+                                            <x-icon name="chevron-right" class="w-4 h-4" /> {{ $status->label() }}
+                                        </button>
+                                    </form>
+                                @endforeach
+                            </div>
+                        @endif
+                    @endcan
+                </x-card>
+
                 <x-card>
                     @php
                         $documents = \App\Domain\Documents\Models\Document::query()
