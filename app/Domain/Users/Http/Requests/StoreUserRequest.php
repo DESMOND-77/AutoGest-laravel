@@ -24,8 +24,6 @@ class StoreUserRequest extends FormRequest
                 'max:150',
                 Rule::unique('users')->where('structure_id', Auth::user()->structure_id),
             ],
-            'role' => ['required', Rule::in(['admin', 'moniteur', 'eleve'])],
-            'student_id' => ['nullable', 'integer'],
         ];
     }
 }
