@@ -1,6 +1,7 @@
 <?php
 
 use App\Domain\Instructors\Models\Instructor;
+use App\Domain\Instructors\Repositories\InstructorRepositoryInterface;
 use App\Domain\Tenancy\Enums\StructureStatus;
 use App\Domain\Tenancy\Models\Structure;
 use App\Models\User;
@@ -33,6 +34,26 @@ it('lets an admin create a moniteur account and its instructor profile together'
     expect(Instructor::query()->where('user_id', $user->id)->where('license_number', 'MON-0001')->exists())->toBeTrue();
 
     Notification::assertSentTo($user, ResetPassword::class);
+});
+
+it('does not leave an orphaned user account when the instructor profile creation fails', function () {
+    Notification::fake();
+
+    $this->mock(InstructorRepositoryInterface::class, function ($mock) {
+        $mock->shouldReceive('create')->once()->andThrow(new RuntimeException('boom'));
+    });
+
+    $this->actingAs($this->admin)
+        ->post(route('instructors.store'), [
+            'name' => 'Jean Moniteur',
+            'email' => 'jean.moniteur@example.com',
+            'license_number' => 'MON-0001',
+            'hire_date' => '2024-01-15',
+        ])
+        ->assertSessionHasErrors('instructor');
+
+    expect(User::query()->where('email', 'jean.moniteur@example.com')->exists())->toBeFalse();
+    expect(Instructor::query()->count())->toBe(0);
 });
 
 it('rejects an instructor email that already belongs to another account in the same tenant', function () {

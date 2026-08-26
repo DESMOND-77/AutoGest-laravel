@@ -47,12 +47,21 @@ class InstructorController extends Controller
             'role' => 'moniteur',
         ], Auth::user());
 
-        $this->instructors->create([
-            'user_id' => $user->id,
-            'license_number' => $data['license_number'] ?? null,
-            'specialties' => $data['specialties'] ?? null,
-            'hire_date' => $data['hire_date'] ?? null,
-        ]);
+        try {
+            $this->instructors->create([
+                'user_id' => $user->id,
+                'license_number' => $data['license_number'] ?? null,
+                'specialties' => $data['specialties'] ?? null,
+                'hire_date' => $data['hire_date'] ?? null,
+            ]);
+        } catch (\Throwable $e) {
+            // UserManagementService::createAccount() already committed the User row
+            // (and sent the reset-password email) in its own transaction, so a failure
+            // here would otherwise leave an orphaned account with no Instructor profile.
+            $user->delete();
+
+            return back()->withErrors(['instructor' => 'La création du moniteur a échoué, veuillez réessayer.']);
+        }
 
         return redirect()->route('instructors.index')->with('status', 'Moniteur ajouté.');
     }
