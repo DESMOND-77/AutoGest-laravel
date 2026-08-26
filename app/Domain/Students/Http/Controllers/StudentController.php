@@ -12,6 +12,7 @@ use App\Domain\Students\Models\Student;
 use App\Domain\Students\Repositories\StudentRepositoryInterface;
 use App\Domain\Students\Services\EnrollmentService;
 use App\Domain\Students\Services\LifecycleService;
+use App\Domain\Users\Services\UserManagementService;
 use App\Http\Controllers\Controller;
 use App\Models\User;
 use Illuminate\Http\RedirectResponse;
@@ -26,6 +27,7 @@ class StudentController extends Controller
         private readonly EnrollmentService $enrollment,
         private readonly LifecycleService $lifecycle,
         private readonly AuditService $audit,
+        private readonly UserManagementService $users,
     ) {}
 
     public function index(Request $request): View
@@ -60,8 +62,15 @@ class StudentController extends Controller
     {
         $student = $this->enrollment->register($request->validated());
 
+        $this->users->createAccount([
+            'name' => $student->fullName(),
+            'email' => $student->email,
+            'role' => 'eleve',
+            'student_id' => $student->id,
+        ], Auth::user());
+
         return redirect()->route('students.show', $student)
-            ->with('status', 'Élève créé.');
+            ->with('status', 'Élève créé. Un lien de définition de mot de passe lui a été envoyé.');
     }
 
     public function show(Student $student): View

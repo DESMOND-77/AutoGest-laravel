@@ -25,7 +25,12 @@ class StoreStudentRequest extends FormRequest
             'birth_place' => ['nullable', 'string', 'max:150'],
             'phone' => ['nullable', 'string', 'max:30'],
             'phone_secondary' => ['nullable', 'string', 'max:30'],
-            'email' => ['nullable', 'email', 'max:150'],
+            'email' => [
+                'required',
+                'email',
+                'max:150',
+                Rule::unique('users')->where('structure_id', $this->user()->structure_id),
+            ],
             'address' => ['nullable', 'string'],
             'neph' => ['nullable', 'string', 'max:50'],
             'license_category' => ['required', new Enum(LicenseCategory::class)],
@@ -34,6 +39,13 @@ class StoreStudentRequest extends FormRequest
                 'nullable',
                 Rule::exists('users', 'id')->where('structure_id', $this->user()->structure_id),
             ],
+        ];
+    }
+
+    public function messages(): array
+    {
+        return [
+            'email.unique' => 'Un compte existe déjà avec cet e-mail pour votre auto-école.',
         ];
     }
 }
