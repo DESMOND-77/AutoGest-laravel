@@ -4,9 +4,11 @@ namespace App\Domain\Documents\Http\Controllers;
 
 use App\Domain\Documents\Enums\DocumentType;
 use App\Domain\Documents\Http\Requests\StoreDocumentRequest;
+use App\Domain\Documents\Http\Requests\StoreStudentDocumentRequest;
 use App\Domain\Documents\Models\Document;
 use App\Domain\Documents\Services\DocumentService;
 use App\Domain\Fleet\Models\Vehicle;
+use App\Domain\Students\Models\RequiredDocumentType;
 use App\Domain\Students\Models\Student;
 use App\Http\Controllers\Controller;
 use Illuminate\Auth\Access\AuthorizationException;
@@ -22,16 +24,28 @@ class DocumentController extends Controller
         private readonly DocumentService $documents,
     ) {}
 
-    public function storeForStudent(StoreDocumentRequest $request, Student $student): RedirectResponse
+    /**
+     * Every document an admin deposits for a student here is a dossier
+     * piece — it always carries a required_document_type_id and always
+     * versions/resets review_status exactly like the student's own
+     * self-service upload (StudentDossierController::upload()), so an
+     * admin filling in paperwork on a student's behalf produces the same
+     * kind of row a student uploading it themselves would.
+     */
+    public function storeForStudent(StoreStudentDocumentRequest $request, Student $student): RedirectResponse
     {
         $this->authorize('update', $student);
+
+        $requiredDocumentType = RequiredDocumentType::query()
+            ->findOrFail($request->validated('required_document_type_id'));
 
         $this->documents->upload(
             $request->file('file'),
             $student,
-            DocumentType::from($request->validated('type')),
+            DocumentType::Other,
             Auth::user(),
-            $request->validated('expires_at'),
+            null,
+            $requiredDocumentType,
         );
 
         return back()->with('status', 'Document déposé.');

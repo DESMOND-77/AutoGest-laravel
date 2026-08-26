@@ -226,15 +226,23 @@
                             ->where('documentable_type', $student->getMorphClass())
                             ->where('documentable_id', $student->id)
                             ->where('is_current', true)
+                            ->with('requiredDocumentType')
                             ->latest()
                             ->get();
                     @endphp
 
                     <ul class="text-sm divide-y divide-border/60 mb-4">
                         @forelse ($documents as $document)
-                            <li class="py-2.5 flex justify-between items-center">
-                                <span class="text-content">{{ $document->type->label() }} — {{ $document->original_name }} (v{{ $document->version }})</span>
-                                <a href="{{ route('documents.download', $document) }}" class="text-xs text-primary hover:underline">Télécharger</a>
+                            <li class="py-2.5 flex justify-between items-center gap-3">
+                                <span class="text-content min-w-0">
+                                    {{ $document->requiredDocumentType?->label ?? $document->type->label() }} — {{ $document->original_name }} (v{{ $document->version }})
+                                    @if ($document->required_document_type_id)
+                                        <x-badge :variant="$document->review_status->value === 'approved' ? 'success' : ($document->review_status->value === 'rejected' ? 'danger' : 'warning')" class="ml-1">
+                                            {{ $document->review_status->label() }}
+                                        </x-badge>
+                                    @endif
+                                </span>
+                                <a href="{{ route('documents.show', $document) }}" class="text-xs text-primary hover:underline shrink-0">Visualiser</a>
                             </li>
                         @empty
                             <li class="py-2.5 text-content-muted">Aucun document.</li>
@@ -242,16 +250,25 @@
                     </ul>
 
                     @can('create', \App\Domain\Documents\Models\Document::class)
-                        <form method="POST" action="{{ route('students.documents.store', $student) }}" enctype="multipart/form-data" class="grid grid-cols-1 sm:grid-cols-3 gap-3 items-end pt-2">
-                            @csrf
-                            <select name="type" class="rounded-ui-md border-0 bg-surface-inset text-content shadow-inset focus:shadow-inset-focus focus:ring-0 text-sm block w-full">
-                                @foreach (\App\Domain\Documents\Enums\DocumentType::cases() as $case)
-                                    <option value="{{ $case->value }}">{{ $case->label() }}</option>
-                                @endforeach
-                            </select>
-                            <input type="file" name="file" class="text-sm text-content" required>
-                            <x-primary-button>Déposer</x-primary-button>
-                        </form>
+                        @php
+                            $requiredDocumentTypes = \App\Domain\Students\Models\RequiredDocumentType::query()->active()->ordered()->get();
+                        @endphp
+                        @if ($requiredDocumentTypes->isEmpty())
+                            <p class="text-sm text-content-muted pt-2">
+                                Aucune pièce requise n'est configurée pour cet établissement — voir Paramètres &gt; Pièces requises.
+                            </p>
+                        @else
+                            <form method="POST" action="{{ route('students.documents.store', $student) }}" enctype="multipart/form-data" class="grid grid-cols-1 sm:grid-cols-3 gap-3 items-end pt-2">
+                                @csrf
+                                <select name="required_document_type_id" class="rounded-ui-md border-0 bg-surface-inset text-content shadow-inset focus:shadow-inset-focus focus:ring-0 text-sm block w-full">
+                                    @foreach ($requiredDocumentTypes as $type)
+                                        <option value="{{ $type->id }}">{{ $type->label }}</option>
+                                    @endforeach
+                                </select>
+                                <input type="file" name="file" class="text-sm text-content" required>
+                                <x-primary-button>Déposer</x-primary-button>
+                            </form>
+                        @endif
                     @endcan
                 </x-card>
             </div>

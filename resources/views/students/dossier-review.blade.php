@@ -18,6 +18,11 @@
                             </div>
                             <div class="flex items-center gap-2">
                                 <a href="{{ route('documents.show', $document) }}" class="text-xs font-semibold text-primary hover:underline">Visualiser</a>
+                                
+                                @if ($document->review_status->value === 'approved')
+                                <span class="text-xs text-success">Validé</span>
+                                
+                                @elseif ($document->review_status->value === 'pending')
                                 <form method="POST" action="{{ route('documents.approve', $document) }}">
                                     @csrf
                                     <button type="submit" class="text-xs font-semibold text-success hover:underline">Approuver</button>
@@ -27,6 +32,11 @@
                                     <x-text-input type="text" name="reason" class="text-xs py-1" placeholder="Motif du rejet" required />
                                     <button type="submit" class="text-xs font-semibold text-danger hover:underline">Rejeter</button>
                                 </form>
+                                @elseif ($document->review_status->value === 'rejected')
+                                <span class="text-xs text-danger">Rejeté : {{ $document->rejection_reason }}</span>
+                                @endif
+
+                                
                             </div>
                         </div>
                     @endforeach
