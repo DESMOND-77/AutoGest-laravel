@@ -125,7 +125,9 @@
                         </li>
                     @endforeach
                 </ul>
-                <a href="{{ route('fleet.index') }}" class="mt-3 inline-block text-xs text-primary hover:underline">Voir la flotte &rarr;</a>
+                <a href="{{ route('fleet.index') }}" class="mt-3 inline-flex items-center gap-1 text-xs text-primary hover:underline">
+                    Voir la flotte <x-icon name="chevron-right" class="w-3 h-3" />
+                </a>
             </x-card>
         </div>
 

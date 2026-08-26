@@ -142,8 +142,8 @@
                                         @csrf
                                         @method('PATCH')
                                         <input type="hidden" name="stage" value="{{ $stage->value }}">
-                                        <button type="submit" class="text-sm bg-surface-inset px-3 py-1.5 rounded-ui-md text-content hover:shadow-soft-sm transition">
-                                            &rarr; {{ $stage->label() }}
+                                        <button type="submit" class="inline-flex items-center gap-1 text-sm bg-surface-inset px-3 py-1.5 rounded-ui-md text-content hover:shadow-soft-sm transition">
+                                            <x-icon name="chevron-right" class="w-4 h-4" /> {{ $stage->label() }}
                                         </button>
                                     </form>
                                 @endforeach
@@ -182,7 +182,9 @@
                         </ul>
                     @endif
                     <div class="px-5 py-3 border-t border-border/60">
-                        <a href="{{ route('scheduling.index', ['student_id' => $student->id]) }}" class="text-xs text-primary hover:underline">Voir le planning complet &rarr;</a>
+                        <a href="{{ route('scheduling.index', ['student_id' => $student->id]) }}" class="inline-flex items-center gap-1 text-xs text-primary hover:underline">
+                            Voir le planning complet <x-icon name="chevron-right" class="w-3 h-3" />
+                        </a>
                     </div>
                 </x-card>
             </div>

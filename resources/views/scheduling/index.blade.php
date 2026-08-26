@@ -42,8 +42,12 @@
 
         <div class="flex flex-wrap items-center justify-between gap-3">
             <div class="flex gap-4 text-sm">
-                <a href="{{ route('scheduling.index', array_merge($filters, ['week' => $week->copy()->subWeek()->toDateString()])) }}" class="text-content-secondary hover:text-primary transition">&larr; Semaine précédente</a>
-                <a href="{{ route('scheduling.index', array_merge($filters, ['week' => $week->copy()->addWeek()->toDateString()])) }}" class="text-content-secondary hover:text-primary transition">Semaine suivante &rarr;</a>
+                <a href="{{ route('scheduling.index', array_merge($filters, ['week' => $week->copy()->subWeek()->toDateString()])) }}" class="inline-flex items-center gap-1 text-content-secondary hover:text-primary transition">
+                    <x-icon name="chevron-left" class="w-4 h-4" /> Semaine précédente
+                </a>
+                <a href="{{ route('scheduling.index', array_merge($filters, ['week' => $week->copy()->addWeek()->toDateString()])) }}" class="inline-flex items-center gap-1 text-content-secondary hover:text-primary transition">
+                    Semaine suivante <x-icon name="chevron-right" class="w-4 h-4" />
+                </a>
                 <a href="{{ route('scheduling.export.csv', array_merge($filters, ['week' => $week->toDateString()])) }}" class="text-primary hover:underline">Exporter en CSV</a>
             </div>
 
