@@ -23,6 +23,7 @@ class UserManagementController extends Controller
         $this->authorize('viewAny', User::class);
 
         $roleFilter = $request->query('role');
+        $roleFilter = in_array($roleFilter, ['admin', 'moniteur', 'eleve'], true) ? $roleFilter : null;
 
         $query = User::query()->with('roles')->orderBy('name');
 
@@ -56,9 +57,11 @@ class UserManagementController extends Controller
     {
         $this->authorize('update', $user);
 
-        $this->users->sendPasswordReset($user);
+        $sent = $this->users->sendPasswordReset($user);
 
-        return back()->with('status', 'Lien de réinitialisation envoyé.');
+        return $sent
+            ? back()->with('status', 'Lien de réinitialisation envoyé.')
+            : back()->withErrors(['user' => 'Le lien n\'a pas pu être envoyé (trop de demandes récentes, réessayez dans une minute).']);
     }
 
     public function deactivate(User $user): RedirectResponse
