@@ -23,7 +23,7 @@ Ce projet adhère au [Contributor Covenant](CODE_OF_CONDUCT.md). En participant,
 ## Avant de commencer
 
 - Vérifiez qu'une [Issue](https://github.com/DESMOND-77/AutoGest/issues) ou une [Pull Request](https://github.com/DESMOND-77/AutoGest/pulls) similaire n'existe pas déjà.
-- Pour un changement important (nouvelle fonctionnalité, refonte d'un domaine), ouvrez d'abord une Issue de discussion avant de coder — cela évite le travail perdu si l'approche doit être ajustée.
+- Pour un changement important (nouvelle fonctionnalité, refonte d'un domaine), ouvrez d'abord une Issue de discussion avant de coder - cela évite le travail perdu si l'approche doit être ajustée.
 - Les corrections de bugs et petites améliorations peuvent être proposées directement via Pull Request.
 
 ## Mise en place de l'environnement
@@ -111,7 +111,7 @@ test(training): couvre la notation serveur du quiz de code
 - Respectez les conventions déjà en place dans le fichier voisin le plus proche avant d'en inventer une nouvelle (voir [CLAUDE.md](CLAUDE.md) / [AGENTS.md](AGENTS.md) pour les règles détaillées du projet).
 - Types de retour et types de paramètres explicites obligatoires sur toutes les méthodes PHP.
 - Utilisez la promotion de propriétés du constructeur PHP 8 (`public function __construct(public GitHub $github) {}`).
-- Pas de logique métier dans les Contrôleurs ni dans les vues Blade — elle doit vivre dans un `Service` du domaine concerné.
+- Pas de logique métier dans les Contrôleurs ni dans les vues Blade - elle doit vivre dans un `Service` du domaine concerné.
 - **JavaScript/Blade** : suivez le style existant (Tailwind CSS utilitaire, Alpine.js pour l'interactivité légère).
 
 ## Tests
@@ -142,7 +142,7 @@ php artisan test --compact
 
 - Toute nouvelle fonctionnalité utilisateur doit être reflétée dans le [README.md](README.md) (section Fonctionnalités ou Roadmap selon le cas).
 - Toute décision d'architecture doit être documentée dans [docs/architecture.md](docs/architecture.md).
-- Ne créez pas de fichiers de documentation superflus — préférez enrichir un document existant.
+- Ne créez pas de fichiers de documentation superflus - préférez enrichir un document existant.
 - Le [CHANGELOG.md](CHANGELOG.md) est mis à jour par les mainteneurs au moment de la publication d'une version ; les contributeurs n'ont pas besoin d'y ajouter d'entrée dans leur Pull Request, sauf si explicitement demandé.
 
 ## Ouvrir une Issue
@@ -160,7 +160,7 @@ Fournissez un maximum de contexte : version, rôle utilisateur concerné (Admin 
 1. Assurez-vous que votre branche est à jour avec `dev` (`git rebase dev` de préférence à un merge).
 2. Remplissez entièrement le [modèle de Pull Request](.github/PULL_REQUEST_TEMPLATE.md).
 3. Vérifiez que la CI (tests, Pint, CodeQL) passe au vert.
-4. Une Pull Request doit rester focalisée sur un seul sujet — évitez de mélanger une fonctionnalité et un refactoring sans rapport.
+4. Une Pull Request doit rester focalisée sur un seul sujet - évitez de mélanger une fonctionnalité et un refactoring sans rapport.
 5. Liez l'Issue correspondante avec `Closes #123` dans la description si applicable.
 
 ## Revue de code

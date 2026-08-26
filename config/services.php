@@ -35,7 +35,7 @@ return [
         ],
     ],
 
-    // No Gabonese SMS provider is wired up yet — see SmsGateway's docblock.
+    // No Gabonese SMS provider is wired up yet - see SmsGateway's docblock.
     // 'log' (the only driver today) writes to the log instead of sending.
     'sms' => [
         'driver' => env('SMS_DRIVER', 'log'),

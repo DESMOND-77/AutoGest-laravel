@@ -143,13 +143,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="theme-color" content="#0E1526">
 
-    <title>{{ config('app.name', 'Auto-GestBoard') }} — Le logiciel tout-en-un pour auto-écoles professionnelles</title>
+    <title>{{ config('app.name', 'Auto-GestBoard') }} - Le logiciel tout-en-un pour auto-écoles professionnelles</title>
     <meta name="description" content="Auto-GestBoard centralise la gestion de votre auto-école : élèves, moniteurs, planning, facturation, flotte et examens, dans une seule plateforme Cloud sécurisée et multi-établissement.">
     <meta name="keywords" content="logiciel auto-école, gestion auto-école, SaaS auto-école, planning moniteur, facturation auto-école">
     <link rel="canonical" href="{{ url('/') }}">
 
     <meta property="og:type" content="website">
-    <meta property="og:title" content="{{ config('app.name', 'Auto-GestBoard') }} — Le logiciel tout-en-un pour auto-écoles">
+    <meta property="og:title" content="{{ config('app.name', 'Auto-GestBoard') }} - Le logiciel tout-en-un pour auto-écoles">
     <meta property="og:description" content="Élèves, moniteurs, planning, facturation, flotte et examens : toute votre auto-école dans une seule plateforme.">
     <meta property="og:image" content="{{ asset('images/logo.png') }}">
     <meta property="og:url" content="{{ url('/') }}">
@@ -309,11 +309,11 @@
                                 </div>
                                 <div class="col-span-3 space-y-2 rounded-lg bg-white/5 p-3">
                                     <div class="flex items-center justify-between text-xs">
-                                        <span class="text-white/60">M. NGUEMA — Permis B</span>
+                                        <span class="text-white/60">M. NGUEMA - Permis B</span>
                                         <span class="rounded-full bg-route/20 px-2 py-0.5 text-[10px] font-medium text-route-100">Cours pratique</span>
                                     </div>
                                     <div class="flex items-center justify-between text-xs">
-                                        <span class="text-white/60">S. OBAME — Permis B</span>
+                                        <span class="text-white/60">S. OBAME - Permis B</span>
                                         <span class="rounded-full bg-signal/20 px-2 py-0.5 text-[10px] font-medium text-signal-600">Examen prévu</span>
                                     </div>
                                 </div>
@@ -438,15 +438,15 @@
                             <div class="mt-4 space-y-2 rounded-xl border border-line p-4">
                                 <p class="text-[11px] uppercase tracking-wide text-slate-light">Planning du jour</p>
                                 <div class="flex items-center justify-between border-b border-line py-2 text-sm">
-                                    <span class="text-ink">08:00 — Code théorique</span>
+                                    <span class="text-ink">08:00 - Code théorique</span>
                                     <span class="text-slate-light">Salle A</span>
                                 </div>
                                 <div class="flex items-center justify-between border-b border-line py-2 text-sm">
-                                    <span class="text-ink">09:30 — Conduite, M. NGUEMA</span>
+                                    <span class="text-ink">09:30 - Conduite, M. NGUEMA</span>
                                     <span class="text-slate-light">Véhicule GX-204</span>
                                 </div>
                                 <div class="flex items-center justify-between py-2 text-sm">
-                                    <span class="text-ink">11:00 — Examen blanc</span>
+                                    <span class="text-ink">11:00 - Examen blanc</span>
                                     <span class="text-slate-light">Circuit sud</span>
                                 </div>
                             </div>

@@ -1,6 +1,6 @@
 {{--
     Mobile navigation: header + drawer, not the desktop sidebar (per the
-    brief — a shrunk desktop sidebar doesn't work well touch-first). Opened
+    brief - a shrunk desktop sidebar doesn't work well touch-first). Opened
     via mobileMenuOpen, a piece of state on the outer shell in app.blade.php.
 --}}
 <div x-show="mobileMenuOpen" x-cloak class="lg:hidden fixed inset-0 z-40">

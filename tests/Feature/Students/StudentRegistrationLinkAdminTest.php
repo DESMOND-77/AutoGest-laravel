@@ -85,7 +85,7 @@ it('never lets an admin see or manage another tenant\'s link', function () {
     $response->assertOk();
     $response->assertDontSee(substr($otherToken, 0, 20));
 
-    // Admin A generating "their" link never touches B's — revoking as A
+    // Admin A generating "their" link never touches B's - revoking as A
     // must leave B's link completely untouched.
     $this->actingAs($this->admin)->post(route('settings.student-registration.generate'));
     $this->actingAs($this->admin)->post(route('settings.student-registration.revoke'));

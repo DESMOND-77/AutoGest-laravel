@@ -15,7 +15,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 /**
  * A 1:1 profile for a User with the moniteur role. Deliberately does not
  * replace `instructor_id` FKs elsewhere (Student, LessonSession still point
- * straight at users.id) — this resurrects the legacy `disponibilites_moniteur`
+ * straight at users.id) - this resurrects the legacy `disponibilites_moniteur`
  * concept (dead in the old app, never read or written) as real availability
  * data, without a risky migration of every existing instructor_id column.
  */

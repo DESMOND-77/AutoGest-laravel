@@ -2,7 +2,7 @@
     Desktop floating soft-UI sidebar. Hidden below lg; see
     mobile-drawer.blade.php for small screens. `collapsed` lives on the
     root shell in app.blade.php (a sibling <div> needs it too, to offset
-    the main content — Alpine scope only cascades to descendants).
+    the main content - Alpine scope only cascades to descendants).
 --}}
 <aside
     :class="collapsed ? 'lg:w-20' : 'lg:w-64'"

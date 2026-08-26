@@ -1,5 +1,5 @@
 <x-app-layout>
-    <x-slot name="header">Mon agenda — semaine du {{ $week->format('d/m/Y') }}</x-slot>
+    <x-slot name="header">Mon agenda - semaine du {{ $week->format('d/m/Y') }}</x-slot>
 
     <div class="py-6 space-y-5 max-w-5xl mx-auto">
         @if (session('status'))

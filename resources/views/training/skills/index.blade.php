@@ -44,7 +44,7 @@
                             <tr class="hover:bg-surface-elevated/60 transition">
                                 <td class="px-5 py-3 text-content font-medium">{{ $skill->code }}</td>
                                 <td class="px-5 py-3 text-content-secondary">{{ $skill->label }}</td>
-                                <td class="px-5 py-3 text-content-secondary">{{ $skill->category ?? '—' }}</td>
+                                <td class="px-5 py-3 text-content-secondary">{{ $skill->category ?? '-' }}</td>
                                 <td class="px-5 py-3 text-right">
                                     <form method="POST" action="{{ route('training.skills.destroy', $skill) }}" onsubmit="return confirm('Supprimer ?');">
                                         @csrf @method('DELETE')

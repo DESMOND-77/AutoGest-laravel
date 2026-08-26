@@ -59,7 +59,7 @@ class SchedulingService
      * Locks the instructor's (and, if any, the vehicle's) row for the
      * duration of the transaction, so two concurrent requests booking the
      * same instructor/vehicle serialize instead of both passing the
-     * conflict check before either insert lands — see SCHED-03/TECH-08 in
+     * conflict check before either insert lands - see SCHED-03/TECH-08 in
      * docs/audit/. A plain SELECT...FOR UPDATE over lesson_sessions doesn't
      * protect against this on its own: a brand-new booking with no existing
      * overlapping row locks nothing, so two transactions can both see "no

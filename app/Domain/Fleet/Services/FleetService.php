@@ -20,7 +20,7 @@ class FleetService
             Event::dispatch(new VehicleExpenseRecorded(
                 $vehicle,
                 (float) $data['cost'],
-                "Entretien {$data['type']} — {$vehicle->plate}",
+                "Entretien {$data['type']} - {$vehicle->plate}",
                 $data['performed_on'],
             ));
         }
@@ -37,7 +37,7 @@ class FleetService
         Event::dispatch(new VehicleExpenseRecorded(
             $vehicle,
             (float) $data['cost'],
-            "Carburant — {$vehicle->plate}",
+            "Carburant - {$vehicle->plate}",
             $data['filled_on'],
         ));
 

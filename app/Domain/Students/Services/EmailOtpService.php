@@ -10,7 +10,7 @@ use Illuminate\Support\Facades\Mail;
 
 /**
  * The only place allowed to generate, resend, or verify an email OTP. A user
- * only ever has one active row (see the migration's unique(user_id)) —
+ * only ever has one active row (see the migration's unique(user_id)) -
  * generate() upserts, so a resend transparently replaces and invalidates
  * whatever code came before it.
  */

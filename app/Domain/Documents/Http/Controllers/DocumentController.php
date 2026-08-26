@@ -26,7 +26,7 @@ class DocumentController extends Controller
 
     /**
      * Every document an admin deposits for a student here is a dossier
-     * piece — it always carries a required_document_type_id and always
+     * piece - it always carries a required_document_type_id and always
      * versions/resets review_status exactly like the student's own
      * self-service upload (StudentDossierController::upload()), so an
      * admin filling in paperwork on a student's behalf produces the same
@@ -77,7 +77,7 @@ class DocumentController extends Controller
 
     /**
      * The viewer page: an <iframe> pointing at stream() below, plus explicit
-     * download/print controls. Kept separate from download() — that one
+     * download/print controls. Kept separate from download() - that one
      * always forces an attachment (Content-Disposition: attachment), which
      * would make the browser save the file instead of displaying it here.
      */

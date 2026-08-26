@@ -4,7 +4,7 @@
     <div class="py-6 space-y-6 max-w-7xl mx-auto">
         <div>
             <h1 class="text-xl font-semibold text-content">Bonjour, {{ explode(' ', auth()->user()->name)[0] }} 👋</h1>
-            <p class="text-sm text-content-secondary">{{ now()->translatedFormat('l d F Y') }} — voici ce qui se passe dans votre établissement.</p>
+            <p class="text-sm text-content-secondary">{{ now()->translatedFormat('l d F Y') }} - voici ce qui se passe dans votre établissement.</p>
         </div>
 
         {{-- KPI row --}}

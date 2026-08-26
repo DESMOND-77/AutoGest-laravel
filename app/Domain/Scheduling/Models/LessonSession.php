@@ -16,7 +16,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 /**
  * Named LessonSession (not "Session") to avoid clashing with Laravel's own
- * sessions table/concept — this is the legacy app's "séance".
+ * sessions table/concept - this is the legacy app's "séance".
  */
 class LessonSession extends Model
 {

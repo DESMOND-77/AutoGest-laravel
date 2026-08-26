@@ -31,7 +31,7 @@ Route::middleware('guest')->group(function () {
     Route::get('forgot-password', [PasswordResetLinkController::class, 'create'])
         ->name('password.request');
 
-    // SEC-03: unthrottled, this endpoint sends an email per request —
+    // SEC-03: unthrottled, this endpoint sends an email per request -
     // an easy mail-bombing/enumeration vector against any address.
     Route::post('forgot-password', [PasswordResetLinkController::class, 'store'])
         ->middleware('throttle:6,1')

@@ -9,7 +9,7 @@ use Illuminate\Validation\Rules\Enum;
 use Illuminate\Validation\Rules\Password;
 
 /**
- * No `tenant_id` / `structure_id` field exists here, on purpose — see §29-30
+ * No `tenant_id` / `structure_id` field exists here, on purpose - see §29-30
  * of docs/superpowers/specs/2026-08-23-inscription-eleve-otp-dossier-design.md.
  * The only thing this request accepts that identifies a tenant at all is
  * `registration_token`, and even that isn't trusted directly: the controller
@@ -20,7 +20,7 @@ class PublicStudentRegistrationRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        // Open to the public by design — the registration_token is the
+        // Open to the public by design - the registration_token is the
         // authorization mechanism, not a Policy/Gate check (there is no
         // authenticated actor to check one against).
         return true;
@@ -44,7 +44,7 @@ class PublicStudentRegistrationRequest extends FormRequest
     }
 
     /**
-     * Everything the Student row needs — structure_id is never in this
+     * Everything the Student row needs - structure_id is never in this
      * array (auto-stamped from TenantContext, see PublicStudentRegistrationService).
      */
     public function studentData(): array

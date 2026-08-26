@@ -65,7 +65,7 @@ it('skips rows with more than one student in the same cell', function () {
     ])->assertSuccessful();
 
     TenantContext::set($this->structure);
-    // etp1.csv 12h00-13h00 has "MARTIN DUPONT" — two tokens, ambiguous.
+    // etp1.csv 12h00-13h00 has "MARTIN DUPONT" - two tokens, ambiguous.
     expect(LessonSession::query()->where('starts_at', '12:00:00')->exists())->toBeFalse();
     TenantContext::clear();
 });
@@ -77,7 +77,7 @@ it('skips rows with more than one moniteur in the same cell', function () {
     ])->assertSuccessful();
 
     TenantContext::set($this->structure);
-    // ett1.csv 17h00-18h00 has "M Alice         M Bob" — ambiguous.
+    // ett1.csv 17h00-18h00 has "M Alice         M Bob" - ambiguous.
     expect(LessonSession::query()->where('starts_at', '17:00:00')->exists())->toBeFalse();
     TenantContext::clear();
 });
@@ -89,7 +89,7 @@ it('skips a day cell with a status it does not recognize', function () {
     ])->assertSuccessful();
 
     TenantContext::set($this->structure);
-    // ett1.csv 18h00-19h00 jeudi has "Inconnu" — not a known status.
+    // ett1.csv 18h00-19h00 jeudi has "Inconnu" - not a known status.
     expect(LessonSession::query()->where('starts_at', '18:00:00')->exists())->toBeFalse();
     TenantContext::clear();
 });

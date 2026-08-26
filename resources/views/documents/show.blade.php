@@ -22,7 +22,7 @@
 
         <x-card class="p-0 overflow-hidden print:shadow-none print:border-0">
             {{-- contentWindow.print() (see the Imprimer button above) prints
-                 the file rendered in this frame, not the surrounding page —
+                 the file rendered in this frame, not the surrounding page -
                  calling window.print() here would print this whole layout
                  (header, buttons, card chrome) instead of the document. --}}
             <iframe

@@ -9,7 +9,7 @@ https://<app-url>/register/student?token=<64-hex-char token>
 
 ## Architecture
 
-Everything lives inside the existing `Students` domain — no new tenancy
+Everything lives inside the existing `Students` domain - no new tenancy
 mechanism, no parallel authentication system:
 
 ```
@@ -34,7 +34,7 @@ app/Domain/Students/
 app/Listeners/NotifyAdminsOnStudentPublicRegistration.php
 ```
 
-## Tenant resolution — the core rule
+## Tenant resolution - the core rule
 
 > **The link identifies the tenant. The client never chooses the tenant.**
 
@@ -47,7 +47,7 @@ this app:
 | Public registration | `StudentRegistrationLinkService::validate($token)`, called explicitly by `PublicStudentRegistrationService` |
 
 `PublicStudentRegistrationRequest` has **no `tenant_id`/`structure_id` field at
-all** — there is nothing for a client to tamper with, because it isn't part of
+all** - there is nothing for a client to tamper with, because it isn't part of
 the request's validated shape. The only thing the request accepts that has
 anything to do with a tenant is `registration_token`, a random string that the
 server hashes and looks up.
@@ -68,7 +68,7 @@ token
   → TenantContext::clear()                         (always, via finally)
 ```
 
-`Student::structure_id` is never set from request data — `BelongsToTenant`'s
+`Student::structure_id` is never set from request data - `BelongsToTenant`'s
 `creating()` hook stamps it from `TenantContext::id()` automatically, the same
 mechanism every other tenant-scoped model in this app already relies on.
 
@@ -81,11 +81,11 @@ mechanism every other tenant-scoped model in this app already relies on.
 | `structure_id` | FK, cascade delete |
 | `created_by` | FK to `users`, nullable |
 | `label` | optional free text |
-| `token_hash` | `sha256` of the plain token — **the plain token is never stored** |
+| `token_hash` | `sha256` of the plain token - **the plain token is never stored** |
 | `usage_count` / `max_uses` | `max_uses` nullable = unlimited |
 | `expires_at`, `revoked_at`, `last_used_at` | nullable timestamps |
 
-No unique constraint enforces "one active link per tenant" — the business
+No unique constraint enforces "one active link per tenant" - the business
 rule (at most one active link) is enforced in
 `StudentRegistrationLinkService::generate()`, which revokes any existing
 active link before creating a new one. A DB constraint that the application
@@ -99,20 +99,20 @@ model. Its global scope only adds a `WHERE structure_id = ...` clause when
 `TenantContext::hasTenant()` is true. The public token lookup
 (`StudentRegistrationLinkService::validate()`) runs *before* any tenant is
 resolved, so the scope contributes nothing and the lookup naturally searches
-every tenant's links — exactly once, with no `withoutTenantScope()` special
+every tenant's links - exactly once, with no `withoutTenantScope()` special
 case needed. Every admin-facing query on the same model runs with a tenant
 already active, so it's transparently isolated like any other tenant-scoped
 model.
 
 ## Token lifecycle
 
-- Generated with `bin2hex(random_bytes(32))` — 64 hex characters, 256 bits of
+- Generated with `bin2hex(random_bytes(32))` - 64 hex characters, 256 bits of
   entropy, not derived from any id/timestamp.
 - Only `hash('sha256', $token)` is ever written to the database.
 - The plain token is returned once, by `generate()`/`regenerate()`, and
   flashed into the session for exactly one subsequent page render (the admin
   settings page shows a one-time "copy it now" warning). After that page
-  load, the settings page can only show a masked placeholder — the plain
+  load, the settings page can only show a masked placeholder - the plain
   value cannot be recovered.
 - Default expiry: `STUDENT_REGISTRATION_LINK_TTL_DAYS` (default 90 days,
   `.env`-configurable, see `config/services.php`).
@@ -155,7 +155,7 @@ via a 6-digit OTP code, which transitions them through `PreEnrollment` to
 documents one by one. Submitting the dossier (`Validation` stage) opens it to
 per-document admin review: each document is approved or rejected individually.
 When the last pending document is approved, the student automatically advances
-to `Enrollment` — there is no final "unlock" step, and no path that skips
+to `Enrollment` - there is no final "unlock" step, and no path that skips
 administrative validation. The complete flow is described in
 `docs/superpowers/specs/2026-08-23-inscription-eleve-otp-dossier-design.md`.
 
@@ -167,7 +167,7 @@ eleve route (dashboard, planning, quiz, dossier) until the 6-digit code sent
 to the account's email is confirmed. Codes are stored hashed (`sha256`,
 mirroring `StudentRegistrationLink::token_hash`), expire after
 `EMAIL_OTP_EXPIRY_MINUTES` (default 10), and lock out after
-`EMAIL_OTP_MAX_ATTEMPTS` wrong guesses (default 5) — at that point the only
+`EMAIL_OTP_MAX_ATTEMPTS` wrong guesses (default 5) - at that point the only
 way forward is a resend, itself throttled to once per minute.
 
 Verifying dispatches `StudentEmailVerified`, whose listener
@@ -186,7 +186,7 @@ extended with an optional `$requiredDocumentType` param that keys the
 "previous version" lookup on `required_document_type_id` instead of
 `DocumentType`, since dossier pieces share the generic `DocumentType::Other`).
 
-"Soumettre mon dossier" transitions the student to `Validation` — server-side
+"Soumettre mon dossier" transitions the student to `Validation` - server-side
 gated on every active required type having at least one uploaded version,
 regardless of its review status.
 
@@ -197,14 +197,14 @@ sends the student back to `DossierSetup` (`Validation → DossierSetup`),
 regardless of the other documents' state; approving the *last* remaining
 pending/rejected active-type document advances the student to `Enrollment`.
 Both directions are refused server-side (403) if the student isn't currently
-at `Validation` when the review action runs — this is enforced in
+at `Validation` when the review action runs - this is enforced in
 `DocumentReviewController::decide()`, not just hidden in the UI.
 
 ## Concurrency
 
 `max_uses` is enforced under `SELECT ... FOR UPDATE` on the link row inside a
 DB transaction (`PublicStudentRegistrationService::register()`), not just at
-the initial `validate()` call — two requests racing on the same
+the initial `validate()` call - two requests racing on the same
 single-use link can both pass the first check, but only one can hold the row
 lock and successfully `markUsed()`.
 
@@ -213,12 +213,12 @@ lock and successfully `markUsed()`.
 - `GET /register/student` (token lookups / brute-forcing): `throttle:30,1`
 - `POST /register/student` (submissions): `throttle:6,1`
 - Admin generate/revoke/regenerate: gated by `auth`, `role:admin`, and
-  `StudentRegistrationLinkPolicy` (no separate throttle — these require an
+  `StudentRegistrationLinkPolicy` (no separate throttle - these require an
   authenticated tenant admin already).
 
 Both public throttles key on IP by default (Laravel's standard
 `ThrottleRequests` behaviour for guest requests). This does not stop an
-attacker who rotates IPs — see "Residual risks" below.
+attacker who rotates IPs - see "Residual risks" below.
 
 ## Logging & audit
 
@@ -229,7 +229,7 @@ attacker who rotates IPs — see "Residual risks" below.
   `revoked_at`) plus the standard action logging pattern; see
   `StudentRegistrationLinkController` for where these actions happen.
 - `Log::info('student.public_registration.completed'/'failed', ...)` with
-  `structure_id`, `registration_link_id`, `student_id` — **never the plain
+  `structure_id`, `registration_link_id`, `student_id` - **never the plain
   token**.
 
 ## Notifications
@@ -254,21 +254,21 @@ POST /settings/student-registration/revoke      settings.student-registration.re
 
 The `settings.*` routes carry the app's standard `auth` + `role:admin`
 middleware, plus `StudentRegistrationLinkPolicy` checks in the controller.
-The public routes carry neither `auth` nor `guest` — they're meant to work
+The public routes carry neither `auth` nor `guest` - they're meant to work
 regardless of whether the visitor's browser happens to have an unrelated
 session.
 
 ## Tests
 
-- `tests/Unit/Students/StudentRegistrationLinkServiceTest.php` — token
+- `tests/Unit/Students/StudentRegistrationLinkServiceTest.php` - token
   generation/uniqueness/hashing, validate() for every rejection reason,
   single-active-link enforcement, regenerate, tenant-scoped `getActiveLink()`.
-- `tests/Feature/Students/PublicStudentRegistrationTest.php` — golden path,
+- `tests/Feature/Students/PublicStudentRegistrationTest.php` - golden path,
   invalid/expired/revoked/suspended-tenant rejections, duplicate email/phone,
   anti-tampering (client-supplied `tenant_id`/`structure_id` ignored), IDOR
   across tenants, concurrency under `max_uses = 1`, rate limiting on both
   routes, field validation.
-- `tests/Feature/Students/StudentRegistrationLinkAdminTest.php` — admin
+- `tests/Feature/Students/StudentRegistrationLinkAdminTest.php` - admin
   generate/revoke/regenerate, one-time token reveal, role enforcement,
   cross-tenant IDOR on the admin management routes.
 
@@ -279,7 +279,7 @@ session.
   this further (CAPTCHA, WAF-level throttling) is infrastructure, not
   application code, and was left out of this pass.
 - **`RegistrationLinkGenerated`/`Regenerated`/`Revoked` are not separate
-  Laravel event classes** — they're covered by the existing `AuditService`
+  Laravel event classes** - they're covered by the existing `AuditService`
   action-logging pattern instead of three new single-purpose Dispatchable
   classes. This keeps the surface area small; promoting them to real events
   is a small, backward-compatible follow-up if another listener ever needs

@@ -10,7 +10,7 @@ use Illuminate\Support\Facades\Hash;
 
 /**
  * Public self-service signup: creates a pending Structure plus its first
- * admin account in one transaction. No auto-login — access only opens once
+ * admin account in one transaction. No auto-login - access only opens once
  * a super-admin activates the structure, matching the legacy app's
  * inscription_structure.php behaviour.
  */

@@ -214,8 +214,8 @@ Route::middleware(['auth', 'role:admin'])
     });
 
 // Public, unauthenticated: a prospective student opens the link an
-// auto-école generated above. The tenant comes from the token alone — see
-// PublicStudentRegistrationController's docblock — so this group carries no
+// auto-école generated above. The tenant comes from the token alone - see
+// PublicStudentRegistrationController's docblock - so this group carries no
 // 'auth' *or* 'guest' middleware, only per-IP throttling against token
 // brute-forcing and submission spam (§33-34 of the spec).
 Route::prefix('register/student')

@@ -15,7 +15,7 @@ export default {
         extend: {
             fontFamily: {
                 sans: ['Inter', ...defaultTheme.fontFamily.sans],
-                // Condensed road-sign lettering — landing page display type only.
+                // Condensed road-sign lettering - landing page display type only.
                 display: ['"Barlow Condensed"', ...defaultTheme.fontFamily.sans],
                 mono: ['"IBM Plex Mono"', ...defaultTheme.fontFamily.mono],
             },
@@ -28,11 +28,11 @@ export default {
                     700: '#1B3586',
                 },
                 signal: {
-                    // DEFAULT is the bright brand orange from the logo accent stripe —
+                    // DEFAULT is the bright brand orange from the logo accent stripe -
                     // used for decorative strokes, icons and text sitting on the dark
                     // "asphalt" sections, where its contrast is high. 600/700 are for
                     // any white-text-on-solid-fill use (buttons, badges), where the
-                    // bright value alone would fail WCAG AA (~2.8:1) — see route.
+                    // bright value alone would fail WCAG AA (~2.8:1) - see route.
                     DEFAULT: '#F2790A',
                     600: '#B85500',
                     700: '#8F4200',
@@ -49,7 +49,7 @@ export default {
                     2: '#151F38',
                 },
 
-                // Soft Neumorphic tokens for the authenticated app shell —
+                // Soft Neumorphic tokens for the authenticated app shell -
                 // see resources/css/app.css for the underlying CSS custom
                 // properties (light + dark values). Kept separate from the
                 // landing-page palette above on purpose.

@@ -14,7 +14,7 @@ use Illuminate\View\View;
 
 /**
  * Review now happens while the student is still assembling their dossier
- * (DossierSetup), not after a formal "submission" — StudentDossierController
+ * (DossierSetup), not after a formal "submission" - StudentDossierController
  * ::submit() requires every required piece to already be Approved before it
  * lets the student submit at all, and submission itself is what advances the
  * student straight through to Enrollment. So approving/rejecting a single

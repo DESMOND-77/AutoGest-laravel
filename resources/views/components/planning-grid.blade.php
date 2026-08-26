@@ -11,7 +11,7 @@
     ]);
 
     // Default business-hours window, widened automatically if a session
-    // falls outside it — the legacy grid's hard-coded 07:00-17:00 rows
+    // falls outside it - the legacy grid's hard-coded 07:00-17:00 rows
     // silently dropped anything outside that range (see the audit's
     // legacy-feature-parity notes); this one never hides a session.
     $dayStartHour = min(7, $times->min(fn ($t) => $t->hour) ?? 7);
@@ -94,7 +94,7 @@
                                 $durationMinutes = max(15, $start->diffInMinutes($end));
                                 $topPx = $startMinutes / 60 * $pixelsPerHour;
                                 // min-height (not height) so the card is never
-                                // shorter than its content needs — a 30-45min
+                                // shorter than its content needs - a 30-45min
                                 // session still has room for the presence/
                                 // cancel controls instead of clipping them.
                                 $minHeightPx = max(44, $durationMinutes / 60 * $pixelsPerHour);

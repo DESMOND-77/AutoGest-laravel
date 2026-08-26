@@ -32,7 +32,7 @@
                         @forelse ($leads as $lead)
                             <tr class="hover:bg-surface-elevated/60 transition">
                                 <td class="px-5 py-3 text-content font-medium">{{ $lead->name }}</td>
-                                <td class="px-5 py-3 text-content-secondary">{{ $lead->phone ?? '—' }}</td>
+                                <td class="px-5 py-3 text-content-secondary">{{ $lead->phone ?? '-' }}</td>
                                 <td class="px-5 py-3">
                                     <form method="POST" action="{{ route('crm.leads.status', $lead) }}" class="flex gap-1">
                                         @csrf @method('PATCH')

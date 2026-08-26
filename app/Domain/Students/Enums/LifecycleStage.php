@@ -5,7 +5,7 @@ namespace App\Domain\Students\Enums;
 /**
  * The student lifecycle from the 2026-08-23 design (docs/superpowers/specs/
  * 2026-08-23-inscription-eleve-otp-dossier-design.md): Prospect -> ... ->
- * LicenseObtained -> FormerStudent, with two allowed back-edges — Validation
+ * LicenseObtained -> FormerStudent, with two allowed back-edges - Validation
  * -> DossierSetup on a rejected document, and PracticalExam ->
  * ContinuousEvaluation on a failed exam.
  */

@@ -211,7 +211,7 @@
                     // QuizQuestionResource::collection() wraps the array in
                     // Laravel's default {"data": [...]} envelope, unlike the
                     // plain response()->json(...) calls elsewhere in this
-                    // controller — the other fetches in this file don't need
+                    // controller - the other fetches in this file don't need
                     // this unwrap.
                     const payload = await response.json();
                     this.questions = payload.data;
@@ -329,7 +329,7 @@
 
                 formatDate(value) {
                     if (! value) {
-                        return '—';
+                        return '-';
                     }
 
                     return new Date(value).toLocaleDateString('fr-FR');

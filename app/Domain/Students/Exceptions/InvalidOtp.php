@@ -6,7 +6,7 @@ use RuntimeException;
 
 /**
  * Mirrors InvalidRegistrationLink's shape (reason() + static constructors),
- * but here every reason is safe to show — unlike the public registration
+ * but here every reason is safe to show - unlike the public registration
  * token, the OTP screen already knows exactly who the visitor is
  * (authenticated as the eleve, before verification), so there's nothing to
  * enumerate by distinguishing "wrong code" from "expired" from "too many

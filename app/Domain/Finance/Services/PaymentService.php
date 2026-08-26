@@ -16,7 +16,7 @@ use Illuminate\Support\Facades\Event;
 /**
  * The single place a payment is ever recorded. Every write here happens in
  * one transaction: the Payment row, the Invoice's running amount_paid/status,
- * and the caisse/banque LedgerEntry, together — instead of the legacy app's
+ * and the caisse/banque LedgerEntry, together - instead of the legacy app's
  * pattern of updating paiements by hand in whichever page happened to touch
  * it (see fixs.md #1: eleves.php showed payment fields on the student edit
  * form but its save handler never wrote to the paiements table at all).
@@ -44,7 +44,7 @@ class PaymentService
                 'created_by' => $recordedBy?->id,
                 'type' => LedgerEntryType::Income,
                 'amount' => $data['amount'],
-                'memo' => "Paiement facture #{$invoice->id} — {$invoice->label}",
+                'memo' => "Paiement facture #{$invoice->id} - {$invoice->label}",
                 'occurred_on' => $payment->paid_at,
             ]);
 
@@ -56,7 +56,7 @@ class PaymentService
 
     /**
      * Reverses a payment: the invoice's amount_paid/status are rolled back
-     * and a compensating expense entry is journaled — the original Payment
+     * and a compensating expense entry is journaled - the original Payment
      * and its LedgerEntry are kept as-is (never deleted/mutated) so the
      * financial trail stays intact. See docs/audit/business-workflow.md
      * FIN-02: there was previously no way to correct a mis-recorded payment
@@ -79,7 +79,7 @@ class PaymentService
                 'created_by' => $cancelledBy?->id,
                 'type' => LedgerEntryType::Expense,
                 'amount' => $payment->amount,
-                'memo' => "Annulation du paiement #{$payment->id} — facture #{$invoice->id} — {$invoice->label}"
+                'memo' => "Annulation du paiement #{$payment->id} - facture #{$invoice->id} - {$invoice->label}"
                     .($reason ? " ({$reason})" : ''),
                 'occurred_on' => now()->toDateString(),
             ]);

@@ -2,7 +2,7 @@
 
 @php
     // One consistent icon set for the whole authenticated app (Heroicons
-    // outline, 24x24, 1.5 stroke) — see the brief's "une seule bibliothèque
+    // outline, 24x24, 1.5 stroke) - see the brief's "une seule bibliothèque
     // d'icônes" rule. Add new names here rather than mixing in another
     // library for a one-off icon.
     $paths = [

@@ -7,7 +7,7 @@ use App\Models\User;
 
 /**
  * Structure is the tenant itself, so there is no per-row structure_id check
- * to make here (unlike every other Policy in the app) — superadmin either
+ * to make here (unlike every other Policy in the app) - superadmin either
  * manages every tenant or none. The route middleware (role:superadmin)
  * already enforces this; this Policy exists so StructureManagementController
  * follows the same authorize()-per-action pattern as every other controller

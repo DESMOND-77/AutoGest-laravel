@@ -14,7 +14,7 @@ it('advances a student through an allowed transition and dispatches an event', f
 
     // Faked after creation, and scoped to this one event, so Student's own
     // `creating` hook (which sets the default lifecycle_stage) still fires
-    // normally — a blanket Event::fake() would silently suppress it too,
+    // normally - a blanket Event::fake() would silently suppress it too,
     // since Eloquent model events go through the same dispatcher.
     Event::fake(StudentStageChanged::class);
 

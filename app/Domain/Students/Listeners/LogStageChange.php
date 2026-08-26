@@ -9,7 +9,7 @@ use Illuminate\Support\Facades\Log;
 
 /**
  * Runs synchronously in the same request as the transition (not queued), so
- * Auth::user() here is reliably the admin/moniteur who triggered it — there
+ * Auth::user() here is reliably the admin/moniteur who triggered it - there
  * is no separate "who did this" field on Student itself to fall back on.
  *
  * Also writes to AuditLog: previously only Log::info was recorded, meaning

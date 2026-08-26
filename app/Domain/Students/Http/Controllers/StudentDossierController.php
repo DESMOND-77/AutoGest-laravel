@@ -101,9 +101,9 @@ class StudentDossierController extends Controller
             // Every required piece is already Approved by this point (checked
             // above), so submission and enrollment happen together: there is
             // nothing left for an admin to review once a student is allowed
-            // to submit at all. Validation is still passed through — every
+            // to submit at all. Validation is still passed through - every
             // lifecycle_stage change goes through LifecycleService, never a
-            // direct write — but it's not a state anyone needs to act on.
+            // direct write - but it's not a state anyone needs to act on.
             $this->lifecycle->transitionTo($student, LifecycleStage::Validation);
             $this->lifecycle->transitionTo($student, LifecycleStage::Enrollment);
         } catch (InvalidStageTransition) {

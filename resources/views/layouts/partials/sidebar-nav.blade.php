@@ -6,7 +6,7 @@
         || request()->routeIs('eleve.dashboard');
 
     // Number of students with at least one dossier document still awaiting
-    // review — shown as a badge on "Dossiers en attente" so an admin sees
+    // review - shown as a badge on "Dossiers en attente" so an admin sees
     // at a glance whether the queue needs attention.
     $pendingDossierStudentCount = $user?->hasRole('admin')
         ? \App\Domain\Documents\Models\Document::query()

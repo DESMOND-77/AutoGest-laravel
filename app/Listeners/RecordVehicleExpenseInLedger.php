@@ -7,7 +7,7 @@ use App\Domain\Finance\Services\LedgerService;
 use App\Domain\Fleet\Events\VehicleExpenseRecorded;
 
 /**
- * The integration point between Fleet and Finance — deliberately outside
+ * The integration point between Fleet and Finance - deliberately outside
  * both app/Domain/Fleet and app/Domain/Finance, so neither domain has to
  * know the other exists. This is what the legacy admin/flotte.php skipped by
  * writing straight into the `transactions` table from the vehicle page.

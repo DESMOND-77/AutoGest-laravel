@@ -76,7 +76,7 @@ class AppServiceProvider extends ServiceProvider
         $this->app->bind(InstructorRepositoryInterface::class, EloquentInstructorRepository::class);
 
         // 'log' is the only driver until a real Gabonese SMS provider is
-        // chosen (see SmsGateway's docblock) — swapping it is a match()
+        // chosen (see SmsGateway's docblock) - swapping it is a match()
         // arm here, not a rewrite of any call site.
         $this->app->bind(SmsGateway::class, fn () => match (config('services.sms.driver', 'log')) {
             default => new LogSmsGateway,
@@ -111,7 +111,7 @@ class AppServiceProvider extends ServiceProvider
 
         // RecordVehicleExpenseInLedger lives in app/Listeners, where Laravel's
         // event auto-discovery already finds it by its handle(VehicleExpenseRecorded)
-        // type-hint — registering it again here would fire it twice.
+        // type-hint - registering it again here would fire it twice.
         Event::listen(StudentStageChanged::class, LogStageChange::class);
         Event::listen(StudentEmailVerified::class, ActivateStudentAfterEmailVerification::class);
 
@@ -120,7 +120,7 @@ class AppServiceProvider extends ServiceProvider
         // registration endpoint logs the visitor in as part of a
         // successful submission, so a naive 'throttle:6,1' would silently
         // stop limiting by IP after the first success (each new account is
-        // a fresh key) — defeating the anti-spam/brute-force intent these
+        // a fresh key) - defeating the anti-spam/brute-force intent these
         // routes document (§33-34, §51 of the spec). Force IP-based keying
         // explicitly instead.
         RateLimiter::for('public-registration-lookup', fn (Request $request) => Limit::perMinute(30)->by($request->ip()));

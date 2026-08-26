@@ -12,7 +12,7 @@ use Illuminate\Support\Facades\DB;
 /**
  * Owns the full lifecycle of a tenant's public student-registration link:
  * generation, validation, revocation, regeneration. Never touches
- * TenantContext itself — validate() is called *before* a tenant is known
+ * TenantContext itself - validate() is called *before* a tenant is known
  * (see PublicStudentRegistrationService), and the admin-facing methods run
  * inside a request where ResolveTenant has already set the context from the
  * authenticated session. Mixing the two here would blur exactly the
@@ -21,7 +21,7 @@ use Illuminate\Support\Facades\DB;
 class StudentRegistrationLinkService
 {
     /**
-     * Only the hash ever reaches the database — the plain token exists only
+     * Only the hash ever reaches the database - the plain token exists only
      * in this method's return value and in the controller response that
      * hands it to the admin once. See StudentRegistrationLink's docblock.
      *
@@ -31,7 +31,7 @@ class StudentRegistrationLinkService
     {
         return DB::transaction(function () use ($structure, $createdBy, $label) {
             // Business rule: one active link per tenant. Enforced here
-            // (not a DB constraint — see the migration's docblock) so a
+            // (not a DB constraint - see the migration's docblock) so a
             // regenerate always leaves exactly one usable link behind.
             $this->activeLinkFor($structure)?->update(['revoked_at' => now()]);
 
@@ -74,7 +74,7 @@ class StudentRegistrationLinkService
      * middleware (see routes/web.php), so a visitor who is already
      * authenticated from an earlier registration in the same browser
      * session can still reach this with an ambient TenantContext set by
-     * ResolveTenant — this must keep searching across every tenant
+     * ResolveTenant - this must keep searching across every tenant
      * regardless (see StudentRegistrationLink's docblock).
      *
      * @throws InvalidRegistrationLink

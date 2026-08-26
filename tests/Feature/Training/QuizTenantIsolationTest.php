@@ -9,7 +9,7 @@ use Database\Seeders\RoleSeeder;
 /**
  * MT-05 follow-up: Training/Quiz had no tenant isolation coverage. The
  * cross-tenant surface is QuizController::studentResults(), which binds a
- * {student} and defers to StudentPolicy — now also protected by the MT-01
+ * {student} and defers to StudentPolicy - now also protected by the MT-01
  * middleware-priority fix (404 before the policy even runs).
  */
 beforeEach(function () {

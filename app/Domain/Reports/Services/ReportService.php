@@ -15,7 +15,7 @@ use App\Domain\Training\Models\Exam;
 use Illuminate\Support\Collection;
 
 /**
- * Read-only aggregation across Finance, Training, Fleet and Students —
+ * Read-only aggregation across Finance, Training, Fleet and Students -
  * the one place the admin dashboard's numbers come from, replacing the
  * legacy pattern of the same "recettes du mois" / "CT sous 30 jours" query
  * being written slightly differently in dashboard.php and again in each

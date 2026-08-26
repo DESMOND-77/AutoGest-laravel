@@ -8,7 +8,7 @@ use Illuminate\Foundation\Http\FormRequest;
 /**
  * Unlike StoreDocumentRequest (still used for Vehicle uploads, categorized
  * by the generic DocumentType enum), a document an admin deposits for a
- * student is always a dossier piece — the "type" the admin picks is one of
+ * student is always a dossier piece - the "type" the admin picks is one of
  * the tenant's configured RequiredDocumentType rows, not a DocumentType
  * case. Tenant ownership of the id is enforced in the controller by
  * resolving it through RequiredDocumentType's own tenant-scoped query

@@ -18,7 +18,7 @@ return new class extends Migration
 
             $table->string('label')->nullable();
 
-            // Only the hash is stored — the plain token exists nowhere at
+            // Only the hash is stored - the plain token exists nowhere at
             // rest, so a database leak alone never yields a working public
             // registration link (see docs/features/student-public-registration.md).
             $table->string('token_hash', 64)->unique();

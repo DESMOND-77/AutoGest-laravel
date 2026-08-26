@@ -4,7 +4,7 @@ Ce document détaille ce qui se passe concrètement à **chacune des 15 étapes*
 
 ## Principe général
 
-Le champ `lifecycle_stage` d'un élève ne peut avancer **que d'une étape autorisée à la suivante**, jamais en sautant une étape et jamais en arrière — à une seule exception près (voir étape 13). Ce contrôle est fait par `LifecycleService::transitionTo()`, le seul point du système qui a le droit de modifier cette valeur : toute tentative de saut est rejetée (`InvalidStageTransition`).
+Le champ `lifecycle_stage` d'un élève ne peut avancer **que d'une étape autorisée à la suivante**, jamais en sautant une étape et jamais en arrière - à une seule exception près (voir étape 13). Ce contrôle est fait par `LifecycleService::transitionTo()`, le seul point du système qui a le droit de modifier cette valeur : toute tentative de saut est rejetée (`InvalidStageTransition`).
 
 **À chaque changement d'étape, deux choses se produisent automatiquement, et rien d'autre** :
 1. Une ligne est écrite dans le journal applicatif (`Log::info`).
@@ -45,7 +45,7 @@ La progression se fait sur la fiche élève (`/students/{id}`), via le bouton de
 
 **Ce que ça signifie** : l'élève est officiellement inscrit à l'auto-école.
 
-**Ce qu'on peut faire à cette étape** : c'est le moment habituel pour créer la première **facture** (`/finance/students/{id}/invoices/create`), typiquement liée à un forfait de formation (`/finance/packages`). La facture est créée séparément, dans le module Finance — l'avancement de l'étape ne la génère pas automatiquement.
+**Ce qu'on peut faire à cette étape** : c'est le moment habituel pour créer la première **facture** (`/finance/students/{id}/invoices/create`), typiquement liée à un forfait de formation (`/finance/packages`). La facture est créée séparément, dans le module Finance - l'avancement de l'étape ne la génère pas automatiquement.
 
 **Étape suivante autorisée** : Paiement.
 
@@ -58,7 +58,7 @@ La progression se fait sur la fiche élève (`/students/{id}`), via le bouton de
 **Ce qu'on peut faire à cette étape** :
 - Enregistrer un ou plusieurs paiements sur la facture (`/finance/invoices/{id}`), avec le mode de règlement (espèces, Airtel Money, Moov Money, virement, chèque).
 - Le système empêche tout paiement qui dépasserait le solde dû sur la facture.
-- La facture passe automatiquement de `Impayée` à `Partiellement réglée` puis `Soldée` au fil des paiements — ce mécanisme est indépendant du `lifecycle_stage` (rien n'empêche techniquement de faire avancer l'élève avant que la facture soit soldée ; c'est une discipline opérationnelle, pas un blocage du système).
+- La facture passe automatiquement de `Impayée` à `Partiellement réglée` puis `Soldée` au fil des paiements - ce mécanisme est indépendant du `lifecycle_stage` (rien n'empêche techniquement de faire avancer l'élève avant que la facture soit soldée ; c'est une discipline opérationnelle, pas un blocage du système).
 
 **Étape suivante autorisée** : Constitution du dossier.
 
@@ -68,7 +68,7 @@ La progression se fait sur la fiche élève (`/students/{id}`), via le bouton de
 
 **Ce que ça signifie** : l'élève doit fournir les pièces administratives nécessaires.
 
-**Ce qu'on peut faire à cette étape** : téléverser les **documents** de l'élève sur sa fiche — pièce d'identité, justificatif de domicile, photo, contrat, etc. (`documents.store`). En parallèle, le **statut du dossier** (`dossier_status`, distinct du `lifecycle_stage`) peut être suivi via son propre cycle : `Incomplet → Complet → Soumis → Validé` (avec un retour possible de `Soumis` à `Incomplet` si le dossier est rejeté). Ce sous-statut existe déjà dans le système (`DossierStatusService`) mais **aucun écran dédié** n'est encore branché dessus à ce jour — seule la valeur par défaut (`Incomplet`) est posée à la création de l'élève.
+**Ce qu'on peut faire à cette étape** : téléverser les **documents** de l'élève sur sa fiche - pièce d'identité, justificatif de domicile, photo, contrat, etc. (`documents.store`). En parallèle, le **statut du dossier** (`dossier_status`, distinct du `lifecycle_stage`) peut être suivi via son propre cycle : `Incomplet → Complet → Soumis → Validé` (avec un retour possible de `Soumis` à `Incomplet` si le dossier est rejeté). Ce sous-statut existe déjà dans le système (`DossierStatusService`) mais **aucun écran dédié** n'est encore branché dessus à ce jour - seule la valeur par défaut (`Incomplet`) est posée à la création de l'élève.
 
 **Étape suivante autorisée** : Validation.
 
@@ -124,7 +124,7 @@ La progression se fait sur la fiche élève (`/students/{id}`), via le bouton de
 **Ce que ça signifie** : l'élève entame les leçons de conduite.
 
 **Ce qu'on peut faire à cette étape** :
-- Planifier des séances de type « Conduite », avec un **véhicule obligatoire** (règle métier appliquée à la validation) en plus du moniteur — les deux sont vérifiés pour éviter tout double-booking.
+- Planifier des séances de type « Conduite », avec un **véhicule obligatoire** (règle métier appliquée à la validation) en plus du moniteur - les deux sont vérifiés pour éviter tout double-booking.
 - Marquer la présence de l'élève à chaque séance (`Présent / Absent / Reporté / Annulé`).
 
 **Étape suivante autorisée** : Évaluation continue.
@@ -139,7 +139,7 @@ La progression se fait sur la fiche élève (`/students/{id}`), via le bouton de
 
 **Étape suivante autorisée** : Prêt pour l'examen.
 
-**Particularité** : c'est aussi l'étape de **retour** en cas d'échec à l'examen pratique (voir étape 13) — un élève qui échoue reprend ici pour retravailler ses compétences avant une nouvelle tentative.
+**Particularité** : c'est aussi l'étape de **retour** en cas d'échec à l'examen pratique (voir étape 13) - un élève qui échoue reprend ici pour retravailler ses compétences avant une nouvelle tentative.
 
 ---
 
@@ -177,7 +177,7 @@ La progression se fait sur la fiche élève (`/students/{id}`), via le bouton de
 
 ## 15. Ancien élève
 
-**Ce que ça signifie** : étape finale et terminale — l'élève a terminé son parcours avec l'auto-école. Aucune transition suivante n'est possible (`allowedNextStages()` renvoie une liste vide).
+**Ce que ça signifie** : étape finale et terminale - l'élève a terminé son parcours avec l'auto-école. Aucune transition suivante n'est possible (`allowedNextStages()` renvoie une liste vide).
 
 **Ce qu'on peut faire à cette étape** : la fiche reste consultable (historique complet : paiements, séances, documents, résultats d'examens) à des fins d'archivage et de statistiques (ex. taux de réussite exportable via `/reports`).
 
@@ -219,7 +219,7 @@ Ancien élève  [fin de parcours]
 
 ## Bon à savoir
 
-- **Toute transition en dehors de cet ordre est techniquement impossible** — même en cas d'erreur de manipulation, le système lève une erreur plutôt que d'accepter un saut d'étape.
+- **Toute transition en dehors de cet ordre est techniquement impossible** - même en cas d'erreur de manipulation, le système lève une erreur plutôt que d'accepter un saut d'étape.
 - **Aucune étape ne déclenche automatiquement une action dans un autre module** (facture, planning, document) : l'étape est un indicateur d'avancement que l'utilisateur fait progresser en cohérence avec le travail réellement effectué ailleurs dans l'application.
 - **Chaque changement d'étape est tracé** dans le journal d'audit (`/audit`), avec l'auteur, l'ancienne et la nouvelle étape, et l'horodatage.
-- Le **statut du dossier administratif** (`Incomplet/Complet/Soumis/Validé`) est un suivi parallèle et indépendant du cycle de vie principal — il concerne uniquement les pièces justificatives, pas l'avancement pédagogique.
+- Le **statut du dossier administratif** (`Incomplet/Complet/Soumis/Validé`) est un suivi parallèle et indépendant du cycle de vie principal - il concerne uniquement les pièces justificatives, pas l'avancement pédagogique.

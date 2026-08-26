@@ -8,7 +8,7 @@ use Symfony\Component\HttpFoundation\Response;
 
 /**
  * Applied only to the eleve routes that require a verified account
- * (dashboard, planning, quiz, dossier) — not to the OTP screen's own routes,
+ * (dashboard, planning, quiz, dossier) - not to the OTP screen's own routes,
  * or every request would redirect back to itself.
  */
 class EnsureEmailOtpVerified

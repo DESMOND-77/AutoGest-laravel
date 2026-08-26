@@ -6,7 +6,7 @@ use App\Domain\Notifications\Contracts\SmsGateway;
 use Illuminate\Notifications\Notification;
 
 /**
- * A standard Laravel notification channel — return SmsChannel::class from a
+ * A standard Laravel notification channel - return SmsChannel::class from a
  * Notification's via() and implement toSms() on it, the same shape as the
  * built-in 'mail'/'database' channels. Works with on-demand notifications
  * (Notification::route('sms', $phoneNumber)->notify(...)) since Student

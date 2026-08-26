@@ -1,5 +1,5 @@
 <x-app-layout>
-    <x-slot name="header">Nouvelle facture — {{ $student->fullName() }}</x-slot>
+    <x-slot name="header">Nouvelle facture - {{ $student->fullName() }}</x-slot>
 
     <div class="py-6 max-w-2xl mx-auto">
         <x-card>
@@ -9,7 +9,7 @@
                 <div>
                     <x-input-label for="training_package_id" value="Forfait (optionnel)" />
                     <select id="training_package_id" name="training_package_id" class="mt-1 w-full rounded-ui-md border-0 bg-surface-inset text-content shadow-inset focus:shadow-inset-focus focus:ring-0 text-sm">
-                        <option value="">— Montant libre —</option>
+                        <option value="">- Montant libre -</option>
                         @foreach ($packages as $package)
                             <option value="{{ $package->id }}">{{ $package->name }} ({{ number_format($package->price, 0, ',', ' ') }} FCFA)</option>
                         @endforeach

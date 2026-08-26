@@ -13,7 +13,7 @@ use App\Domain\Students\Models\Student;
 use Illuminate\Support\Facades\DB;
 
 /**
- * Store is allowed to depend on Finance (see the domain diagram) — unlike
+ * Store is allowed to depend on Finance (see the domain diagram) - unlike
  * Fleet, which deliberately is not. An order for a student becomes an
  * Invoice the student can pay off like any other; a walk-in sale (no
  * student, e.g. the legacy code_rousseau.php "freeform buyer" case) is
@@ -75,7 +75,7 @@ class OrderService
                 $this->ledger->recordManual([
                     'type' => LedgerEntryType::Income->value,
                     'amount' => $total,
-                    'memo' => "Vente comptoir #{$order->id}".($customerName ? " — {$customerName}" : ''),
+                    'memo' => "Vente comptoir #{$order->id}".($customerName ? " - {$customerName}" : ''),
                     'occurred_on' => now()->toDateString(),
                 ]);
             }

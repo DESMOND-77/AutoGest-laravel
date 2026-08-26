@@ -11,7 +11,7 @@ use Illuminate\Console\Command;
 
 /**
  * Equivalent of the legacy "visite technique expire -> notification" example
- * from the proposal — meant to run on a schedule (see routes/console.php),
+ * from the proposal - meant to run on a schedule (see routes/console.php),
  * one tenant at a time since AlertService relies on the tenant scope.
  */
 class CheckFleetAlerts extends Command
@@ -47,7 +47,7 @@ class CheckFleetAlerts extends Command
                 // A failure partway through this structure's alerts (e.g. a
                 // bad notification channel) must not leave TenantContext
                 // pointed at this structure for the next iteration of the
-                // loop — that would leak this structure's tenant scope onto
+                // loop - that would leak this structure's tenant scope onto
                 // the next one's queries.
                 TenantContext::clear();
             }

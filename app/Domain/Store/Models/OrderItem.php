@@ -9,7 +9,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 /**
- * No structure_id column and no BelongsToTenant here — an order item is
+ * No structure_id column and no BelongsToTenant here - an order item is
  * only ever reached through its parent Order, which is itself tenant-scoped.
  * Adding a redundant column here would just be another place for the two to
  * drift apart.

@@ -22,7 +22,7 @@ class QuizController extends Controller
 
     /**
      * The page shell for the quiz flow (start screen, question-by-question
-     * play, correction, history) — everything after this loads via fetch()
+     * play, correction, history) - everything after this loads via fetch()
      * against index()/store()/results()/showAttempt() below. See §24 of the
      * project's audit roadmap: the grading backend already existed, only
      * the UI was missing.
@@ -66,7 +66,7 @@ class QuizController extends Controller
     }
 
     /**
-     * Admin/moniteur view of another student's attempts — reuses
+     * Admin/moniteur view of another student's attempts - reuses
      * StudentPolicy::view() so a moniteur only sees their own assigned
      * students, exactly like every other student-scoped page.
      */
@@ -78,7 +78,7 @@ class QuizController extends Controller
     }
 
     /**
-     * Correction detail for one already-completed attempt — unlike index()
+     * Correction detail for one already-completed attempt - unlike index()
      * (the live question set), this is allowed to reveal is_correct on
      * every option, since the attempt is already graded and locked. The
      * question order matches the order the student answered in, not a

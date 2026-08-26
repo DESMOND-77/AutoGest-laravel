@@ -1,5 +1,5 @@
 <x-app-layout>
-    <x-slot name="header">Planning — semaine du {{ $week->format('d/m/Y') }}</x-slot>
+    <x-slot name="header">Planning - semaine du {{ $week->format('d/m/Y') }}</x-slot>
 
     @php
         $editConflictSession = null;
@@ -110,7 +110,7 @@
                 <div class="lg:col-span-2">
                     <x-input-label for="vehicle_id" value="Véhicule" />
                     <select id="vehicle_id" name="vehicle_id" class="mt-1 w-full rounded-ui-md border-0 bg-surface-inset text-content shadow-inset focus:shadow-inset-focus focus:ring-0 text-sm">
-                        <option value="">—</option>
+                        <option value="">-</option>
                         @foreach ($vehicles as $vehicle)
                             <option value="{{ $vehicle->id }}">{{ $vehicle->plate }}</option>
                         @endforeach
@@ -166,7 +166,7 @@
 
                     @if ($editConflictSession)
                         <x-alert variant="danger" class="mb-4">
-                            <span class="font-medium">⚠ Conflit de planning —</span> {{ $errors->first('starts_at') }}
+                            <span class="font-medium">⚠ Conflit de planning -</span> {{ $errors->first('starts_at') }}
                         </x-alert>
                     @endif
 
@@ -184,7 +184,7 @@
                         <div>
                             <x-input-label value="Véhicule" />
                             <select name="vehicle_id" x-model="editingSession.vehicle_id" class="mt-1 w-full rounded-ui-md border-0 bg-surface-inset text-content shadow-inset focus:shadow-inset-focus focus:ring-0 text-sm">
-                                <option value="">—</option>
+                                <option value="">-</option>
                                 @foreach ($vehicles as $vehicle)
                                     <option value="{{ $vehicle->id }}">{{ $vehicle->plate }}</option>
                                 @endforeach
@@ -238,7 +238,7 @@
 
                     @if ($duplicateConflictSession)
                         <x-alert variant="danger" class="mb-4">
-                            <span class="font-medium">⚠ Conflit de planning —</span> {{ $errors->first('duplicate') }}
+                            <span class="font-medium">⚠ Conflit de planning -</span> {{ $errors->first('duplicate') }}
                         </x-alert>
                     @endif
 

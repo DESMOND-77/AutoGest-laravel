@@ -58,7 +58,7 @@
                         <div>
                             <x-input-label for="instructor_id" value="Moniteur" />
                             <select id="instructor_id" name="instructor_id" class="border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 rounded-md shadow-sm block mt-1 w-full">
-                                <option value="">—</option>
+                                <option value="">-</option>
                                 @foreach ($instructors as $instructor)
                                     <option value="{{ $instructor->id }}" @selected(old('instructor_id', $student->instructor_id) == $instructor->id)>{{ $instructor->name }}</option>
                                 @endforeach

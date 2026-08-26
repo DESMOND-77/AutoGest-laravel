@@ -30,7 +30,7 @@ class StudentFactory extends Factory
     }
 
     /**
-     * lifecycle_stage is a guarded column (see Student::setLifecycleStage) —
+     * lifecycle_stage is a guarded column (see Student::setLifecycleStage) -
      * plain mass assignment silently ignores it, so a factory state is the
      * only way for a test to create a student already past the 'prospect'
      * database default.

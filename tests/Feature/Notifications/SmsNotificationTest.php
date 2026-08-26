@@ -82,7 +82,7 @@ it('does not attempt an SMS when the student has no phone number on file', funct
         'method' => 'cash',
     ]);
 
-    // The admin AlertNotification still legitimately fires — only the SMS
+    // The admin AlertNotification still legitimately fires - only the SMS
     // (which needs a phone number to route to) should be skipped.
     Notification::assertSentOnDemandTimes(SmsNotification::class, 0);
 });

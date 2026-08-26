@@ -7,7 +7,7 @@ use App\Models\User;
 
 /**
  * Manual journal entries not tied to a student invoice (salaries, bank
- * deposits/withdrawals, miscellaneous expenses) — the equivalent of the
+ * deposits/withdrawals, miscellaneous expenses) - the equivalent of the
  * legacy facturation.php "entrées/sorties/banque" tabs.
  */
 class LedgerService
