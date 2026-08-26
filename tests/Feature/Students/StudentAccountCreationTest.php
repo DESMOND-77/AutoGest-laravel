@@ -66,3 +66,35 @@ it('allows the same email to be reused by a student in a different tenant', func
 
     expect(Student::query()->where('email', 'shared@example.com')->where('structure_id', $this->structure->id)->exists())->toBeTrue();
 });
+
+it('lets an admin create an account for an existing student with no login yet', function () {
+    Notification::fake();
+    $student = Student::factory()->create(['structure_id' => $this->structure->id, 'email' => 'legacy@example.com']);
+
+    $this->actingAs($this->admin)
+        ->post(route('students.create-account', $student))
+        ->assertRedirect();
+
+    $student->refresh();
+    expect($student->user_id)->not->toBeNull();
+    Notification::assertSentTo(User::query()->findOrFail($student->user_id), ResetPassword::class);
+});
+
+it('refuses to create a second account for a student that already has one', function () {
+    $existingUser = User::factory()->create(['structure_id' => $this->structure->id]);
+    $student = Student::factory()->create(['structure_id' => $this->structure->id, 'user_id' => $existingUser->id]);
+
+    $this->actingAs($this->admin)
+        ->post(route('students.create-account', $student))
+        ->assertSessionHasErrors('account');
+});
+
+it('refuses to create an account for a student with no email on file', function () {
+    $student = Student::factory()->create(['structure_id' => $this->structure->id, 'email' => null]);
+
+    $this->actingAs($this->admin)
+        ->post(route('students.create-account', $student))
+        ->assertSessionHasErrors('account');
+
+    expect($student->fresh()->user_id)->toBeNull();
+});

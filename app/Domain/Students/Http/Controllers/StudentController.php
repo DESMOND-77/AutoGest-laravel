@@ -127,6 +127,28 @@ class StudentController extends Controller
             ->with('status', 'Étape mise à jour.');
     }
 
+    public function createAccount(Student $student): RedirectResponse
+    {
+        $this->authorize('update', $student);
+
+        if ($student->user_id) {
+            return back()->withErrors(['account' => 'Cet élève a déjà un compte.']);
+        }
+
+        if (! $student->email) {
+            return back()->withErrors(['account' => 'Renseignez d\'abord une adresse e-mail pour cet élève.']);
+        }
+
+        $this->users->createAccount([
+            'name' => $student->fullName(),
+            'email' => $student->email,
+            'role' => 'eleve',
+            'student_id' => $student->id,
+        ], Auth::user());
+
+        return back()->with('status', 'Compte créé. Un lien de définition de mot de passe a été envoyé.');
+    }
+
     private function instructors()
     {
         return User::role('moniteur')->active()->orderBy('name')->get();

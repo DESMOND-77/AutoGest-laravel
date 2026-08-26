@@ -61,7 +61,10 @@
                     @endcan
                     @can('update', $student)
                         @if (! $student->user_id)
-                            <a href="{{ route('settings.users.index', ['student' => $student->id]) }}" class="text-sm text-content-secondary hover:text-primary transition">Créer un compte</a>
+                            <form method="POST" action="{{ route('students.create-account', $student) }}">
+                                @csrf
+                                <button type="submit" class="text-sm text-content-secondary hover:text-primary transition">Créer un compte</button>
+                            </form>
                         @endif
                     @endcan
                 </div>
