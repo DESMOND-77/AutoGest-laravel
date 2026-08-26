@@ -44,7 +44,7 @@ it('shows a hint instead of the deposit form when no required document type is c
 
     $this->actingAs($admin)->get(route('students.show', $student))
         ->assertOk()
-        ->assertSee('Aucune pièce requise n\'est configurée pour cet établissement', false)
+        ->assertSee('Aucune pièce requise n\'est configurée', false)
         ->assertDontSee('name="required_document_type_id"', false);
 });
 

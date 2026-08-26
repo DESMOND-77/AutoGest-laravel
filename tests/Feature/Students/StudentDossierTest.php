@@ -122,6 +122,46 @@ it('resets a rejected document to pending when re-uploaded, and still requires r
     expect($this->student->fresh()->lifecycle_stage)->toBe(LifecycleStage::DossierSetup);
 });
 
+it('rejects an oversized file with an explicit French error', function () {
+    $response = $this->actingAs($this->user)->post(
+        route('eleve.dossier.upload', $this->type),
+        ['file' => UploadedFile::fake()->create('id.pdf', 6000)],
+    );
+
+    $response->assertSessionHasErrors(['file' => 'Ce fichier est trop volumineux (5 Mo maximum).']);
+    expect(Document::query()->where('required_document_type_id', $this->type->id)->exists())->toBeFalse();
+});
+
+it('rejects a disallowed file extension with an explicit French error', function () {
+    $response = $this->actingAs($this->user)->post(
+        route('eleve.dossier.upload', $this->type),
+        ['file' => UploadedFile::fake()->create('malware.exe', 10)],
+    );
+
+    $response->assertSessionHasErrors(['file' => 'Format de fichier non autorisé. Formats acceptés : PDF, JPG, PNG ou WEBP.']);
+    expect(Document::query()->where('required_document_type_id', $this->type->id)->exists())->toBeFalse();
+});
+
+it('rejects an empty file with an explicit French error', function () {
+    $response = $this->actingAs($this->user)->post(
+        route('eleve.dossier.upload', $this->type),
+        ['file' => UploadedFile::fake()->create('empty.pdf', 0)],
+    );
+
+    $response->assertSessionHasErrors(['file' => 'Ce fichier semble vide ou corrompu.']);
+    expect(Document::query()->where('required_document_type_id', $this->type->id)->exists())->toBeFalse();
+});
+
+it('shows the file validation error banner on the dossier screen after a rejected upload', function () {
+    $this->actingAs($this->user)->post(
+        route('eleve.dossier.upload', $this->type),
+        ['file' => UploadedFile::fake()->create('malware.exe', 10)],
+    );
+
+    $this->actingAs($this->user)->get(route('eleve.dossier.show'))
+        ->assertSee('Format de fichier non autorisé. Formats acceptés : PDF, JPG, PNG ou WEBP.');
+});
+
 it('never lets an eleve upload against another tenant\'s required document type', function () {
     $otherStructure = Structure::factory()->create();
     $otherType = RequiredDocumentType::factory()->create(['structure_id' => $otherStructure->id]);

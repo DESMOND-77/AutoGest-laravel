@@ -10,6 +10,10 @@
             <x-alert variant="danger">{{ $errors->first('dossier') }}</x-alert>
         @endif
 
+        @if ($errors->has('file'))
+            <x-alert variant="danger">{{ $errors->first('file') }}</x-alert>
+        @endif
+
         <x-card>
             <div class="divide-y divide-surface-inset">
                 @forelse ($types as $type)
@@ -46,11 +50,12 @@
                             <form method="POST" action="{{ route('eleve.dossier.upload', $type) }}"
                                 enctype="multipart/form-data" class="mt-2 flex gap-2">
                                 @csrf
-                                <input type="file" name="file" class="text-xs flex-1" required>
+                                <input type="file" name="file" accept=".pdf,.jpg,.jpeg,.png,.webp" class="text-xs flex-1" required>
                                 <x-primary-button class="text-xs">
                                     {{ $document ? 'Redéposer' : 'Déposer' }}
                                 </x-primary-button>
                             </form>
+                            <p class="text-xs text-content-muted mt-1">PDF, JPG, PNG ou WEBP — 5 Mo maximum.</p>
                         @endif
                     </div>
                 @empty
