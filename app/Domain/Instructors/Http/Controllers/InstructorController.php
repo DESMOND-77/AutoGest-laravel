@@ -6,14 +6,17 @@ use App\Domain\Instructors\Http\Requests\StoreInstructorRequest;
 use App\Domain\Instructors\Http\Requests\UpdateInstructorRequest;
 use App\Domain\Instructors\Models\Instructor;
 use App\Domain\Instructors\Repositories\InstructorRepositoryInterface;
+use App\Domain\Users\Services\UserManagementService;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\View\View;
 
 class InstructorController extends Controller
 {
     public function __construct(
         private readonly InstructorRepositoryInterface $instructors,
+        private readonly UserManagementService $users,
     ) {}
 
     public function index(): View
@@ -36,7 +39,20 @@ class InstructorController extends Controller
 
     public function store(StoreInstructorRequest $request): RedirectResponse
     {
-        $this->instructors->create($request->validated());
+        $data = $request->validated();
+
+        $user = $this->users->createAccount([
+            'name' => $data['name'],
+            'email' => $data['email'],
+            'role' => 'moniteur',
+        ], Auth::user());
+
+        $this->instructors->create([
+            'user_id' => $user->id,
+            'license_number' => $data['license_number'] ?? null,
+            'specialties' => $data['specialties'] ?? null,
+            'hire_date' => $data['hire_date'] ?? null,
+        ]);
 
         return redirect()->route('instructors.index')->with('status', 'Moniteur ajouté.');
     }
