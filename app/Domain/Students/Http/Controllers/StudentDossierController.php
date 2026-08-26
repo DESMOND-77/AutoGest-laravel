@@ -11,6 +11,8 @@ use App\Domain\Students\Exceptions\InvalidStageTransition;
 use App\Domain\Students\Http\Requests\UploadDossierDocumentRequest;
 use App\Domain\Students\Models\RequiredDocumentType;
 use App\Domain\Students\Models\Student;
+use App\Domain\Students\Services\DocumentBundleService;
+use App\Domain\Students\Services\DossierStatusService;
 use App\Domain\Students\Services\LifecycleService;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\RedirectResponse;
@@ -22,6 +24,8 @@ class StudentDossierController extends Controller
     public function __construct(
         private readonly DocumentService $documents,
         private readonly LifecycleService $lifecycle,
+        private readonly DocumentBundleService $bundle,
+        private readonly DossierStatusService $dossierStatus,
     ) {}
 
     public function show(): View
@@ -96,6 +100,12 @@ class StudentDossierController extends Controller
                 'dossier' => 'Toutes les pièces doivent être validées avant la soumission du dossier. Veuillez vérifier les pièces en attente ou rejetées.',
             ]);
         }
+
+        $zipPath = $this->bundle->bundle($student);
+        $student->setDocumentSubmitted(true);
+        $student->setDocumentsZipPath($zipPath);
+        $student->save();
+        $this->dossierStatus->syncFor($student);
 
         try {
             // Every required piece is already Approved by this point (checked

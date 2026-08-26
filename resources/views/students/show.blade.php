@@ -308,6 +308,14 @@
                             </li>
                         @endforeach
                     </ol>
+
+                    @if ($student->documents_zip_path)
+                        <div class="mt-4 pt-4 border-t border-border/60">
+                            <a href="{{ route('students.dossier-download', $student) }}" class="inline-flex items-center gap-1 text-sm text-primary hover:underline">
+                                <x-icon name="archive-box" class="w-4 h-4" /> Télécharger le dossier (ZIP)
+                            </a>
+                        </div>
+                    @endif
                 </x-card>
 
                 <x-card>
