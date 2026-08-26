@@ -2,6 +2,7 @@
 
 use App\Domain\Students\Http\Middleware\EnsureEmailOtpVerified;
 use App\Domain\Tenancy\Http\Middleware\ResolveTenant;
+use App\Domain\Users\Http\Middleware\EnsureUserIsActive;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
@@ -16,6 +17,7 @@ return Application::configure(basePath: dirname(__DIR__))
     )
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->appendToGroup('web', ResolveTenant::class);
+        $middleware->appendToGroup('web', EnsureUserIsActive::class);
         $middleware->alias([
             'role' => RoleMiddleware::class,
             'otp.verified' => EnsureEmailOtpVerified::class,
