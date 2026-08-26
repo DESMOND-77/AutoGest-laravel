@@ -9,6 +9,7 @@
         "php": "^8.2",
         "laravel/breeze": "^2.4",
         "laravel/framework": "^12.0",
+        "laravel/telescope": "^5.22",
         "laravel/tinker": "^2.10.1",
         "predis/predis": "^3.5",
         "spatie/laravel-permission": "^8.3"
