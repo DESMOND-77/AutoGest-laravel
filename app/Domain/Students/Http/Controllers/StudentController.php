@@ -140,7 +140,7 @@ class StudentController extends Controller
 
     public function downloadDossier(Student $student): StreamedResponse
     {
-        $this->authorize('view', $student);
+        $this->authorize('update', $student);
 
         abort_unless($student->documents_zip_path, 404);
 

@@ -2,6 +2,7 @@
 
 namespace App\Domain\Students\Http\Controllers;
 
+use App\Domain\Students\Enums\LifecycleStage;
 use App\Domain\Students\Http\Requests\StoreRequiredDocumentTypeRequest;
 use App\Domain\Students\Http\Requests\UpdateRequiredDocumentTypeRequest;
 use App\Domain\Students\Models\RequiredDocumentType;
@@ -32,7 +33,7 @@ class RequiredDocumentTypeController extends Controller
             'position' => (int) RequiredDocumentType::query()->max('position') + 1,
         ]);
 
-        Student::query()->each(function (Student $student) {
+        Student::query()->where('lifecycle_stage', LifecycleStage::DossierSetup->value)->each(function (Student $student) {
             $student->setDocumentSubmitted(false);
             $student->setDocumentsZipPath(null);
             $student->save();

@@ -20,9 +20,12 @@ beforeEach(function () {
     $this->admin->assignRole('admin');
     $this->eleve = User::factory()->create(['structure_id' => $this->structure->id, 'email_verified_at' => now()]);
     $this->eleve->assignRole('eleve');
+    $this->moniteur = User::factory()->create(['structure_id' => $this->structure->id]);
+    $this->moniteur->assignRole('moniteur');
     $this->student = Student::factory()->stage(LifecycleStage::DossierSetup)->create([
         'structure_id' => $this->structure->id,
         'user_id' => $this->eleve->id,
+        'instructor_id' => $this->moniteur->id,
     ]);
     $this->type = RequiredDocumentType::factory()->create(['structure_id' => $this->structure->id]);
 });
@@ -61,6 +64,19 @@ it('lets an admin download the submitted dossier bundle', function () {
     $this->actingAs($this->admin)
         ->get(route('students.dossier-download', $this->student))
         ->assertOk();
+});
+
+it('forbids a moniteur assigned to the student from downloading the dossier bundle', function () {
+    $this->actingAs($this->eleve)->post(route('eleve.dossier.upload', $this->type), [
+        'file' => UploadedFile::fake()->create('id.pdf', 10),
+    ]);
+    Document::query()->where('required_document_type_id', $this->type->id)->firstOrFail()
+        ->update(['review_status' => DocumentReviewStatus::Approved]);
+    $this->actingAs($this->eleve)->post(route('eleve.dossier.submit'));
+
+    $this->actingAs($this->moniteur)
+        ->get(route('students.dossier-download', $this->student))
+        ->assertForbidden();
 });
 
 it('404s the download route when no bundle exists yet', function () {

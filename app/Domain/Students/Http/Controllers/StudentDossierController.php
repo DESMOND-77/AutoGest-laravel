@@ -101,12 +101,6 @@ class StudentDossierController extends Controller
             ]);
         }
 
-        $zipPath = $this->bundle->bundle($student);
-        $student->setDocumentSubmitted(true);
-        $student->setDocumentsZipPath($zipPath);
-        $student->save();
-        $this->dossierStatus->syncFor($student);
-
         try {
             // Every required piece is already Approved by this point (checked
             // above), so submission and enrollment happen together: there is
@@ -119,6 +113,12 @@ class StudentDossierController extends Controller
         } catch (InvalidStageTransition) {
             return back()->withErrors(['dossier' => 'Votre dossier n\'est pas dans un état permettant la soumission.']);
         }
+
+        $zipPath = $this->bundle->bundle($student);
+        $student->setDocumentSubmitted(true);
+        $student->setDocumentsZipPath($zipPath);
+        $student->save();
+        $this->dossierStatus->syncFor($student);
 
         return redirect()->route('eleve.dossier.show')->with('status', 'Dossier validé, votre inscription est confirmée.');
     }

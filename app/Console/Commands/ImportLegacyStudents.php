@@ -6,7 +6,6 @@ use App\Domain\Finance\Enums\PaymentMethod;
 use App\Domain\Finance\Services\InvoicingService;
 use App\Domain\Finance\Services\PaymentService;
 use App\Domain\Students\Enums\CourseType;
-use App\Domain\Students\Enums\DossierStatus;
 use App\Domain\Students\Enums\LicenseCategory;
 use App\Domain\Students\Enums\LifecycleStage;
 use App\Domain\Students\Models\Student;
@@ -128,14 +127,18 @@ class ImportLegacyStudents extends Command
                 'registered_at' => $registeredAt,
             ]);
 
-            // lifecycle_stage/dossier_status are guarded columns (see
-            // Student::setLifecycleStage/setDossierStatus) - imported
-            // students start further along than a fresh registration, so
-            // the database defaults ('prospect'/'incomplete') don't apply
-            // here and must be set explicitly, bypassing the transition
-            // guard since this is an initial import value, not a transition.
+            // lifecycle_stage is a guarded column (see
+            // Student::setLifecycleStage) - imported students start
+            // further along than a fresh registration, so the database
+            // default ('prospect') doesn't apply here and must be set
+            // explicitly, bypassing the transition guard since this is an
+            // initial import value, not a transition. dossier_status is
+            // left at the model's default (Incomplete, set in
+            // Student::booted()'s creating() hook) since imported students
+            // have no uploaded documents yet - it is purely computed by
+            // DossierStatusService from document state, not from payment
+            // state.
             $student->setLifecycleStage(LifecycleStage::Enrollment);
-            $student->setDossierStatus($remaining > 0 ? DossierStatus::Incomplete : DossierStatus::Complete);
             $student->save();
 
             $this->stats['students_added']++;

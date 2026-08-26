@@ -36,7 +36,7 @@ class DossierStatusService
             return DossierStatus::Submitted;
         }
 
-        $types = RequiredDocumentType::query()->active()->get();
+        $types = RequiredDocumentType::query()->where('structure_id', $student->structure_id)->active()->get();
 
         if ($types->isEmpty()) {
             return DossierStatus::Incomplete;
