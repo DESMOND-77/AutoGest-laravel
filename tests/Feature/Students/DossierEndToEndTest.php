@@ -1,5 +1,6 @@
 <?php
 
+use App\Domain\Documents\Enums\DocumentReviewStatus;
 use App\Domain\Documents\Models\Document;
 use App\Domain\Students\Enums\LifecycleStage;
 use App\Domain\Students\Models\RequiredDocumentType;
@@ -52,19 +53,23 @@ it('walks a prospective student from public registration to Enrollment through e
 
     expect($student->fresh()->lifecycle_stage)->toBe(LifecycleStage::DossierSetup);
 
-    // 3. Dossier submission.
+    // 3. Dossier upload — student is still assembling their dossier.
     $this->actingAs($user)->post(
         route('eleve.dossier.upload', $type),
         ['file' => UploadedFile::fake()->create('id.pdf', 10)],
     )->assertRedirect();
 
-    $this->actingAs($user)->post(route('eleve.dossier.submit'))->assertRedirect();
-
-    expect($student->fresh()->lifecycle_stage)->toBe(LifecycleStage::Validation);
-
-    // 4. Admin approves the only required document.
+    // 4. Admin reviews the document while the student is still at DossierSetup.
     $document = Document::query()->where('required_document_type_id', $type->id)->where('is_current', true)->firstOrFail();
     $this->actingAs($admin)->post(route('documents.approve', $document))->assertRedirect();
+
+    expect($document->fresh()->review_status)->toBe(DocumentReviewStatus::Approved);
+    expect($student->fresh()->lifecycle_stage)->toBe(LifecycleStage::DossierSetup);
+
+    // 5. Submission is only possible once every required piece is already
+    // approved, and immediately enrolls the student — there is nothing left
+    // to review after submission.
+    $this->actingAs($user)->post(route('eleve.dossier.submit'))->assertRedirect();
 
     expect($student->fresh()->lifecycle_stage)->toBe(LifecycleStage::Enrollment);
 });
@@ -100,21 +105,23 @@ it('sends a rejected document back through the loop before reaching Enrollment',
     $this->actingAs($user)->post(route('eleve.otp.verify'), ['code' => $code]);
 
     $this->actingAs($user)->post(route('eleve.dossier.upload', $type), ['file' => UploadedFile::fake()->create('id.pdf', 10)]);
-    $this->actingAs($user)->post(route('eleve.dossier.submit'));
 
     $document = Document::query()->where('required_document_type_id', $type->id)->where('is_current', true)->firstOrFail();
     $this->actingAs($admin)->post(route('documents.reject', $document), ['reason' => 'Illisible']);
 
+    expect($document->fresh()->review_status)->toBe(DocumentReviewStatus::Rejected);
     expect($student->fresh()->lifecycle_stage)->toBe(LifecycleStage::DossierSetup);
 
-    // Re-upload only the rejected piece, resubmit, get approved.
-    $this->actingAs($user)->post(route('eleve.dossier.upload', $type), ['file' => UploadedFile::fake()->create('id-v2.pdf', 10)]);
-    $this->actingAs($user)->post(route('eleve.dossier.submit'));
+    // Submission is blocked while the only document is rejected.
+    $this->actingAs($user)->post(route('eleve.dossier.submit'))->assertSessionHasErrors('dossier');
 
-    expect($student->fresh()->lifecycle_stage)->toBe(LifecycleStage::Validation);
+    // Re-upload only the rejected piece, get it approved, then submit.
+    $this->actingAs($user)->post(route('eleve.dossier.upload', $type), ['file' => UploadedFile::fake()->create('id-v2.pdf', 10)]);
 
     $newDocument = Document::query()->where('required_document_type_id', $type->id)->where('is_current', true)->firstOrFail();
     $this->actingAs($admin)->post(route('documents.approve', $newDocument));
+
+    $this->actingAs($user)->post(route('eleve.dossier.submit'))->assertRedirect();
 
     expect($student->fresh()->lifecycle_stage)->toBe(LifecycleStage::Enrollment);
 });

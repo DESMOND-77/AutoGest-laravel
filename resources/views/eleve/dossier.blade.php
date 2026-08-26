@@ -29,15 +29,23 @@
                             @endif
                         </div>
 
-                        @if ($document?->review_status->value === 'rejected')
-                            <p class="text-xs text-danger mt-1">{{ $document->rejection_reason }}</p>
+                        @if ($document?->review_status->value === 'pending')
+                            <p class="text-xs text-content-secondary mt-1">En attente de validation par l'administration.</p>
+                        @elseif ($document?->review_status->value === 'rejected')
+                            <p class="text-xs text-danger mt-1">Pièce rejetée : {{ $document->rejection_reason }}. Veuillez la corriger.</p>
+                        @elseif ($document?->review_status->value === 'approved')
+                            <p class="text-xs text-success mt-1">Pièce validée.</p>
                         @endif
 
-                        <form method="POST" action="{{ route('eleve.dossier.upload', $type) }}" enctype="multipart/form-data" class="mt-2 flex gap-2">
-                            @csrf
-                            <input type="file" name="file" class="text-xs flex-1" required>
-                            <x-primary-button class="text-xs">{{ $document ? 'Redéposer' : 'Déposer' }}</x-primary-button>
-                        </form>
+                        @if (!$document || $document->review_status->value !== 'approved')
+                            <form method="POST" action="{{ route('eleve.dossier.upload', $type) }}" enctype="multipart/form-data" class="mt-2 flex gap-2">
+                                @csrf
+                                <input type="file" name="file" class="text-xs flex-1" required>
+                                <x-primary-button class="text-xs">
+                                    {{ $document ? 'Redéposer' : 'Déposer' }}
+                                </x-primary-button>
+                            </form>
+                        @endif
                     </div>
                 @empty
                     <p class="text-sm text-content-secondary py-3">Aucune pièce requise pour le moment.</p>
@@ -47,7 +55,7 @@
 
         <form method="POST" action="{{ route('eleve.dossier.submit') }}">
             @csrf
-            <x-primary-button class="w-full justify-center" @disabled(! $canSubmit)>
+            <x-primary-button class="w-full justify-center" :disabled="!$canSubmit">
                 Soumettre mon dossier
             </x-primary-button>
         </form>

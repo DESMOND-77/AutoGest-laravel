@@ -7,22 +7,27 @@ use App\Domain\Documents\Http\Requests\RejectDossierDocumentRequest;
 use App\Domain\Documents\Models\Document;
 use App\Domain\Students\Enums\LifecycleStage;
 use App\Domain\Students\Models\Student;
-use App\Domain\Students\Services\LifecycleService;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\View\View;
 
+/**
+ * Review now happens while the student is still assembling their dossier
+ * (DossierSetup), not after a formal "submission" — StudentDossierController
+ * ::submit() requires every required piece to already be Approved before it
+ * lets the student submit at all, and submission itself is what advances the
+ * student straight through to Enrollment. So approving/rejecting a single
+ * document here never moves the student's lifecycle_stage by itself; it only
+ * ever updates the Document row.
+ */
 class DocumentReviewController extends Controller
 {
-    public function __construct(
-        private readonly LifecycleService $lifecycle,
-    ) {}
-
     public function index(): View
     {
         $students = Student::query()
-            ->where('lifecycle_stage', LifecycleStage::Validation->value)
+            ->where('lifecycle_stage', LifecycleStage::DossierSetup->value)
+            ->whereHas('documents', fn ($query) => $query->where('is_current', true)->whereNotNull('required_document_type_id'))
             ->with(['documents' => fn ($query) => $query->where('is_current', true)->whereNotNull('required_document_type_id')->with('requiredDocumentType')])
             ->get();
 
@@ -49,7 +54,7 @@ class DocumentReviewController extends Controller
     {
         $student = $document->documentable;
 
-        abort_unless($student instanceof Student && $student->lifecycle_stage === LifecycleStage::Validation, 403);
+        abort_unless($student instanceof Student && $student->lifecycle_stage === LifecycleStage::DossierSetup, 403);
         abort_unless($document->required_document_type_id !== null, 404);
 
         $document->update([
@@ -58,38 +63,5 @@ class DocumentReviewController extends Controller
             'reviewed_by_id' => Auth::id(),
             'reviewed_at' => now(),
         ]);
-
-        if ($status === DocumentReviewStatus::Rejected) {
-            $this->lifecycle->transitionTo($student, LifecycleStage::DossierSetup);
-
-            return;
-        }
-
-        // Scope the completeness check to the required types the student's
-        // own current dossier documents reference — not the tenant's live
-        // list of active types. A RequiredDocumentType added after the
-        // student reached Validation must not retroactively block them from
-        // ever completing their dossier. See "Cas limite: ajout d'une pièce
-        // requise après soumission" in the design spec.
-        $ownTypeIds = Document::query()
-            ->where('documentable_type', $student->getMorphClass())
-            ->where('documentable_id', $student->id)
-            ->where('is_current', true)
-            ->whereNotNull('required_document_type_id')
-            ->pluck('required_document_type_id');
-
-        $allApproved = $ownTypeIds->isEmpty() ? false : $ownTypeIds->every(
-            fn (int $typeId) => Document::query()
-                ->where('documentable_type', $student->getMorphClass())
-                ->where('documentable_id', $student->id)
-                ->where('required_document_type_id', $typeId)
-                ->where('is_current', true)
-                ->where('review_status', DocumentReviewStatus::Approved)
-                ->exists()
-        );
-
-        if ($allApproved) {
-            $this->lifecycle->transitionTo($student, LifecycleStage::Enrollment);
-        }
     }
 }

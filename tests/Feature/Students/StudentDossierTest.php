@@ -5,7 +5,6 @@ use App\Domain\Documents\Models\Document;
 use App\Domain\Students\Enums\LifecycleStage;
 use App\Domain\Students\Models\RequiredDocumentType;
 use App\Domain\Students\Models\Student;
-use App\Domain\Students\Services\LifecycleService;
 use App\Domain\Tenancy\Models\Structure;
 use App\Models\User;
 use Database\Seeders\RoleSeeder;
@@ -23,6 +22,24 @@ beforeEach(function () {
         'user_id' => $this->user->id,
     ]);
     $this->type = RequiredDocumentType::factory()->create(['structure_id' => $this->structure->id]);
+});
+
+it('renders the dossier screen when no document has been uploaded yet', function () {
+    $this->actingAs($this->user)->get(route('eleve.dossier.show'))
+        ->assertOk()
+        ->assertSee($this->type->label);
+});
+
+it('renders the dossier screen with the submit button enabled once every piece is approved', function () {
+    $this->actingAs($this->user)->post(
+        route('eleve.dossier.upload', $this->type),
+        ['file' => UploadedFile::fake()->create('id.pdf', 10)],
+    );
+
+    Document::query()->where('required_document_type_id', $this->type->id)->firstOrFail()
+        ->update(['review_status' => DocumentReviewStatus::Approved]);
+
+    $this->actingAs($this->user)->get(route('eleve.dossier.show'))->assertOk();
 });
 
 it('lets an eleve upload a required document', function () {
@@ -43,28 +60,54 @@ it('blocks submission until every active required type has a document', function
     expect($this->student->fresh()->lifecycle_stage)->toBe(LifecycleStage::DossierSetup);
 });
 
-it('submits the dossier and transitions to Validation once every piece is present', function () {
+it('blocks submission while a required document is uploaded but not yet approved', function () {
     $this->actingAs($this->user)->post(
         route('eleve.dossier.upload', $this->type),
         ['file' => UploadedFile::fake()->create('id.pdf', 10)],
     );
+
+    $this->actingAs($this->user)->post(route('eleve.dossier.submit'))->assertSessionHasErrors('dossier');
+
+    expect($this->student->fresh()->lifecycle_stage)->toBe(LifecycleStage::DossierSetup);
+});
+
+it('blocks submission while any required document remains pending or rejected, even if others are approved', function () {
+    $secondType = RequiredDocumentType::factory()->create(['structure_id' => $this->structure->id]);
+
+    $this->actingAs($this->user)->post(route('eleve.dossier.upload', $this->type), ['file' => UploadedFile::fake()->create('id.pdf', 10)]);
+    $this->actingAs($this->user)->post(route('eleve.dossier.upload', $secondType), ['file' => UploadedFile::fake()->create('id2.pdf', 10)]);
+
+    Document::query()->where('required_document_type_id', $this->type->id)->firstOrFail()
+        ->update(['review_status' => DocumentReviewStatus::Approved]);
+    // The second type's document is left at its default Pending status.
+
+    $this->actingAs($this->user)->post(route('eleve.dossier.submit'))->assertSessionHasErrors('dossier');
+
+    expect($this->student->fresh()->lifecycle_stage)->toBe(LifecycleStage::DossierSetup);
+});
+
+it('submits the dossier and transitions straight through to Enrollment once every piece is approved', function () {
+    $this->actingAs($this->user)->post(
+        route('eleve.dossier.upload', $this->type),
+        ['file' => UploadedFile::fake()->create('id.pdf', 10)],
+    );
+
+    Document::query()->where('required_document_type_id', $this->type->id)->firstOrFail()
+        ->update(['review_status' => DocumentReviewStatus::Approved]);
 
     $this->actingAs($this->user)->post(route('eleve.dossier.submit'))->assertRedirect();
 
-    expect($this->student->fresh()->lifecycle_stage)->toBe(LifecycleStage::Validation);
+    expect($this->student->fresh()->lifecycle_stage)->toBe(LifecycleStage::Enrollment);
 });
 
-it('resets a rejected document to pending and re-links the dossier when re-submitted', function () {
+it('resets a rejected document to pending when re-uploaded, and still requires re-approval before submission', function () {
     $this->actingAs($this->user)->post(
         route('eleve.dossier.upload', $this->type),
         ['file' => UploadedFile::fake()->create('id.pdf', 10)],
     );
-    $this->actingAs($this->user)->post(route('eleve.dossier.submit'));
 
     $document = Document::query()->where('required_document_type_id', $this->type->id)->where('is_current', true)->firstOrFail();
     $document->update(['review_status' => DocumentReviewStatus::Rejected, 'rejection_reason' => 'Illisible']);
-    $this->student->refresh();
-    app(LifecycleService::class)->transitionTo($this->student, LifecycleStage::DossierSetup);
 
     $this->actingAs($this->user)->post(
         route('eleve.dossier.upload', $this->type),
@@ -74,6 +117,9 @@ it('resets a rejected document to pending and re-links the dossier when re-submi
     $new = Document::query()->where('required_document_type_id', $this->type->id)->where('is_current', true)->firstOrFail();
     expect($new->review_status)->toBe(DocumentReviewStatus::Pending);
     expect($document->fresh()->is_current)->toBeFalse();
+
+    $this->actingAs($this->user)->post(route('eleve.dossier.submit'))->assertSessionHasErrors('dossier');
+    expect($this->student->fresh()->lifecycle_stage)->toBe(LifecycleStage::DossierSetup);
 });
 
 it('never lets an eleve upload against another tenant\'s required document type', function () {

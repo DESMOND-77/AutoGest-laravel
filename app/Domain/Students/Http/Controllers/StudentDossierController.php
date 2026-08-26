@@ -2,6 +2,7 @@
 
 namespace App\Domain\Students\Http\Controllers;
 
+use App\Domain\Documents\Enums\DocumentReviewStatus;
 use App\Domain\Documents\Enums\DocumentType;
 use App\Domain\Documents\Models\Document;
 use App\Domain\Documents\Services\DocumentService;
@@ -28,7 +29,6 @@ class StudentDossierController extends Controller
         $student = $this->currentStudent();
 
         $types = RequiredDocumentType::query()->active()->ordered()->get();
-
         $current = Document::query()
             ->where('documentable_type', $student->getMorphClass())
             ->where('documentable_id', $student->id)
@@ -41,7 +41,12 @@ class StudentDossierController extends Controller
             'student' => $student,
             'types' => $types,
             'documentsByType' => $current,
-            'canSubmit' => $types->every(fn ($type) => $current->has($type->id)),
+            'canSubmit' => $types->isNotEmpty() && $types->every(function ($type) use ($current) {
+                $document = $current->get($type->id);
+
+                return $document && $document->review_status->value === DocumentReviewStatus::Approved->value;
+            }),
+            DocumentReviewStatus::class => DocumentReviewStatus::class,
         ]);
     }
 
@@ -67,25 +72,45 @@ class StudentDossierController extends Controller
     {
         $student = $this->currentStudent();
 
-        $missing = RequiredDocumentType::query()->active()->get()->reject(
-            fn (RequiredDocumentType $type) => Document::query()
-                ->where('documentable_type', $student->getMorphClass())
-                ->where('documentable_id', $student->id)
-                ->where('required_document_type_id', $type->id)
-                ->exists()
-        );
+        // Récupérer tous les types actifs
+        $types = RequiredDocumentType::query()->active()->get();
 
-        if ($missing->isNotEmpty()) {
-            return back()->withErrors(['dossier' => 'Merci de déposer toutes les pièces requises avant de soumettre votre dossier.']);
+        if ($types->isEmpty()) {
+            return back()->withErrors(['dossier' => 'Aucune pièce requise n\'est définie.']);
+        }
+
+        // Récupérer en une seule requête les documents actuels approuvés pour cet étudiant
+        $approvedDocs = Document::query()
+            ->where('documentable_type', $student->getMorphClass())
+            ->where('documentable_id', $student->id)
+            ->where('is_current', true)
+            ->where('review_status', DocumentReviewStatus::Approved)
+            ->whereNotNull('required_document_type_id')
+            ->pluck('required_document_type_id')
+            ->all();
+
+        $missingOrNotApproved = $types->reject(fn ($type) => in_array($type->id, $approvedDocs));
+
+        if ($missingOrNotApproved->isNotEmpty()) {
+            return back()->withErrors([
+                'dossier' => 'Toutes les pièces doivent être validées avant la soumission du dossier. Veuillez vérifier les pièces en attente ou rejetées.',
+            ]);
         }
 
         try {
+            // Every required piece is already Approved by this point (checked
+            // above), so submission and enrollment happen together: there is
+            // nothing left for an admin to review once a student is allowed
+            // to submit at all. Validation is still passed through — every
+            // lifecycle_stage change goes through LifecycleService, never a
+            // direct write — but it's not a state anyone needs to act on.
             $this->lifecycle->transitionTo($student, LifecycleStage::Validation);
+            $this->lifecycle->transitionTo($student, LifecycleStage::Enrollment);
         } catch (InvalidStageTransition) {
             return back()->withErrors(['dossier' => 'Votre dossier n\'est pas dans un état permettant la soumission.']);
         }
 
-        return redirect()->route('eleve.dossier.show')->with('status', 'Dossier soumis pour revue.');
+        return redirect()->route('eleve.dossier.show')->with('status', 'Dossier validé, votre inscription est confirmée.');
     }
 
     private function currentStudent(): Student

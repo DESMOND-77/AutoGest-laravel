@@ -4,6 +4,19 @@
         || request()->routeIs('admin.dashboard')
         || request()->routeIs('moniteur.dashboard')
         || request()->routeIs('eleve.dashboard');
+
+    // Number of students with at least one dossier document still awaiting
+    // review — shown as a badge on "Dossiers en attente" so an admin sees
+    // at a glance whether the queue needs attention.
+    $pendingDossierStudentCount = $user?->hasRole('admin')
+        ? \App\Domain\Documents\Models\Document::query()
+            ->where('is_current', true)
+            ->where('review_status', \App\Domain\Documents\Enums\DocumentReviewStatus::Pending)
+            ->whereNotNull('required_document_type_id')
+            ->pluck('documentable_id')
+            ->unique()
+            ->count()
+        : 0;
 @endphp
 
 <nav class="flex-1 overflow-y-auto overflow-x-hidden px-3 py-4 space-y-6" aria-label="Navigation principale">
@@ -30,7 +43,7 @@
                 <x-sidebar-link :href="route('students.index')" :active="request()->routeIs('students.*')" icon="users">Élèves</x-sidebar-link>
                 @if ($user?->hasRole('admin'))
                     <x-sidebar-link :href="route('crm.leads.index')" :active="request()->routeIs('crm.*')" icon="user-plus">Prospects</x-sidebar-link>
-                    <x-sidebar-link :href="route('dossiers.index')" :active="request()->routeIs('dossiers.*')" icon="clipboard-list">Dossiers en attente</x-sidebar-link>
+                    <x-sidebar-link :href="route('dossiers.index')" :active="request()->routeIs('dossiers.*')" icon="clipboard-list" :badge="$pendingDossierStudentCount ?: null">Dossiers en attente</x-sidebar-link>
                 @endif
                 @can('viewAny', \App\Domain\Instructors\Models\Instructor::class)
                     <x-sidebar-link :href="route('instructors.index')" :active="request()->routeIs('instructors.*')" icon="academic-cap">Moniteurs</x-sidebar-link>
