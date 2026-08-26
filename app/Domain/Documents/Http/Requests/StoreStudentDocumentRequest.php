@@ -57,6 +57,9 @@ class StoreStudentDocumentRequest extends FormRequest
             'file.max' => 'Ce fichier est trop volumineux (5 Mo maximum).',
             'file.mimes' => 'Format de fichier non autorisé. Formats acceptés : PDF, JPG, PNG ou WEBP.',
             'file.mimetypes' => 'Le contenu du fichier ne correspond à aucun format autorisé (PDF, JPG, PNG ou WEBP).',
+            // Laravel's own implicit rule — see UploadDossierDocumentRequest's
+            // docblock for why this needs an explicit override.
+            'file.uploaded' => 'Le fichier n\'a pas pu être envoyé — il est peut-être trop volumineux pour le serveur. Réessayez avec un fichier de 5 Mo maximum.',
         ];
     }
 }

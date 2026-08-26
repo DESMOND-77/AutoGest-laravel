@@ -53,6 +53,14 @@ class UploadDossierDocumentRequest extends FormRequest
             'file.max' => 'Ce fichier est trop volumineux (5 Mo maximum).',
             'file.mimes' => 'Format de fichier non autorisé. Formats acceptés : PDF, JPG, PNG ou WEBP.',
             'file.mimetypes' => 'Le contenu du fichier ne correspond à aucun format autorisé (PDF, JPG, PNG ou WEBP).',
+            // Laravel's own implicit rule, added automatically whenever a
+            // file's PHP upload error code isn't UPLOAD_ERR_OK — most often
+            // because the server's own upload_max_filesize/post_max_size
+            // rejected it before this request's rules ever ran. Without
+            // this override the raw, untranslated "validation.uploaded" key
+            // is what a user sees (there's no lang/fr/validation.php in
+            // this app to supply a default).
+            'file.uploaded' => 'Le fichier n\'a pas pu être envoyé — il est peut-être trop volumineux pour le serveur. Réessayez avec un fichier de 5 Mo maximum.',
         ];
     }
 }

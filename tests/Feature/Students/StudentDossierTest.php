@@ -152,6 +152,30 @@ it('rejects an empty file with an explicit French error', function () {
     expect(Document::query()->where('required_document_type_id', $this->type->id)->exists())->toBeFalse();
 });
 
+it('shows an explicit French error, not a raw translation key, when the server itself rejects the upload as too large', function () {
+    // Simulates PHP rejecting the upload at the SAPI level (upload_max_filesize
+    // exceeded) before Laravel's own rules ever run — Laravel adds this as an
+    // implicit "uploaded" failure, which previously fell back to the raw,
+    // untranslated "validation.uploaded" string with no lang/fr override.
+    $tooLarge = new UploadedFile(
+        UploadedFile::fake()->create('big.pdf', 10)->getPathname(),
+        'big.pdf',
+        'application/pdf',
+        UPLOAD_ERR_INI_SIZE,
+        true,
+    );
+
+    $response = $this->actingAs($this->user)->post(
+        route('eleve.dossier.upload', $this->type),
+        ['file' => $tooLarge],
+    );
+
+    $response->assertSessionHasErrors(['file']);
+    $message = session('errors')->first('file');
+    expect($message)->not->toBe('validation.uploaded');
+    expect($message)->toContain('trop volumineux pour le serveur');
+});
+
 it('shows the file validation error banner on the dossier screen after a rejected upload', function () {
     $this->actingAs($this->user)->post(
         route('eleve.dossier.upload', $this->type),
