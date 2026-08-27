@@ -18,7 +18,7 @@ class RecyclageController extends Controller
         $this->authorize('viewAny', RecyclageEntry::class);
 
         return view('recyclage.index', [
-            'entries' => RecyclageEntry::query()->with('instructor')->latest('session_date')->paginate(20),
+            'entries' => RecyclageEntry::query()->with('instructor')->latest('session_date')->orderByDesc('id')->paginate(20),
             'instructors' => User::role('moniteur')->active()->orderBy('name')->get(),
         ]);
     }
@@ -27,12 +27,14 @@ class RecyclageController extends Controller
     {
         $entry = RecyclageEntry::query()->create($request->validated());
 
-        Event::dispatch(new RecyclageEntryRecorded(
-            $entry,
-            (float) $entry->amount,
-            $entry->full_name,
-            $entry->session_date->toDateString(),
-        ));
+        if ((float) $entry->amount > 0) {
+            Event::dispatch(new RecyclageEntryRecorded(
+                $entry,
+                (float) $entry->amount,
+                $entry->full_name,
+                $entry->session_date->toDateString(),
+            ));
+        }
 
         return redirect()->route('recyclage.index')->with('status', 'Entrée enregistrée.');
     }

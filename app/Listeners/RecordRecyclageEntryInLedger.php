@@ -23,7 +23,7 @@ class RecordRecyclageEntryInLedger
         $this->ledger->recordManual([
             'type' => LedgerEntryType::Income->value,
             'amount' => $event->amount,
-            'memo' => "Recyclage/Test - {$event->fullName}",
+            'memo' => "{$event->entry->motif->label()} - {$event->fullName}",
             'occurred_on' => $event->sessionDate,
         ]);
     }

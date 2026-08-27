@@ -1,5 +1,5 @@
 <x-app-layout>
-    <x-slot name="header">Recyclage</x-slot>
+    <x-slot name="header">Recyclage &amp; Tests</x-slot>
 
     <div class="py-6 space-y-5 max-w-4xl mx-auto">
         @if (session('status'))
@@ -77,7 +77,7 @@
                                 <td class="px-5 py-3 text-content-secondary">{{ $entry->instructor?->name ?? '-' }}</td>
                                 <td class="px-5 py-3 font-medium text-content">{{ number_format($entry->amount, 0, ',', ' ') }} FCFA</td>
                                 <td class="px-5 py-3 text-right">
-                                    <form method="POST" action="{{ route('recyclage.destroy', $entry) }}" onsubmit="return confirm('Supprimer cette entrée ?');">
+                                    <form method="POST" action="{{ route('recyclage.destroy', $entry) }}" onsubmit="return confirm('Supprimer cette entrée ? L\'écriture correspondante dans le journal comptable ne sera pas annulée.');">
                                         @csrf
                                         @method('DELETE')
                                         <button type="submit" class="text-danger text-sm font-medium">Supprimer</button>
