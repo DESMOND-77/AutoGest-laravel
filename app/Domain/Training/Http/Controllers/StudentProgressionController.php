@@ -32,7 +32,7 @@ class StudentProgressionController extends Controller
 
         return view('eleve.progression', [
             'student' => $student,
-            'skills' => $skills,
+            'skillsByCategory' => $skills->groupBy('category'),
             'progress' => $progress,
             'overallPercent' => $overallPercent,
         ]);

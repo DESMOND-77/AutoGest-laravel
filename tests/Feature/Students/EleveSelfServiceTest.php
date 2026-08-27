@@ -28,19 +28,19 @@ it('confirms the user-student link is set for a public self-registered eleve', f
     expect($this->student->fresh()->user_id)->toBe($this->eleve->id);
 });
 
-it('lets an eleve see their own skill progression', function () {
-    $skill = Skill::factory()->create(['structure_id' => $this->structure->id, 'label' => 'Créneau']);
+it('lets an eleve see their own skill progression, grouped by category with a validation date', function () {
+    $skill = Skill::factory()->create(['structure_id' => $this->structure->id, 'category' => 'Circulation', 'label' => 'Créneau']);
     SkillProgress::factory()->create([
         'structure_id' => $this->structure->id,
         'student_id' => $this->student->id,
         'skill_id' => $skill->id,
         'level' => SkillLevel::Acquired,
+        'validated_at' => '2026-07-21',
     ]);
 
     $this->actingAs($this->eleve)->get(route('eleve.progression'))
         ->assertOk()
-        ->assertSee('Créneau')
-        ->assertSee('Acquis');
+        ->assertSeeInOrder(['Circulation', '1/1 acquises', 'Créneau', 'Validé le 21/07/2026']);
 });
 
 it('does not let an eleve see another student\'s progression', function () {
