@@ -21,6 +21,16 @@ it('renders all four boutique tabs in one screen for an admin', function () {
         ->assertSee('Réapprovisionnement', false);
 });
 
+it('renders each boutique pane its own content, not just the tab labels', function () {
+    $this->actingAs($this->admin)->get(route('store.index'))
+        ->assertOk()
+        ->assertSee('Nouvelle vente')
+        ->assertSee('CA ce mois')
+        ->assertSee('Stocks critiques')
+        ->assertSee('Nouveau produit')
+        ->assertSee('Nouvelle commande fournisseur');
+});
+
 it('denies a moniteur access to the boutique screen', function () {
     $moniteur = User::factory()->create(['structure_id' => $this->structure->id]);
     $moniteur->assignRole('moniteur');
