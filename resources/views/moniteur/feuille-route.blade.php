@@ -20,6 +20,7 @@
                 <p class="text-2xl font-semibold text-content mt-1">{{ $summary['practicalHoursCompleted'] }}h</p>
             </x-card>
         </div>
+        <p class="text-xs text-content-muted -mt-2">Séances effectuées avec vous.</p>
 
         <x-card>
             <div class="flex items-center justify-between mb-2">

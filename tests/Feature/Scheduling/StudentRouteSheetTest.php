@@ -43,9 +43,13 @@ it('shows a moniteur the route sheet for a student they encadre, with correct ag
     $response = $this->actingAs($this->moniteur)->get(route('moniteur.eleves.feuille-route', $this->student));
 
     $response->assertOk()
-        ->assertSee('2') // total sessions
         ->assertSee('1/1') // acquired/total skills
         ->assertSee('100%');
+
+    expect($response->original->getData()['summary']['total'])->toBe(2);
+    expect($response->original->getData()['summary']['present'])->toBe(1);
+    expect($response->original->getData()['summary']['absent'])->toBe(1);
+    expect($response->original->getData()['summary']['practicalHoursCompleted'])->toBe(1.5);
 });
 
 it('does not let a moniteur view the route sheet of a student they do not encadre', function () {
@@ -97,4 +101,16 @@ it('only counts sessions this moniteur personally conducted with the student', f
     // classes (grid-cols-2, h-2, py-2.5, ...) legitimately contain the digit "2"
     // hundreds of times regardless of session count. Assert on the view data instead.
     expect($response->original->getData()['summary']['total'])->toBe(1);
+});
+
+it('only shows the feuille de route link on the student list for a student the moniteur encadres', function () {
+    $otherStudent = Student::factory()->create([
+        'structure_id' => $this->structure->id,
+    ]);
+
+    $response = $this->actingAs($this->moniteur)->get(route('students.index'));
+
+    $response->assertOk();
+    $response->assertSee(route('moniteur.eleves.feuille-route', $this->student));
+    $response->assertDontSee(route('moniteur.eleves.feuille-route', $otherStudent));
 });

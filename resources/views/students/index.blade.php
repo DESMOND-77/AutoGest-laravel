@@ -125,9 +125,13 @@
                                 <td class="px-5 py-3 text-content-secondary">{{ $student->dossier_status->label() }}</td>
                                 <td class="px-5 py-3 text-content-secondary">{{ $student->instructor?->name ?? '-' }}</td>
                                 @if (auth()->user()->hasRole('moniteur'))
-                                    <td class="px-5 py-3 text-right">
-                                        <a href="{{ route('moniteur.eleves.feuille-route', $student) }}" class="text-xs text-primary hover:underline">Feuille de route</a>
-                                    </td>
+                                    @if ($student->instructor_id === auth()->id())
+                                        <td class="px-5 py-3 text-right">
+                                            <a href="{{ route('moniteur.eleves.feuille-route', $student) }}" class="text-xs text-primary hover:underline">Feuille de route</a>
+                                        </td>
+                                    @else
+                                        <td class="px-5 py-3"></td>
+                                    @endif
                                 @endif
                             </tr>
                         @empty
