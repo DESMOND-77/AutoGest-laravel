@@ -24,6 +24,10 @@ class ReportsController extends Controller
             'recentPayments' => $this->reports->recentPayments(),
             'upcomingExams' => $this->reports->upcomingExams(),
             'vehicleStatusCounts' => $this->reports->vehicleStatusCounts(),
+            'cashBalance' => $this->reports->cashBalance(),
+            'outstandingBalance' => $this->reports->outstandingBalance(),
+            'todaysSessions' => $this->reports->todaysSessions(),
+            'recentLedgerEntries' => $this->reports->recentLedgerEntries(),
         ]);
     }
 

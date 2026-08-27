@@ -33,6 +33,17 @@
                 :value="$fleetAlertCount"
                 :href="route('fleet.index')"
             />
+            <x-kpi-card
+                icon="currency"
+                label="Solde caisse"
+                :value="number_format($cashBalance, 0, ',', ' ').' FCFA'"
+            />
+            <x-kpi-card
+                icon="receipt"
+                label="Reste à collecter"
+                :value="number_format($outstandingBalance, 0, ',', ' ').' FCFA'"
+                :href="route('finance.invoices.index')"
+            />
         </div>
 
         {{-- Quick actions --}}
@@ -72,6 +83,52 @@
                 @endforeach
             </div>
         </x-card>
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {{-- Today's sessions --}}
+            <x-card>
+                <div class="text-sm font-semibold text-content mb-3">Séances aujourd'hui</div>
+                @if ($todaysSessions->isEmpty())
+                    <p class="text-sm text-content-muted">Aucune séance planifiée aujourd'hui.</p>
+                @else
+                    <ul class="divide-y divide-border/60">
+                        @foreach ($todaysSessions as $session)
+                            <li class="py-2.5 flex items-center justify-between text-sm gap-2">
+                                <div class="min-w-0">
+                                    <p class="text-content truncate">{{ $session->student->fullName() }}</p>
+                                    <p class="text-content-muted text-xs">{{ $session->type->label() }} &middot; {{ $session->instructor->name }}</p>
+                                </div>
+                                <span class="text-content-secondary text-xs shrink-0">{{ $session->starts_at }}–{{ $session->ends_at }}</span>
+                            </li>
+                        @endforeach
+                    </ul>
+                @endif
+            </x-card>
+
+            {{-- Recent ledger entries --}}
+            <x-card>
+                <div class="text-sm font-semibold text-content mb-3">Dernières opérations financières</div>
+                @if ($recentLedgerEntries->isEmpty())
+                    <p class="text-sm text-content-muted">Aucune opération récente.</p>
+                @else
+                    <ul class="divide-y divide-border/60">
+                        @foreach ($recentLedgerEntries as $entry)
+                            <li class="py-2.5 flex items-center justify-between text-sm gap-2">
+                                <div class="min-w-0">
+                                    <p class="text-content truncate">{{ $entry->type->label() }}</p>
+                                    <p class="text-content-muted text-xs">{{ $entry->occurred_on->format('d/m/Y') }} @if($entry->memo) &middot; {{ $entry->memo }} @endif</p>
+                                </div>
+                                <span @class([
+                                    'font-medium text-xs shrink-0',
+                                    'text-success' => $entry->type->isCredit(),
+                                    'text-danger' => !$entry->type->isCredit(),
+                                ])>{{ $entry->type->isCredit() ? '+' : '-' }}{{ number_format($entry->amount, 0, ',', ' ') }} FCFA</span>
+                            </li>
+                        @endforeach
+                    </ul>
+                @endif
+            </x-card>
+        </div>
 
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
             {{-- Upcoming exams --}}

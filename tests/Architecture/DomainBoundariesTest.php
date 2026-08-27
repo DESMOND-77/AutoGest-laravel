@@ -180,11 +180,10 @@ arch('Audit domain depends on nothing but Core')
         'App\Domain\Settings',
     ]);
 
-arch('Reports domain only depends on Finance, Training, Fleet and Students')
+arch('Reports domain only depends on Finance, Training, Fleet, Students and Scheduling')
     ->expect('App\Domain\Reports')
     ->not->toUse([
         'App\Domain\Store',
-        'App\Domain\Scheduling',
         'App\Domain\CRM',
         'App\Domain\Documents',
         'App\Domain\Audit',
