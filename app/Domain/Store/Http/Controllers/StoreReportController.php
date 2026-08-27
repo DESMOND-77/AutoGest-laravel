@@ -6,6 +6,7 @@ use App\Domain\Store\Models\Order;
 use App\Domain\Store\Services\StoreReportService;
 use App\Http\Controllers\Controller;
 use App\Support\CsvExporter;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\View\View;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
@@ -28,5 +29,14 @@ class StoreReportController extends Controller
             ->map(fn (array $row) => [$row['name'], $row['quantity'], $row['revenue']]);
 
         return CsvExporter::stream('top-produits.csv', ['Produit', 'Quantité vendue', 'Chiffre d\'affaires (FCFA)'], $rows);
+    }
+
+    public function exportPdf()
+    {
+        $this->authorize('viewAny', Order::class);
+
+        $pdf = Pdf::loadView('store.reports.pdf', $this->reports->dashboard());
+
+        return $pdf->stream('rapport-boutique.pdf');
     }
 }

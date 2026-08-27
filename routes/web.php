@@ -281,6 +281,7 @@ Route::middleware(['auth', 'role:admin'])
 
         Route::get('reports', [StoreReportController::class, 'show'])->name('reports.show');
         Route::get('reports/top-products.csv', [StoreReportController::class, 'exportTopProductsCsv'])->name('reports.top-products.csv');
+        Route::get('reports/pdf', [StoreReportController::class, 'exportPdf'])->name('reports.pdf');
     });
 
 Route::middleware(['auth', 'role:admin'])
