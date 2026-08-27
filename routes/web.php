@@ -23,6 +23,7 @@ use App\Domain\Settings\Http\Controllers\SettingController;
 use App\Domain\Store\Http\Controllers\OrderController;
 use App\Domain\Store\Http\Controllers\ProductController;
 use App\Domain\Store\Http\Controllers\PurchaseOrderController;
+use App\Domain\Store\Http\Controllers\StoreController;
 use App\Domain\Store\Http\Controllers\StoreReportController;
 use App\Domain\Store\Http\Controllers\SupplierController;
 use App\Domain\Students\Http\Controllers\EmailOtpController;
@@ -265,6 +266,8 @@ Route::middleware(['auth', 'role:admin'])
     ->prefix('store')
     ->name('store.')
     ->group(function () {
+        Route::get('/', [StoreController::class, 'index'])->name('index');
+
         Route::get('products', [ProductController::class, 'index'])->name('products.index');
         Route::post('products', [ProductController::class, 'store'])->name('products.store');
         Route::delete('products/{product}', [ProductController::class, 'destroy'])->name('products.destroy');

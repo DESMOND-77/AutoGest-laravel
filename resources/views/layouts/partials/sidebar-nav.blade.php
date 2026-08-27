@@ -98,7 +98,7 @@
             <p x-show="!collapsed" x-cloak class="px-3 text-[11px] font-semibold uppercase tracking-wider text-content-muted mb-1">Flotte &amp; Boutique</p>
             <div class="space-y-1">
                 <x-sidebar-link :href="route('fleet.index')" :active="request()->routeIs('fleet.*')" icon="truck">Véhicules</x-sidebar-link>
-                <x-sidebar-link :href="route('store.products.index')" :active="request()->routeIs('store.*')" icon="shopping-bag">Boutique</x-sidebar-link>
+                <x-sidebar-link :href="route('store.index')" :active="request()->routeIs('store.*')" icon="shopping-bag">Boutique</x-sidebar-link>
             </div>
         </div>
     @endif

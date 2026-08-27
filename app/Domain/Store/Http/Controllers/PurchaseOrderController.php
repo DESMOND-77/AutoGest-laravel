@@ -4,6 +4,7 @@ namespace App\Domain\Store\Http\Controllers;
 
 use App\Domain\Store\Http\Requests\ReceivePurchaseOrderRequest;
 use App\Domain\Store\Http\Requests\StorePurchaseOrderRequest;
+use App\Domain\Store\Models\Product;
 use App\Domain\Store\Models\PurchaseOrder;
 use App\Domain\Store\Models\Supplier;
 use App\Domain\Store\Services\PurchaseOrderService;
@@ -24,6 +25,7 @@ class PurchaseOrderController extends Controller
         return view('store.purchase-orders.index', [
             'purchaseOrders' => PurchaseOrder::query()->with(['supplier', 'items.product'])->latest('ordered_at')->paginate(20),
             'suppliers' => Supplier::query()->orderBy('name')->get(),
+            'products' => Product::query()->orderBy('name')->get(),
         ]);
     }
 
