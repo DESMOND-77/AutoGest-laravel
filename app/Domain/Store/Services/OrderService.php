@@ -113,9 +113,17 @@ class OrderService
 
         DB::transaction(function () use ($order) {
             foreach ($order->items as $item) {
-                $item->product()->increment('stock_quantity', $item->quantity);
+                $product = $item->product;
 
-                $item->product->stockMovements()->create([
+                // Products are hard-deleted, so a line can outlive its product;
+                // there is then no stock to restore and no ledger to write.
+                if (! $product) {
+                    continue;
+                }
+
+                $product->increment('stock_quantity', $item->quantity);
+
+                $product->stockMovements()->create([
                     'type' => StockMovementType::Adjustment,
                     'quantity' => $item->quantity,
                     'reference' => "Annulation commande #{$order->id}",
