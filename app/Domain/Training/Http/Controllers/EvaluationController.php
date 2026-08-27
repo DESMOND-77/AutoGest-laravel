@@ -30,9 +30,11 @@ class EvaluationController extends Controller
     {
         $this->authorize('evaluate', $student);
 
+        $skillsByCategory = Skill::query()->orderBy('category')->orderBy('position')->get()->groupBy('category');
+
         return view('training.evaluation.show', [
             'student' => $student,
-            'skills' => Skill::query()->orderBy('category')->orderBy('position')->get(),
+            'skillsByCategory' => $skillsByCategory,
             'progress' => SkillProgress::query()->where('student_id', $student->id)->get()->keyBy('skill_id'),
         ]);
     }
