@@ -3,7 +3,7 @@
 
     <div class="py-6 space-y-5 max-w-4xl mx-auto">
         @if (session('status'))
-            <x-alert variant="success">{{ session('status') }}</x-alert>
+            <x-alert :variant="str_contains(session('status'), 'stock insuffisant') ? 'warning' : 'success'">{{ session('status') }}</x-alert>
         @endif
         @if ($errors->any())
             <x-alert variant="danger">{{ $errors->first() }}</x-alert>

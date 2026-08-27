@@ -2,7 +2,6 @@
 
 namespace App\Domain\Store\Http\Controllers;
 
-use App\Domain\Store\Exceptions\InsufficientStock;
 use App\Domain\Store\Http\Requests\StoreOrderRequest;
 use App\Domain\Store\Models\Order;
 use App\Domain\Store\Models\Product;
@@ -35,16 +34,17 @@ class OrderController extends Controller
             ? Student::query()->find($request->validated('student_id'))
             : null;
 
-        try {
-            $order = $this->orders->place(
-                $request->validated('items'),
-                $student,
-                $request->validated('customer_name'),
-            );
-        } catch (InsufficientStock $e) {
-            return back()->withErrors(['items' => $e->getMessage()])->withInput();
+        $result = $this->orders->place(
+            $request->validated('items'),
+            $student,
+            $request->validated('customer_name'),
+        );
+
+        $status = "Commande #{$result['order']->id} enregistrée.";
+        if ($result['lowStock'] !== []) {
+            $status .= ' Attention, stock insuffisant pour : '.implode(', ', $result['lowStock']).'.';
         }
 
-        return redirect()->route('store.orders.index')->with('status', "Commande #{$order->id} enregistrée.");
+        return redirect()->route('store.orders.index')->with('status', $status);
     }
 }

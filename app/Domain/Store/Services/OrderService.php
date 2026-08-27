@@ -2,11 +2,8 @@
 
 namespace App\Domain\Store\Services;
 
-use App\Domain\Finance\Enums\LedgerEntryType;
 use App\Domain\Finance\Services\InvoicingService;
-use App\Domain\Finance\Services\LedgerService;
 use App\Domain\Store\Enums\OrderStatus;
-use App\Domain\Store\Exceptions\InsufficientStock;
 use App\Domain\Store\Models\Order;
 use App\Domain\Store\Models\Product;
 use App\Domain\Students\Models\Student;
@@ -14,32 +11,35 @@ use Illuminate\Support\Facades\DB;
 
 /**
  * Store is allowed to depend on Finance (see the domain diagram) - unlike
- * Fleet, which deliberately is not. An order for a student becomes an
- * Invoice the student can pay off like any other; a walk-in sale (no
- * student, e.g. the legacy code_rousseau.php "freeform buyer" case) is
- * journaled straight to the ledger as cash income.
+ * Fleet, which deliberately is not. Every order, walk-in or student-linked,
+ * gets a real Invoice - reusing PaymentService's existing, already-tested
+ * partial-payment/cancellation/ledger pipeline rather than building a
+ * parallel one. Stock going below zero WARNS (via the returned $lowStock
+ * flag the controller surfaces to the user) rather than blocking the sale -
+ * a walk-in customer at the counter cannot be told "come back later."
  */
 class OrderService
 {
     public function __construct(
         private readonly InvoicingService $invoicing,
-        private readonly LedgerService $ledger,
     ) {}
 
     /**
      * @param  array<int, array{product_id: int, quantity: int}>  $items
+     * @return array{order: Order, lowStock: array<int, string>} product names that went under/at zero
      */
-    public function place(array $items, ?Student $student, ?string $customerName): Order
+    public function place(array $items, ?Student $student, ?string $customerName): array
     {
         return DB::transaction(function () use ($items, $student, $customerName) {
             $lines = [];
             $total = 0;
+            $lowStock = [];
 
             foreach ($items as $item) {
                 $product = Product::query()->lockForUpdate()->findOrFail($item['product_id']);
 
                 if ($product->stock_quantity < $item['quantity']) {
-                    throw InsufficientStock::forProduct($product->name);
+                    $lowStock[] = $product->name;
                 }
 
                 $lines[] = ['product' => $product, 'quantity' => $item['quantity'], 'unit_price' => $product->price];
@@ -61,26 +61,19 @@ class OrderService
                     'unit_price' => $line['unit_price'],
                 ]);
 
-                $line['product']->decrement('stock_quantity', $line['quantity']);
+                $newQuantity = max(0, $line['product']->stock_quantity - $line['quantity']);
+                $line['product']->update(['stock_quantity' => $newQuantity]);
             }
 
-            if ($student) {
-                $invoice = $this->invoicing->createForStudent($student, [
-                    'label' => 'Commande boutique #'.$order->id,
-                    'amount_due' => $total,
-                    'issued_at' => now()->toDateString(),
-                ]);
-                $order->update(['invoice_id' => $invoice->id]);
-            } else {
-                $this->ledger->recordManual([
-                    'type' => LedgerEntryType::Income->value,
-                    'amount' => $total,
-                    'memo' => "Vente comptoir #{$order->id}".($customerName ? " - {$customerName}" : ''),
-                    'occurred_on' => now()->toDateString(),
-                ]);
-            }
+            $buyerLabel = $student?->fullName() ?? $customerName ?? 'Client comptoir';
+            $invoice = $this->invoicing->createGeneric($student, [
+                'label' => "Vente boutique #{$order->id} - {$buyerLabel}",
+                'amount_due' => $total,
+                'issued_at' => now()->toDateString(),
+            ]);
+            $order->update(['invoice_id' => $invoice->id]);
 
-            return $order;
+            return ['order' => $order->fresh(), 'lowStock' => $lowStock];
         });
     }
 }
