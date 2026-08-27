@@ -6,6 +6,7 @@ use App\Domain\Training\Enums\SkillLevel;
 use App\Domain\Training\Models\Skill;
 use App\Domain\Training\Models\SkillProgress;
 use App\Domain\Training\Services\EvaluationService;
+use App\Support\TenantContext;
 use Carbon\Carbon;
 
 beforeEach(function () {
@@ -13,6 +14,11 @@ beforeEach(function () {
     $this->student = Student::factory()->create(['structure_id' => $this->structure->id]);
     $this->skill = Skill::factory()->create(['structure_id' => $this->structure->id]);
     $this->service = new EvaluationService;
+    TenantContext::set($this->structure);
+});
+
+afterEach(function () {
+    TenantContext::clear();
 });
 
 it('sets validated_at when a skill first becomes acquired', function () {

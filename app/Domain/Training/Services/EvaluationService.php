@@ -42,7 +42,6 @@ class EvaluationService
             SkillProgress::query()->updateOrCreate(
                 ['student_id' => $student->id, 'skill_id' => (int) $skillId],
                 [
-                    'structure_id' => $student->structure_id,
                     'instructor_id' => $instructor?->id,
                     'level' => $skillLevel->value,
                     'validated_at' => $validatedAt,
