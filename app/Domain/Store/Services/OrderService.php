@@ -35,13 +35,25 @@ class OrderService
             $total = 0;
             $lowStock = [];
 
+            /** @var array<int, int> $quantitiesByProduct total quantity requested per product_id, across all lines */
+            $quantitiesByProduct = [];
             foreach ($items as $item) {
-                $product = Product::query()->lockForUpdate()->findOrFail($item['product_id']);
+                $quantitiesByProduct[$item['product_id']] = ($quantitiesByProduct[$item['product_id']] ?? 0) + $item['quantity'];
+            }
 
-                if ($product->stock_quantity < $item['quantity']) {
+            /** @var array<int, Product> $products */
+            $products = [];
+            foreach ($quantitiesByProduct as $productId => $totalQuantity) {
+                $product = Product::query()->lockForUpdate()->findOrFail($productId);
+                $products[$productId] = $product;
+
+                if ($product->stock_quantity < $totalQuantity) {
                     $lowStock[] = $product->name;
                 }
+            }
 
+            foreach ($items as $item) {
+                $product = $products[$item['product_id']];
                 $lines[] = ['product' => $product, 'quantity' => $item['quantity'], 'unit_price' => $product->price];
                 $total += $product->price * $item['quantity'];
             }
@@ -60,9 +72,11 @@ class OrderService
                     'quantity' => $line['quantity'],
                     'unit_price' => $line['unit_price'],
                 ]);
+            }
 
-                $newQuantity = max(0, $line['product']->stock_quantity - $line['quantity']);
-                $line['product']->update(['stock_quantity' => $newQuantity]);
+            foreach ($products as $productId => $product) {
+                $newQuantity = max(0, $product->stock_quantity - $quantitiesByProduct[$productId]);
+                $product->update(['stock_quantity' => $newQuantity]);
             }
 
             $buyerLabel = $student?->fullName() ?? $customerName ?? 'Client comptoir';

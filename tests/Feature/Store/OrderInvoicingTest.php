@@ -60,3 +60,20 @@ it('allows a sale with insufficient stock and flags it, instead of blocking it',
     expect($result['lowStock'])->toBe([$product->name]);
     expect($product->fresh()->stock_quantity)->toBe(0);
 });
+
+it('aggregates duplicate product lines in the same order for stock checks and decrements', function () {
+    $product = Product::factory()->create(['structure_id' => $this->structure->id, 'price' => 1000, 'stock_quantity' => 3]);
+
+    $result = app(OrderService::class)->place(
+        [
+            ['product_id' => $product->id, 'quantity' => 2],
+            ['product_id' => $product->id, 'quantity' => 2],
+        ],
+        null,
+        'Jean Client',
+    );
+
+    expect($result['lowStock'])->toBe([$product->name]);
+    expect($product->fresh()->stock_quantity)->toBe(0);
+    expect($result['order']->items()->count())->toBe(2);
+});
