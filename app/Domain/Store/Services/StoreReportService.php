@@ -6,6 +6,7 @@ use App\Domain\Finance\Enums\InvoiceStatus;
 use App\Domain\Store\Models\Order;
 use App\Domain\Store\Models\OrderItem;
 use App\Domain\Store\Models\Product;
+use App\Support\TenantContext;
 use Illuminate\Support\Collection;
 
 class StoreReportService
@@ -39,7 +40,9 @@ class StoreReportService
     private function topProducts(int $limit = 5): Collection
     {
         return OrderItem::query()
+            ->join('orders', 'orders.id', '=', 'order_items.order_id')
             ->join('products', 'products.id', '=', 'order_items.product_id')
+            ->where('orders.structure_id', TenantContext::id())
             ->selectRaw('products.name as name, SUM(order_items.quantity) as quantity, SUM(order_items.quantity * order_items.unit_price) as revenue')
             ->groupBy('products.id', 'products.name')
             ->orderByDesc('revenue')

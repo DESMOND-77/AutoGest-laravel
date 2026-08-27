@@ -35,3 +35,21 @@ it('flags products under their reorder threshold as critical stock', function ()
 
     expect($report['criticalStock']->pluck('name')->all())->toBe(['Stock bas']);
 });
+
+it('scopes top products to the current tenant only', function () {
+    $otherStructure = Structure::factory()->create();
+
+    $ownProduct = Product::factory()->create(['structure_id' => $this->structure->id, 'name' => 'Casque moto', 'price' => 3000, 'stock_quantity' => 20]);
+    app(OrderService::class)->place([['product_id' => $ownProduct->id, 'quantity' => 4]], null, 'Client A');
+
+    TenantContext::set($otherStructure);
+    $otherProduct = Product::factory()->create(['structure_id' => $otherStructure->id, 'name' => 'Autre produit', 'price' => 9000, 'stock_quantity' => 20]);
+    app(OrderService::class)->place([['product_id' => $otherProduct->id, 'quantity' => 10]], null, 'Client B');
+
+    TenantContext::set($this->structure);
+    $report = app(StoreReportService::class)->dashboard();
+
+    expect($report['topProducts']->pluck('name')->all())->toBe(['Casque moto']);
+    expect($report['topProducts']->first()['quantity'])->toBe(4);
+    expect($report['topProducts']->first()['revenue'])->toBe(12000.0);
+});
