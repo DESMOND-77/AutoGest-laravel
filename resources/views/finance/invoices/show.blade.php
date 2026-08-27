@@ -1,5 +1,5 @@
 <x-app-layout>
-    <x-slot name="header">Facture - {{ $invoice->student->fullName() }}</x-slot>
+    <x-slot name="header">Facture - {{ $invoice->student?->fullName() ?? 'Client comptoir' }}</x-slot>
 
     <div class="py-6 space-y-5 max-w-3xl mx-auto">
         @if (session('status'))

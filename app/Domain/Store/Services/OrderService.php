@@ -101,11 +101,26 @@ class OrderService
         });
     }
 
+    /**
+     * Idempotent: a double-click, a resubmit or a replayed POST must not run
+     * the stock-restoration loop twice and inflate stock_quantity.
+     */
     public function cancel(Order $order): void
     {
+        if ($order->status === OrderStatus::Cancelled) {
+            return;
+        }
+
         DB::transaction(function () use ($order) {
             foreach ($order->items as $item) {
                 $item->product()->increment('stock_quantity', $item->quantity);
+
+                $item->product->stockMovements()->create([
+                    'type' => StockMovementType::Adjustment,
+                    'quantity' => $item->quantity,
+                    'reference' => "Annulation commande #{$order->id}",
+                    'occurred_at' => now(),
+                ]);
             }
 
             if ($order->invoice_id && $order->invoice->payments()->doesntExist()) {

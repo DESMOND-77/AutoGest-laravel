@@ -29,7 +29,7 @@
                             <tr class="hover:bg-surface-elevated/60 transition">
                                 <td class="px-5 py-3">
                                     <a href="{{ route('finance.invoices.show', $invoice) }}" class="font-medium text-content hover:text-primary transition">
-                                        {{ $invoice->student->fullName() }}
+                                        {{ $invoice->student?->fullName() ?? 'Client comptoir' }}
                                     </a>
                                 </td>
                                 <td class="px-5 py-3 text-content-secondary">{{ $invoice->label }}</td>

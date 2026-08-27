@@ -161,7 +161,7 @@
                         @foreach ($recentPayments as $payment)
                             <li class="py-2.5 flex items-center justify-between text-sm gap-2">
                                 <div class="min-w-0">
-                                    <p class="text-content truncate">{{ $payment->invoice->student->fullName() }}</p>
+                                    <p class="text-content truncate">{{ $payment->invoice->student?->fullName() ?? 'Client comptoir' }}</p>
                                     <p class="text-content-muted text-xs">{{ $payment->paid_at->format('d/m/Y') }}</p>
                                 </div>
                                 <span class="text-success font-medium text-xs shrink-0">+{{ number_format($payment->amount, 0, ',', ' ') }} FCFA</span>

@@ -3,7 +3,9 @@
 use App\Domain\Finance\Models\Invoice;
 use App\Domain\Finance\Models\Payment;
 use App\Domain\Store\Enums\OrderStatus;
+use App\Domain\Store\Enums\StockMovementType;
 use App\Domain\Store\Models\Product;
+use App\Domain\Store\Models\StockMovement;
 use App\Domain\Store\Services\OrderService;
 use App\Domain\Tenancy\Enums\StructureStatus;
 use App\Domain\Tenancy\Models\Structure;
@@ -34,6 +36,48 @@ it('restores stock and voids the invoice when an order is cancelled', function (
     expect($product->fresh()->stock_quantity)->toBe(10);
     expect($order->fresh()->status)->toBe(OrderStatus::Cancelled);
     expect(Invoice::query()->find($order->invoice_id))->toBeNull();
+});
+
+it('logs an adjustment stock movement when an order is cancelled', function () {
+    TenantContext::set($this->structure);
+    $product = Product::factory()->create(['structure_id' => $this->structure->id, 'price' => 2000, 'stock_quantity' => 10]);
+    $order = app(OrderService::class)->place([['product_id' => $product->id, 'quantity' => 3]], null, 'Client')['order'];
+
+    app(OrderService::class)->cancel($order);
+
+    $movement = StockMovement::query()
+        ->where('product_id', $product->id)
+        ->where('type', StockMovementType::Adjustment)
+        ->first();
+
+    expect($movement)->not->toBeNull();
+    expect($movement->quantity)->toBe(3);
+    expect($movement->reference)->toBe("Annulation commande #{$order->id}");
+});
+
+it('is idempotent: cancelling twice restores stock only once', function () {
+    TenantContext::set($this->structure);
+    $product = Product::factory()->create(['structure_id' => $this->structure->id, 'price' => 2000, 'stock_quantity' => 10]);
+    $order = app(OrderService::class)->place([['product_id' => $product->id, 'quantity' => 3]], null, 'Client')['order'];
+
+    app(OrderService::class)->cancel($order);
+    expect($product->fresh()->stock_quantity)->toBe(10);
+
+    app(OrderService::class)->cancel($order->fresh());
+
+    expect($product->fresh()->stock_quantity)->toBe(10);
+    expect(StockMovement::query()->where('product_id', $product->id)->where('type', StockMovementType::Adjustment)->count())->toBe(1);
+});
+
+it('denies cancelling an order that is already cancelled', function () {
+    TenantContext::set($this->structure);
+    $product = Product::factory()->create(['structure_id' => $this->structure->id, 'price' => 2000, 'stock_quantity' => 10]);
+    $order = app(OrderService::class)->place([['product_id' => $product->id, 'quantity' => 3]], null, 'Client')['order'];
+
+    $this->actingAs($this->admin)->post(route('store.orders.cancel', $order))->assertRedirect();
+    $this->actingAs($this->admin)->post(route('store.orders.cancel', $order->fresh()))->assertForbidden();
+
+    expect($product->fresh()->stock_quantity)->toBe(10);
 });
 
 it('does not let an admin cancel another tenant\'s order', function () {
