@@ -5,6 +5,7 @@ namespace App\Domain\Store\Services;
 use App\Domain\Finance\Models\Invoice;
 use App\Domain\Finance\Services\InvoicingService;
 use App\Domain\Store\Enums\OrderStatus;
+use App\Domain\Store\Enums\StockMovementType;
 use App\Domain\Store\Models\Order;
 use App\Domain\Store\Models\Product;
 use App\Domain\Students\Models\Student;
@@ -76,8 +77,16 @@ class OrderService
             }
 
             foreach ($products as $productId => $product) {
-                $newQuantity = max(0, $product->stock_quantity - $quantitiesByProduct[$productId]);
+                $quantity = $quantitiesByProduct[$productId];
+                $newQuantity = max(0, $product->stock_quantity - $quantity);
                 $product->update(['stock_quantity' => $newQuantity]);
+
+                $product->stockMovements()->create([
+                    'type' => StockMovementType::Sale,
+                    'quantity' => -$quantity,
+                    'reference' => "Commande #{$order->id}",
+                    'occurred_at' => now(),
+                ]);
             }
 
             $buyerLabel = $student?->fullName() ?? $customerName ?? 'Client comptoir';
