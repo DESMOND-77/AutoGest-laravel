@@ -18,7 +18,7 @@
                     @php $acquiredCount = $skills->filter(fn ($skill) => ($progress->get($skill->id)?->level?->value ?? 'not_started') === 'acquired')->count(); @endphp
                     <x-card :padded="false">
                         <div class="px-4 py-3 flex items-center justify-between border-b border-border/60">
-                            <h2 class="text-sm font-semibold text-content">{{ $category }}</h2>
+                            <h2 class="text-sm font-semibold text-content">{{ $category ?: 'Sans catégorie' }}</h2>
                             <span class="text-xs font-medium text-content-secondary">{{ $acquiredCount }}/{{ $skills->count() }} acquises</span>
                         </div>
                         <div class="divide-y divide-border/60">

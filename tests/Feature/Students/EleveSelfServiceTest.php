@@ -43,6 +43,14 @@ it('lets an eleve see their own skill progression, grouped by category with a va
         ->assertSeeInOrder(['Circulation', '1/1 acquises', 'Créneau', 'Validé le 21/07/2026']);
 });
 
+it('labels a category-less skill as "Sans catégorie" instead of a blank heading on the progression page', function () {
+    Skill::factory()->create(['structure_id' => $this->structure->id, 'category' => null, 'label' => 'Compétence orpheline']);
+
+    $this->actingAs($this->eleve)->get(route('eleve.progression'))
+        ->assertOk()
+        ->assertSeeInOrder(['Sans catégorie', '0/1 acquises']);
+});
+
 it('does not let an eleve see another student\'s progression', function () {
     $otherStudent = Student::factory()->create(['structure_id' => $this->structure->id]);
     $skill = Skill::factory()->create(['structure_id' => $this->structure->id, 'label' => 'Autre compétence']);

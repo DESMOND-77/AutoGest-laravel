@@ -68,3 +68,22 @@ it('leaves validated_at null for a skill that has never been acquired', function
     $progress = SkillProgress::query()->where('student_id', $this->student->id)->sole();
     expect($progress->validated_at)->toBeNull();
 });
+
+it('self-heals a null validated_at on an already-acquired row', function () {
+    Carbon::setTestNow('2026-07-21 10:00:00');
+
+    SkillProgress::factory()->create([
+        'structure_id' => $this->structure->id,
+        'student_id' => $this->student->id,
+        'skill_id' => $this->skill->id,
+        'level' => SkillLevel::Acquired,
+        'validated_at' => null,
+    ]);
+
+    $this->service->record($this->student, [$this->skill->id => SkillLevel::Acquired->value]);
+
+    $progress = SkillProgress::query()->where('student_id', $this->student->id)->sole();
+    expect($progress->validated_at->toDateString())->toBe('2026-07-21');
+
+    Carbon::setTestNow();
+});

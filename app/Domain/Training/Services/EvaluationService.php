@@ -35,7 +35,7 @@ class EvaluationService
 
             $validatedAt = match (true) {
                 $skillLevel !== SkillLevel::Acquired => null,
-                $existing?->level === SkillLevel::Acquired => $existing->validated_at,
+                $existing?->level === SkillLevel::Acquired => $existing->validated_at ?? now()->toDateString(),
                 default => now()->toDateString(),
             };
 

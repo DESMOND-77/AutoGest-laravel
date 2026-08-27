@@ -48,3 +48,11 @@ it('does not show a validation date for a skill that is not acquired', function 
         ->assertOk()
         ->assertDontSee('Validé le');
 });
+
+it('labels a category-less skill as "Sans catégorie" instead of a blank heading', function () {
+    Skill::factory()->create(['structure_id' => $this->structure->id, 'category' => null, 'label' => 'Compétence orpheline']);
+
+    $this->actingAs($this->moniteur)->get(route('training.evaluation.show', $this->student))
+        ->assertOk()
+        ->assertSeeInOrder(['Sans catégorie', '0/1 acquises']);
+});
