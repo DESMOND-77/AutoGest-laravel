@@ -63,9 +63,7 @@ class EvaluationService
      */
     public function acquiredSummary(Student $student): array
     {
-        $total = Skill::query()
-            ->where('structure_id', $student->structure_id)
-            ->count();
+        $total = Skill::query()->count();
 
         if ($total === 0) {
             return ['acquired' => 0, 'total' => 0, 'percent' => 0];
