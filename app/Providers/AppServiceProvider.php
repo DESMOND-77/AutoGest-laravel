@@ -24,6 +24,8 @@ use App\Domain\Instructors\Repositories\EloquentInstructorRepository;
 use App\Domain\Instructors\Repositories\InstructorRepositoryInterface;
 use App\Domain\Notifications\Contracts\SmsGateway;
 use App\Domain\Notifications\Services\LogSmsGateway;
+use App\Domain\Recyclage\Models\RecyclageEntry;
+use App\Domain\Recyclage\Policies\RecyclageEntryPolicy;
 use App\Domain\Scheduling\Models\LessonSession;
 use App\Domain\Scheduling\Policies\LessonSessionPolicy;
 use App\Domain\Scheduling\Repositories\EloquentLessonSessionRepository;
@@ -111,6 +113,7 @@ class AppServiceProvider extends ServiceProvider
         Gate::policy(Setting::class, SettingPolicy::class);
         Gate::policy(QuizAttempt::class, QuizAttemptPolicy::class);
         Gate::policy(Structure::class, StructurePolicy::class);
+        Gate::policy(RecyclageEntry::class, RecyclageEntryPolicy::class);
 
         // RecordVehicleExpenseInLedger lives in app/Listeners, where Laravel's
         // event auto-discovery already finds it by its handle(VehicleExpenseRecorded)
