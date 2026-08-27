@@ -12,12 +12,19 @@
                     class="inline-flex items-center gap-1 text-primary hover:underline font-medium">
                     Entraînement au code <x-icon name="chevron-right" class="w-4 h-4" />
                 </a>
+                <a href="{{ route('eleve.progression') }}"
+                    class="inline-flex items-center gap-1 text-primary hover:underline font-medium">
+                    Ma progression <x-icon name="chevron-right" class="w-4 h-4" />
+                </a>
+                <a href="{{ route('eleve.paiements') }}"
+                    class="inline-flex items-center gap-1 text-primary hover:underline font-medium">
+                    Mes paiements <x-icon name="chevron-right" class="w-4 h-4" />
+                </a>
+                <a href="{{ route('eleve.dossier.show') }}"
+                    class="inline-flex items-center gap-1 text-primary hover:underline font-medium">
+                    Mon dossier <x-icon name="chevron-right" class="w-4 h-4" />
+                </a>
             </div>
-        </x-card>
-
-        <x-card>
-            <p class="text-sm text-content-secondary">Votre progression et vos paiements arrivent avec une prochaine
-                phase.</p>
         </x-card>
     </div>
 </x-app-layout>
