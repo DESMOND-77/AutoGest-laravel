@@ -23,6 +23,7 @@ use App\Domain\Settings\Http\Controllers\SettingController;
 use App\Domain\Store\Http\Controllers\OrderController;
 use App\Domain\Store\Http\Controllers\ProductController;
 use App\Domain\Store\Http\Controllers\PurchaseOrderController;
+use App\Domain\Store\Http\Controllers\StoreReportController;
 use App\Domain\Store\Http\Controllers\SupplierController;
 use App\Domain\Students\Http\Controllers\EmailOtpController;
 use App\Domain\Students\Http\Controllers\PublicStudentRegistrationController;
@@ -277,6 +278,9 @@ Route::middleware(['auth', 'role:admin'])
         Route::get('purchase-orders', [PurchaseOrderController::class, 'index'])->name('purchase-orders.index');
         Route::post('purchase-orders', [PurchaseOrderController::class, 'store'])->name('purchase-orders.store');
         Route::post('purchase-orders/{purchaseOrder}/receive', [PurchaseOrderController::class, 'receive'])->name('purchase-orders.receive');
+
+        Route::get('reports', [StoreReportController::class, 'show'])->name('reports.show');
+        Route::get('reports/top-products.csv', [StoreReportController::class, 'exportTopProductsCsv'])->name('reports.top-products.csv');
     });
 
 Route::middleware(['auth', 'role:admin'])
