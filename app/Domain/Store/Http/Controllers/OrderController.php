@@ -47,4 +47,13 @@ class OrderController extends Controller
 
         return redirect()->route('store.orders.index')->with('status', $status);
     }
+
+    public function cancel(Order $order): RedirectResponse
+    {
+        $this->authorize('cancel', $order);
+
+        $this->orders->cancel($order);
+
+        return redirect()->route('store.orders.index')->with('status', "Commande #{$order->id} annulée, stock remis à jour.");
+    }
 }

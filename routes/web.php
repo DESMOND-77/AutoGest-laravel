@@ -271,6 +271,7 @@ Route::middleware(['auth', 'role:admin'])
 
         Route::get('orders', [OrderController::class, 'index'])->name('orders.index');
         Route::post('orders', [OrderController::class, 'store'])->name('orders.store');
+        Route::post('orders/{order}/cancel', [OrderController::class, 'cancel'])->name('orders.cancel');
     });
 
 Route::middleware(['auth', 'role:admin'])

@@ -2,6 +2,7 @@
 
 namespace App\Domain\Store\Services;
 
+use App\Domain\Finance\Models\Invoice;
 use App\Domain\Finance\Services\InvoicingService;
 use App\Domain\Store\Enums\OrderStatus;
 use App\Domain\Store\Models\Order;
@@ -88,6 +89,22 @@ class OrderService
             $order->update(['invoice_id' => $invoice->id]);
 
             return ['order' => $order->fresh(), 'lowStock' => $lowStock];
+        });
+    }
+
+    public function cancel(Order $order): void
+    {
+        DB::transaction(function () use ($order) {
+            foreach ($order->items as $item) {
+                $item->product()->increment('stock_quantity', $item->quantity);
+            }
+
+            if ($order->invoice_id && $order->invoice->payments()->doesntExist()) {
+                Invoice::query()->whereKey($order->invoice_id)->delete();
+                $order->update(['status' => OrderStatus::Cancelled, 'invoice_id' => null]);
+            } else {
+                $order->update(['status' => OrderStatus::Cancelled]);
+            }
         });
     }
 }

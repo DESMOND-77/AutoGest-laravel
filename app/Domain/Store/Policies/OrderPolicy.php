@@ -21,4 +21,9 @@ class OrderPolicy
     {
         return $user->hasRole('admin');
     }
+
+    public function cancel(User $user, Order $order): bool
+    {
+        return $user->hasRole('admin') && $order->structure_id === $user->structure_id;
+    }
 }
