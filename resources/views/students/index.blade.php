@@ -104,6 +104,9 @@
                             <th class="px-5 py-3 font-medium">Étape</th>
                             <th class="px-5 py-3 font-medium">Dossier</th>
                             <th class="px-5 py-3 font-medium">Moniteur</th>
+                            @if (auth()->user()->hasRole('moniteur'))
+                                <th class="px-5 py-3 font-medium"></th>
+                            @endif
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-border/60">
@@ -121,10 +124,15 @@
                                 <td class="px-5 py-3"><x-badge variant="info">{{ $student->lifecycle_stage->label() }}</x-badge></td>
                                 <td class="px-5 py-3 text-content-secondary">{{ $student->dossier_status->label() }}</td>
                                 <td class="px-5 py-3 text-content-secondary">{{ $student->instructor?->name ?? '-' }}</td>
+                                @if (auth()->user()->hasRole('moniteur'))
+                                    <td class="px-5 py-3 text-right">
+                                        <a href="{{ route('moniteur.eleves.feuille-route', $student) }}" class="text-xs text-primary hover:underline">Feuille de route</a>
+                                    </td>
+                                @endif
                             </tr>
                         @empty
                             <x-empty-table-row
-                                colspan="5"
+                                colspan="{{ auth()->user()->hasRole('moniteur') ? 6 : 5 }}"
                                 title="Aucun élève trouvé."
                                 message="Commencez par inscrire votre premier élève."
                                 :action="route('students.create')"
