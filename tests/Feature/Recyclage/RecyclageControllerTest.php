@@ -89,3 +89,16 @@ it('does not let an admin delete another tenant\'s recyclage entry', function ()
 
     expect(RecyclageEntry::withoutGlobalScopes()->find($entry->id))->not->toBeNull();
 });
+
+it('shows the recyclage link in the sidebar for an admin but not for a moniteur', function () {
+    $this->actingAs($this->admin)->get(route('recyclage.index'))
+        ->assertOk()
+        ->assertSee('Recyclage &amp; Tests', false);
+
+    $moniteur = User::factory()->create(['structure_id' => $this->structure->id]);
+    $moniteur->assignRole('moniteur');
+
+    $this->actingAs($moniteur)->get(route('moniteur.dashboard'))
+        ->assertOk()
+        ->assertDontSee('Recyclage &amp; Tests', false);
+});
