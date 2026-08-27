@@ -34,3 +34,10 @@ it('denies a moniteur access to the pdf export', function () {
 
     $this->actingAs($moniteur)->get(route('store.reports.pdf'))->assertForbidden();
 });
+
+it('denies a moniteur access to the top-products csv export', function () {
+    $moniteur = User::factory()->create(['structure_id' => $this->structure->id]);
+    $moniteur->assignRole('moniteur');
+
+    $this->actingAs($moniteur)->get(route('store.reports.top-products.csv'))->assertForbidden();
+});

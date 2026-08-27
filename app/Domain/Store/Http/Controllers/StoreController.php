@@ -23,7 +23,10 @@ class StoreController extends Controller
 
         return view('store.index', [
             'orders' => Order::query()->with(['student', 'items.product'])->latest('ordered_at')->paginate(20, ['*'], 'ordersPage'),
-            'products' => Product::query()->where('active', true)->where('stock_quantity', '>', 0)->get(),
+            // No stock filter: selling at or below zero stock warns (see
+            // OrderService), it does not block - so a zero-stock product must
+            // still be selectable at the counter.
+            'products' => Product::query()->where('active', true)->get(),
             'students' => Student::query()->orderBy('last_name')->get(),
             'allProducts' => Product::query()->orderBy('name')->get(),
             'suppliers' => Supplier::query()->orderBy('name')->get(),

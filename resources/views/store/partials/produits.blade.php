@@ -7,6 +7,9 @@
         <x-text-input name="category" placeholder="Catégorie" class="block w-full" />
         <x-text-input type="number" step="0.01" name="price" placeholder="Prix" class="block w-full" required />
         <x-text-input type="number" name="stock_quantity" placeholder="Stock" class="block w-full" required />
+        <x-text-input type="number" step="0.01" name="cost_price" placeholder="Prix d'achat" class="block w-full" />
+        <x-text-input type="number" name="reorder_threshold" placeholder="Seuil d'alerte stock" class="block w-full" />
+        <x-text-input name="barcode" placeholder="Code-barres" class="block w-full" />
         <div class="sm:col-span-4">
             <x-primary-button>Ajouter</x-primary-button>
         </div>

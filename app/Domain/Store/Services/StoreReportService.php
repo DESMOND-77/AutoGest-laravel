@@ -3,6 +3,7 @@
 namespace App\Domain\Store\Services;
 
 use App\Domain\Finance\Enums\InvoiceStatus;
+use App\Domain\Store\Enums\OrderStatus;
 use App\Domain\Store\Models\Order;
 use App\Domain\Store\Models\OrderItem;
 use App\Domain\Store\Models\Product;
@@ -21,7 +22,7 @@ class StoreReportService
             'revenueThisWeek' => $this->revenueSince(now()->startOfWeek()),
             'revenueThisMonth' => $this->revenueSince(now()->startOfMonth()),
             'revenueThisYear' => $this->revenueSince(now()->startOfYear()),
-            'salesCount' => Order::query()->count(),
+            'salesCount' => Order::query()->where('status', '!=', OrderStatus::Cancelled->value)->count(),
             'topProducts' => $this->topProducts(),
             'criticalStock' => Product::query()
                 ->whereNotNull('reorder_threshold')
@@ -34,7 +35,10 @@ class StoreReportService
 
     private function revenueSince(\DateTimeInterface $since): float
     {
-        return (float) Order::query()->where('ordered_at', '>=', $since->format('Y-m-d'))->sum('total');
+        return (float) Order::query()
+            ->where('ordered_at', '>=', $since->format('Y-m-d'))
+            ->where('status', '!=', OrderStatus::Cancelled->value)
+            ->sum('total');
     }
 
     private function topProducts(int $limit = 5): Collection
@@ -43,6 +47,7 @@ class StoreReportService
             ->join('orders', 'orders.id', '=', 'order_items.order_id')
             ->join('products', 'products.id', '=', 'order_items.product_id')
             ->where('orders.structure_id', TenantContext::id())
+            ->where('orders.status', '!=', OrderStatus::Cancelled->value)
             ->selectRaw('products.name as name, SUM(order_items.quantity) as quantity, SUM(order_items.quantity * order_items.unit_price) as revenue')
             ->groupBy('products.id', 'products.name')
             ->orderByDesc('revenue')
@@ -55,6 +60,7 @@ class StoreReportService
     {
         return (float) Order::query()
             ->whereNotNull('invoice_id')
+            ->where('status', '!=', OrderStatus::Cancelled->value)
             ->with('invoice')
             ->get()
             ->filter(fn (Order $order) => $order->invoice && in_array($order->invoice->status, [InvoiceStatus::Unpaid, InvoiceStatus::Partial], true))

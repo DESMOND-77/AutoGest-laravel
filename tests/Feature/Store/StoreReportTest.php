@@ -1,5 +1,6 @@
 <?php
 
+use App\Domain\Finance\Models\Payment;
 use App\Domain\Store\Models\Product;
 use App\Domain\Store\Services\OrderService;
 use App\Domain\Store\Services\StoreReportService;
@@ -34,6 +35,41 @@ it('flags products under their reorder threshold as critical stock', function ()
     $report = app(StoreReportService::class)->dashboard();
 
     expect($report['criticalStock']->pluck('name')->all())->toBe(['Stock bas']);
+});
+
+it('excludes cancelled orders from revenue, sales count and top products', function () {
+    $kept = Product::factory()->create(['structure_id' => $this->structure->id, 'name' => 'Gilet', 'price' => 2000, 'stock_quantity' => 20]);
+    $cancelledProduct = Product::factory()->create(['structure_id' => $this->structure->id, 'name' => 'Triangle', 'price' => 50000, 'stock_quantity' => 20]);
+
+    app(OrderService::class)->place([['product_id' => $kept->id, 'quantity' => 1]], null, 'Client A');
+    $cancelled = app(OrderService::class)->place([['product_id' => $cancelledProduct->id, 'quantity' => 2]], null, 'Client B')['order'];
+
+    app(OrderService::class)->cancel($cancelled);
+
+    $report = app(StoreReportService::class)->dashboard();
+
+    expect($report['salesCount'])->toBe(1);
+    expect((float) $report['revenueToday'])->toBe(2000.0);
+    expect($report['topProducts']->pluck('name')->all())->toBe(['Gilet']);
+    // Only the live order's unpaid invoice counts - the cancelled order's
+    // 100 000 FCFA is out of the pending balance for good.
+    expect((float) $report['pendingBalance'])->toBe(2000.0);
+});
+
+it('excludes a cancelled order whose invoice was retained from the pending balance', function () {
+    $product = Product::factory()->create(['structure_id' => $this->structure->id, 'name' => 'Casque', 'price' => 10000, 'stock_quantity' => 20]);
+    $order = app(OrderService::class)->place([['product_id' => $product->id, 'quantity' => 1]], null, 'Client')['order'];
+
+    // A partial payment means cancel() keeps the invoice (financial trail).
+    Payment::factory()->create([
+        'structure_id' => $this->structure->id,
+        'invoice_id' => $order->invoice_id,
+        'amount' => 1000,
+    ]);
+
+    app(OrderService::class)->cancel($order);
+
+    expect((float) app(StoreReportService::class)->dashboard()['pendingBalance'])->toBe(0.0);
 });
 
 it('scopes top products to the current tenant only', function () {

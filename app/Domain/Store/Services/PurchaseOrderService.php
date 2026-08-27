@@ -24,8 +24,14 @@ class PurchaseOrderService
             ]);
 
             foreach ($items as $item) {
+                // Resolved through the tenant-scoped global scope, so a
+                // cross-tenant product_id throws instead of silently creating
+                // a dangling PurchaseOrderItem (plain `exists:products,id`
+                // validation does not respect the tenant scope).
+                $product = Product::query()->findOrFail($item['product_id']);
+
                 $order->items()->create([
-                    'product_id' => $item['product_id'],
+                    'product_id' => $product->id,
                     'quantity' => $item['quantity'],
                 ]);
             }
@@ -41,7 +47,11 @@ class PurchaseOrderService
     {
         return DB::transaction(function () use ($order, $receivedQuantities) {
             foreach ($order->items as $item) {
-                $received = $receivedQuantities[$item->product_id] ?? 0;
+                // The view's `max=` attribute is client-side only; clamp here
+                // so quantity_received can never exceed what was ordered,
+                // whatever a raw POST claims.
+                $outstanding = max(0, $item->quantity - $item->quantity_received);
+                $received = min((int) ($receivedQuantities[$item->product_id] ?? 0), $outstanding);
 
                 if ($received <= 0) {
                     continue;

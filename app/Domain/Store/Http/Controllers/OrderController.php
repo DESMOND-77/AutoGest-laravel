@@ -23,7 +23,7 @@ class OrderController extends Controller
 
         return view('store.orders.index', [
             'orders' => Order::query()->with(['student', 'items.product'])->latest('ordered_at')->paginate(20),
-            'products' => Product::query()->where('active', true)->where('stock_quantity', '>', 0)->get(),
+            'products' => Product::query()->where('active', true)->get(),
             'students' => Student::query()->orderBy('last_name')->get(),
         ]);
     }

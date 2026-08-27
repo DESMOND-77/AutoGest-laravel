@@ -10,6 +10,7 @@ use App\Domain\Tenancy\Models\Structure;
 use App\Models\User;
 use App\Support\TenantContext;
 use Database\Seeders\RoleSeeder;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 
 beforeEach(function () {
     $this->seed(RoleSeeder::class);
@@ -42,6 +43,36 @@ it('lets an admin receive a purchase order and updates stock', function () {
 
     expect($this->product->fresh()->stock_quantity)->toBe(15);
     expect($order->fresh()->status)->toBe(PurchaseOrderStatus::Received);
+});
+
+it('clamps a received quantity larger than what is still outstanding', function () {
+    $order = app(PurchaseOrderService::class)
+        ->place($this->supplier, [['product_id' => $this->product->id, 'quantity' => 10]]);
+
+    $this->actingAs($this->admin)->post(route('store.purchase-orders.receive', $order), [
+        'received' => [$this->product->id => 999],
+    ])->assertRedirect(route('store.purchase-orders.index'));
+
+    expect($order->fresh()->items->first()->quantity_received)->toBe(10);
+    expect($this->product->fresh()->stock_quantity)->toBe(10);
+    expect($order->fresh()->status)->toBe(PurchaseOrderStatus::Received);
+
+    // A second delivery on a fully-received line adds nothing.
+    $this->actingAs($this->admin)->post(route('store.purchase-orders.receive', $order), [
+        'received' => [$this->product->id => 5],
+    ])->assertRedirect(route('store.purchase-orders.index'));
+
+    expect($order->fresh()->items->first()->quantity_received)->toBe(10);
+    expect($this->product->fresh()->stock_quantity)->toBe(10);
+});
+
+it('rejects a purchase-order line pointing at another tenant\'s product', function () {
+    $otherStructure = Structure::factory()->create(['status' => StructureStatus::Active]);
+    $foreignProduct = Product::factory()->createQuietly(['structure_id' => $otherStructure->id]);
+
+    expect(fn () => app(PurchaseOrderService::class)
+        ->place($this->supplier, [['product_id' => $foreignProduct->id, 'quantity' => 3]]))
+        ->toThrow(ModelNotFoundException::class);
 });
 
 it('denies a moniteur access to purchase order routes', function () {

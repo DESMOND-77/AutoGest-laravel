@@ -47,6 +47,8 @@
                     <th class="px-5 py-3 font-medium">Articles</th>
                     <th class="px-5 py-3 font-medium">Total</th>
                     <th class="px-5 py-3 font-medium">Statut</th>
+                    <th class="px-5 py-3 font-medium">Facture</th>
+                    <th class="px-5 py-3"></th>
                 </tr>
             </thead>
             <tbody class="divide-y divide-border/60">
@@ -57,10 +59,25 @@
                         <td class="px-5 py-3 text-content-secondary">{{ $order->items->map(fn ($i) => $i->product->name.' ×'.$i->quantity)->implode(', ') }}</td>
                         <td class="px-5 py-3 text-content-secondary">{{ number_format($order->total, 0, ',', ' ') }} FCFA</td>
                         <td class="px-5 py-3"><x-badge variant="info">{{ $order->status->label() }}</x-badge></td>
+                        <td class="px-5 py-3">
+                            @if ($order->invoice_id)
+                                <a href="{{ route('finance.invoices.show', $order->invoice_id) }}" class="text-xs text-primary hover:underline">Voir la facture</a>
+                            @else
+                                <span class="text-content-muted text-xs">-</span>
+                            @endif
+                        </td>
+                        <td class="px-5 py-3 text-right">
+                            @can('cancel', $order)
+                                <form method="POST" action="{{ route('store.orders.cancel', $order) }}" onsubmit="return confirm('Annuler cette vente et remettre le stock ?');">
+                                    @csrf
+                                    <button type="submit" class="text-xs text-danger hover:underline">Annuler</button>
+                                </form>
+                            @endcan
+                        </td>
                     </tr>
                 @empty
                     <x-empty-table-row
-                        colspan="5"
+                        colspan="7"
                         title="Aucune vente enregistrée."
                         message="Enregistrez une vente pour un élève ou un client de passage."
                         action="#orders-create-form"

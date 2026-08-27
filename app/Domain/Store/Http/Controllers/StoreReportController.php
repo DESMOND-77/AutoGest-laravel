@@ -25,6 +25,8 @@ class StoreReportController extends Controller
 
     public function exportTopProductsCsv(): StreamedResponse
     {
+        $this->authorize('viewAny', Order::class);
+
         $rows = $this->reports->dashboard()['topProducts']
             ->map(fn (array $row) => [$row['name'], $row['quantity'], $row['revenue']]);
 
