@@ -22,6 +22,7 @@ use App\Domain\Scheduling\Http\Controllers\StudentRouteSheetController;
 use App\Domain\Settings\Http\Controllers\SettingController;
 use App\Domain\Store\Http\Controllers\OrderController;
 use App\Domain\Store\Http\Controllers\ProductController;
+use App\Domain\Store\Http\Controllers\PurchaseOrderController;
 use App\Domain\Store\Http\Controllers\SupplierController;
 use App\Domain\Students\Http\Controllers\EmailOtpController;
 use App\Domain\Students\Http\Controllers\PublicStudentRegistrationController;
@@ -272,6 +273,10 @@ Route::middleware(['auth', 'role:admin'])
         Route::get('orders', [OrderController::class, 'index'])->name('orders.index');
         Route::post('orders', [OrderController::class, 'store'])->name('orders.store');
         Route::post('orders/{order}/cancel', [OrderController::class, 'cancel'])->name('orders.cancel');
+
+        Route::get('purchase-orders', [PurchaseOrderController::class, 'index'])->name('purchase-orders.index');
+        Route::post('purchase-orders', [PurchaseOrderController::class, 'store'])->name('purchase-orders.store');
+        Route::post('purchase-orders/{purchaseOrder}/receive', [PurchaseOrderController::class, 'receive'])->name('purchase-orders.receive');
     });
 
 Route::middleware(['auth', 'role:admin'])
