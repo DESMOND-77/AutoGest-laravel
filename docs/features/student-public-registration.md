@@ -147,14 +147,58 @@ matched or names the existing student.
 Public registration does **not** introduce a new "candidature" table or
 bypass the existing student lifecycle. It calls the same
 `EnrollmentService::register()` used by the authenticated admin "New
-student" form. Every student created this way starts at
-`LifecycleStage::Prospect` / `DossierStatus::Incomplete` — the database
-column defaults already enforced for every student — so a public
-registration is exactly a pre-registration: it appears in the tenant's
-"Prospects" list, and progressing it to an enrolled student still requires
-the same guarded `LifecycleService` transitions an admin would use for any
-other prospect. There is no path from "public form submitted" straight to
-"active student" that skips administrative validation.
+student" form. However, the flow is no longer a single step: a self-registered
+account is created at `LifecycleStage::Prospect` / `DossierStatus::Incomplete`,
+but the student is immediately logged in. They then verify their email address
+via a 6-digit OTP code, which transitions them through `PreEnrollment` to
+`DossierSetup`. At that stage, the student uploads the tenant's required
+documents one by one. Submitting the dossier (`Validation` stage) opens it to
+per-document admin review: each document is approved or rejected individually.
+When the last pending document is approved, the student automatically advances
+to `Enrollment` — there is no final "unlock" step, and no path that skips
+administrative validation. The complete flow is described in
+`docs/superpowers/specs/2026-08-23-inscription-eleve-otp-dossier-design.md`.
+
+## Email OTP verification
+
+A freshly self-registered account is created with `email_verified_at = null`
+and immediately logged in, but `otp.verified` middleware blocks every other
+eleve route (dashboard, planning, quiz, dossier) until the 6-digit code sent
+to the account's email is confirmed. Codes are stored hashed (`sha256`,
+mirroring `StudentRegistrationLink::token_hash`), expire after
+`EMAIL_OTP_EXPIRY_MINUTES` (default 10), and lock out after
+`EMAIL_OTP_MAX_ATTEMPTS` wrong guesses (default 5) — at that point the only
+way forward is a resend, itself throttled to once per minute.
+
+Verifying dispatches `StudentEmailVerified`, whose listener
+(`ActivateStudentAfterEmailVerification`) chains two automatic
+`LifecycleService::transitionTo()` calls with no visible intermediate state:
+`Prospect → PreEnrollment → DossierSetup`.
+
+## Dossier: required documents and per-document review
+
+Each tenant configures its own list of required pieces
+(`RequiredDocumentType`, admin-managed at **Paramètres → Pièces requises**).
+A student at `DossierSetup` uploads one file per active required type
+(`eleve/dossier`); each upload versions the existing `Document` row exactly
+like every other document upload in this app (`DocumentService::upload()`,
+extended with an optional `$requiredDocumentType` param that keys the
+"previous version" lookup on `required_document_type_id` instead of
+`DocumentType`, since dossier pieces share the generic `DocumentType::Other`).
+
+"Soumettre mon dossier" transitions the student to `Validation` — server-side
+gated on every active required type having at least one uploaded version,
+regardless of its review status.
+
+Review happens **per document**, not per dossier: an admin approves or
+rejects each one individually from the `dossiers` queue (students currently
+at `Validation`). Rejecting one immediately
+sends the student back to `DossierSetup` (`Validation → DossierSetup`),
+regardless of the other documents' state; approving the *last* remaining
+pending/rejected active-type document advances the student to `Enrollment`.
+Both directions are refused server-side (403) if the student isn't currently
+at `Validation` when the review action runs — this is enforced in
+`DocumentReviewController::decide()`, not just hidden in the UI.
 
 ## Concurrency
 

@@ -44,9 +44,21 @@
             </div>
 
             <div>
-                <x-input-label for="email" value="E-mail (optionnel)" />
-                <x-text-input id="email" type="email" name="email" class="block mt-1 w-full" :value="old('email')" />
+                <x-input-label for="email" value="E-mail" />
+                <x-text-input id="email" type="email" name="email" class="block mt-1 w-full" :value="old('email')" required />
                 <x-input-error :messages="$errors->get('email')" class="mt-1" />
+            </div>
+
+            <div class="grid grid-cols-2 gap-4">
+                <div>
+                    <x-input-label for="password" value="Mot de passe" />
+                    <x-text-input id="password" type="password" name="password" class="block mt-1 w-full" required />
+                    <x-input-error :messages="$errors->get('password')" class="mt-1" />
+                </div>
+                <div>
+                    <x-input-label for="password_confirmation" value="Confirmer le mot de passe" />
+                    <x-text-input id="password_confirmation" type="password" name="password_confirmation" class="block mt-1 w-full" required />
+                </div>
             </div>
 
             <div class="grid grid-cols-2 gap-4">
@@ -71,8 +83,8 @@
             </div>
 
             <div>
-                <x-input-label for="birth_date" value="Date de naissance (optionnel)" />
-                <x-text-input id="birth_date" type="date" name="birth_date" class="block mt-1 w-full" :value="old('birth_date')" />
+                <x-input-label for="birth_date" value="Date de naissance" />
+                <x-text-input id="birth_date" type="date" name="birth_date" class="block mt-1 w-full" :value="old('birth_date')" required />
                 <x-input-error :messages="$errors->get('birth_date')" class="mt-1" />
             </div>
 

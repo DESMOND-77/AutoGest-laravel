@@ -3,6 +3,7 @@
 use App\Domain\Audit\Models\AuditLog;
 use App\Domain\Notifications\Notifications\AlertNotification;
 use App\Domain\Students\Exceptions\InvalidRegistrationLink;
+use App\Domain\Students\Mail\EmailOtpMail;
 use App\Domain\Students\Models\Student;
 use App\Domain\Students\Models\StudentRegistrationLink;
 use App\Domain\Students\Services\PublicStudentRegistrationService;
@@ -11,6 +12,7 @@ use App\Domain\Tenancy\Enums\StructureStatus;
 use App\Domain\Tenancy\Models\Structure;
 use App\Models\User;
 use Database\Seeders\RoleSeeder;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Notification;
 
 beforeEach(function () {
@@ -32,6 +34,9 @@ function validRegistrationPayload(string $token, array $overrides = []): array
         'last_name' => 'Dupont',
         'phone' => '077112233',
         'email' => 'jean.dupont@example.com',
+        'password' => 'Password!234',
+        'password_confirmation' => 'Password!234',
+        'birth_date' => '2000-01-01',
         'license_category' => 'B',
         'course_type' => 'normal',
     ], $overrides);
@@ -47,18 +52,26 @@ it('shows the tenant name on a valid token without asking the visitor to choose 
     $response->assertDontSee('Choisissez votre auto-école');
 });
 
-it('registers a prospect for the tenant that owns the token, at the Prospect stage', function () {
+it('creates a User+Student pair, logs the visitor in, and sends them to OTP verification', function () {
     Notification::fake();
+    Mail::fake();
 
     $response = $this->post('/register/student', validRegistrationPayload($this->token));
 
-    $response->assertRedirect(route('public-registration.success'));
+    $response->assertRedirect(route('eleve.otp.show'));
+    $this->assertAuthenticated();
 
     $student = Student::withoutTenantScope()->where('phone', '077112233')->firstOrFail();
     expect($student->structure_id)->toBe($this->structure->id);
     expect($student->lifecycle_stage->value)->toBe('prospect');
-    expect($student->dossier_status->value)->toBe('incomplete');
 
+    $user = User::withoutTenantScope()->where('email', 'jean.dupont@example.com')->firstOrFail();
+    expect($user->structure_id)->toBe($this->structure->id);
+    expect($user->email_verified_at)->toBeNull();
+    expect($user->hasRole('eleve'))->toBeTrue();
+    expect($student->user_id)->toBe($user->id);
+
+    Mail::assertSent(EmailOtpMail::class);
     Notification::assertSentTo($this->admin, AlertNotification::class);
 });
 
@@ -134,14 +147,23 @@ it('rejects registration when the tenant is suspended', function () {
 
 // --- Duplicates --------------------------------------------------------
 
-it('rejects a registration whose email already exists for the same tenant, without naming the existing student', function () {
-    $existing = Student::factory()->create(['structure_id' => $this->structure->id, 'email' => 'jean.dupont@example.com']);
+it('rejects a registration whose account email already exists, without naming the tenant it belongs to', function () {
+    $otherStructure = Structure::factory()->create(['status' => StructureStatus::Active]);
+    $existingUser = User::factory()->create(['structure_id' => $otherStructure->id, 'email' => 'jean.dupont@example.com']);
 
     $response = $this->post('/register/student', validRegistrationPayload($this->token, ['phone' => '099999999']));
 
     $response->assertOk();
-    $response->assertDontSee($existing->last_name);
+    $response->assertDontSee($otherStructure->name);
     expect(Student::withoutTenantScope()->where('phone', '099999999')->exists())->toBeFalse();
+});
+
+it('never flashes the submitted password back after a duplicate rejection', function () {
+    User::factory()->create(['structure_id' => $this->structure->id, 'email' => 'jean.dupont@example.com']);
+
+    $this->post('/register/student', validRegistrationPayload($this->token, ['phone' => '099999999']));
+
+    expect(session('_old_input.password') ?? null)->toBeNull();
 });
 
 it('rejects a registration whose phone already exists for the same tenant', function () {
@@ -150,7 +172,7 @@ it('rejects a registration whose phone already exists for the same tenant', func
     $response = $this->post('/register/student', validRegistrationPayload($this->token, ['email' => 'other@example.com']));
 
     $response->assertOk();
-    expect(Student::withoutTenantScope()->where('email', 'other@example.com')->exists())->toBeFalse();
+    expect(User::withoutTenantScope()->where('email', 'other@example.com')->exists())->toBeFalse();
 });
 
 it('allows the same email/phone to register in two different tenants', function () {
@@ -160,7 +182,7 @@ it('allows the same email/phone to register in two different tenants', function 
     ['token' => $otherToken] = $this->service->generate($otherStructure, $otherAdmin);
 
     $this->post('/register/student', validRegistrationPayload($this->token));
-    $this->post('/register/student', validRegistrationPayload($otherToken));
+    $this->post('/register/student', validRegistrationPayload($otherToken, ['email' => 'jean2@example.com']));
 
     expect(Student::withoutTenantScope()->where('phone', '077112233')->count())->toBe(2);
 });
@@ -203,22 +225,23 @@ it('lets only one of two concurrent submissions succeed when max_uses is 1', fun
     $link = StudentRegistrationLink::withoutTenantScope()->where('token_hash', hash('sha256', $this->token))->firstOrFail();
     $link->update(['max_uses' => 1]);
 
-    // Simulate the race directly against the service: both "requests" pass
-    // the outer validate() (which doesn't lock) before either transaction
-    // commits, so the lockForUpdate() re-check inside register() is what
-    // has to prevent a second student from being created.
     $service = app(PublicStudentRegistrationService::class);
 
     $results = [];
     foreach ([1, 2] as $i) {
         try {
-            $service->register($this->token, [
-                'first_name' => 'Candidate',
-                'last_name' => "Number $i",
-                'phone' => "07700000$i",
-                'license_category' => 'B',
-                'course_type' => 'normal',
-            ]);
+            $service->register(
+                $this->token,
+                ['name' => "Candidate Number $i", 'email' => "candidate{$i}@example.com", 'password' => 'Password!234'],
+                [
+                    'first_name' => 'Candidate',
+                    'last_name' => "Number $i",
+                    'phone' => "07700000$i",
+                    'birth_date' => '2000-01-01',
+                    'license_category' => 'B',
+                    'course_type' => 'normal',
+                ],
+            );
             $results[] = 'ok';
         } catch (InvalidRegistrationLink) {
             $results[] = 'rejected';
@@ -234,10 +257,10 @@ it('lets only one of two concurrent submissions succeed when max_uses is 1', fun
 
 it('rate limits repeated public registration submissions from the same IP', function () {
     for ($i = 0; $i < 6; $i++) {
-        $this->post('/register/student', validRegistrationPayload($this->token, ['phone' => "0771100{$i}0"]));
+        $this->post('/register/student', validRegistrationPayload($this->token, ['phone' => "0771100{$i}0", 'email' => "u{$i}@example.com"]));
     }
 
-    $response = $this->post('/register/student', validRegistrationPayload($this->token, ['phone' => '077110099']));
+    $response = $this->post('/register/student', validRegistrationPayload($this->token, ['phone' => '077110099', 'email' => 'ulast@example.com']));
 
     $response->assertStatus(429);
 });
@@ -259,6 +282,6 @@ it('redirects back to the form with field errors when required data is missing',
         ->post('/register/student', ['registration_token' => $this->token]);
 
     $response->assertRedirect('/register/student?token='.$this->token);
-    $response->assertSessionHasErrors(['first_name', 'last_name', 'phone', 'license_category', 'course_type']);
+    $response->assertSessionHasErrors(['first_name', 'last_name', 'phone', 'email', 'password', 'birth_date', 'license_category', 'course_type']);
     expect(Student::withoutTenantScope()->count())->toBe(0);
 });

@@ -1,4 +1,4 @@
-@props(['href', 'active' => false, 'icon' => null])
+@props(['href', 'active' => false, 'icon' => null, 'badge' => null])
 
 {{--
     Relies on an ancestor <aside x-data="{ collapsed: ... }"> — Blade
@@ -18,6 +18,12 @@
         <x-icon :name="$icon" class="w-5 h-5 shrink-0" />
     @endif
     <span x-show="!collapsed" x-cloak>{{ $slot }}</span>
+
+    @if ($badge)
+        <span class="absolute top-0.5 right-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-danger px-1 text-[10px] font-semibold leading-none text-white">
+            {{ $badge }}
+        </span>
+    @endif
 
     <span
         x-show="collapsed"

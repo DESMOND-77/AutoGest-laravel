@@ -1,11 +1,15 @@
 <?php
 
+use App\Domain\Documents\Enums\DocumentReviewStatus;
 use App\Domain\Documents\Enums\DocumentType;
 use App\Domain\Documents\Models\Document;
+use App\Domain\Documents\Services\DocumentService;
+use App\Domain\Students\Models\RequiredDocumentType;
 use App\Domain\Students\Models\Student;
 use App\Domain\Tenancy\Enums\StructureStatus;
 use App\Domain\Tenancy\Models\Structure;
 use App\Models\User;
+use App\Support\TenantContext;
 use Database\Seeders\RoleSeeder;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
@@ -72,4 +76,41 @@ it('does not let an admin of another school download the document', function () 
     $this->actingAs($otherAdmin)
         ->get(route('documents.download', $document))
         ->assertNotFound();
+});
+
+it('versions dossier documents by required_document_type_id, not by DocumentType, and resets review status', function () {
+    $structure = Structure::factory()->create();
+    TenantContext::set($structure);
+    $student = Student::factory()->create(['structure_id' => $structure->id]);
+    $requiredType = RequiredDocumentType::factory()->create(['structure_id' => $structure->id]);
+
+    $service = app(DocumentService::class);
+
+    $first = $service->upload(
+        UploadedFile::fake()->create('id-card.pdf', 10),
+        $student,
+        DocumentType::Other,
+        null,
+        null,
+        $requiredType,
+    );
+
+    expect($first->review_status)->toBe(DocumentReviewStatus::Pending);
+
+    $first->update(['review_status' => DocumentReviewStatus::Approved, 'reviewed_at' => now()]);
+
+    $second = $service->upload(
+        UploadedFile::fake()->create('id-card-v2.pdf', 10),
+        $student,
+        DocumentType::Other,
+        null,
+        null,
+        $requiredType,
+    );
+
+    expect($first->fresh()->is_current)->toBeFalse();
+    expect($second->is_current)->toBeTrue();
+    expect($second->version)->toBe(2);
+    expect($second->review_status)->toBe(DocumentReviewStatus::Pending);
+    expect($second->required_document_type_id)->toBe($requiredType->id);
 });

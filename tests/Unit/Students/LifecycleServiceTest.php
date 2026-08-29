@@ -43,3 +43,20 @@ it('allows the retake loop from a failed practical exam back to continuous evalu
 
     expect($student->fresh()->lifecycle_stage)->toBe(LifecycleStage::ContinuousEvaluation);
 });
+
+it('allows a rejected dossier to send the student back to dossier setup', function () {
+    $structure = Structure::factory()->create();
+    $student = Student::factory()->stage(LifecycleStage::Validation)->create(['structure_id' => $structure->id]);
+
+    (new LifecycleService)->transitionTo($student, LifecycleStage::DossierSetup);
+
+    expect($student->fresh()->lifecycle_stage)->toBe(LifecycleStage::DossierSetup);
+});
+
+it('rejects skipping straight from dossier setup to enrollment without going through validation', function () {
+    $structure = Structure::factory()->create();
+    $student = Student::factory()->stage(LifecycleStage::DossierSetup)->create(['structure_id' => $structure->id]);
+
+    expect(fn () => (new LifecycleService)->transitionTo($student, LifecycleStage::Enrollment))
+        ->toThrow(InvalidStageTransition::class);
+});

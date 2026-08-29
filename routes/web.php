@@ -3,6 +3,7 @@
 use App\Domain\Audit\Http\Controllers\AuditLogController;
 use App\Domain\CRM\Http\Controllers\LeadController;
 use App\Domain\Documents\Http\Controllers\DocumentController;
+use App\Domain\Documents\Http\Controllers\DocumentReviewController;
 use App\Domain\Finance\Http\Controllers\InvoiceController;
 use App\Domain\Finance\Http\Controllers\LedgerController;
 use App\Domain\Finance\Http\Controllers\PaymentController;
@@ -19,8 +20,11 @@ use App\Domain\Settings\Http\Controllers\SettingController;
 use App\Domain\Store\Http\Controllers\OrderController;
 use App\Domain\Store\Http\Controllers\ProductController;
 use App\Domain\Store\Http\Controllers\SupplierController;
+use App\Domain\Students\Http\Controllers\EmailOtpController;
 use App\Domain\Students\Http\Controllers\PublicStudentRegistrationController;
+use App\Domain\Students\Http\Controllers\RequiredDocumentTypeController;
 use App\Domain\Students\Http\Controllers\StudentController;
+use App\Domain\Students\Http\Controllers\StudentDossierController;
 use App\Domain\Students\Http\Controllers\StudentRegistrationLinkController;
 use App\Domain\Tenancy\Http\Controllers\StructureManagementController;
 use App\Domain\Training\Http\Controllers\EvaluationController;
@@ -132,7 +136,7 @@ Route::middleware(['auth', 'role:admin|moniteur'])
         Route::post('students/{student}/evaluation', [EvaluationController::class, 'store'])->name('evaluation.store');
     });
 
-Route::middleware(['auth', 'role:eleve'])
+Route::middleware(['auth', 'role:eleve', 'otp.verified'])
     ->prefix('quiz')
     ->name('quiz.')
     ->group(function () {
@@ -199,6 +203,14 @@ Route::middleware(['auth', 'role:admin'])
                 Route::post('regenerate', [StudentRegistrationLinkController::class, 'regenerate'])->name('regenerate');
                 Route::post('revoke', [StudentRegistrationLinkController::class, 'revoke'])->name('revoke');
             });
+
+        Route::prefix('documents-requis')
+            ->name('document-types.')
+            ->group(function () {
+                Route::get('/', [RequiredDocumentTypeController::class, 'index'])->name('index');
+                Route::post('/', [RequiredDocumentTypeController::class, 'store'])->name('store');
+                Route::patch('{requiredDocumentType}', [RequiredDocumentTypeController::class, 'update'])->name('update');
+            });
     });
 
 // Public, unauthenticated: a prospective student opens the link an
@@ -210,15 +222,12 @@ Route::prefix('register/student')
     ->name('public-registration.')
     ->group(function () {
         Route::get('/', [PublicStudentRegistrationController::class, 'show'])
-            ->middleware('throttle:30,1')
+            ->middleware('throttle:public-registration-lookup')
             ->name('show');
 
         Route::post('/', [PublicStudentRegistrationController::class, 'store'])
-            ->middleware('throttle:6,1')
+            ->middleware('throttle:public-registration-submit')
             ->name('store');
-
-        Route::get('success', [PublicStudentRegistrationController::class, 'success'])
-            ->name('success');
     });
 
 Route::middleware(['auth', 'role:admin'])
@@ -253,6 +262,9 @@ Route::middleware('auth')->group(function () {
 Route::middleware(['auth', 'role:admin'])->group(function () {
     Route::post('students/{student}/documents', [DocumentController::class, 'storeForStudent'])->name('students.documents.store');
     Route::post('fleet/{vehicle}/documents', [DocumentController::class, 'storeForVehicle'])->name('fleet.documents.store');
+    Route::get('dossiers', [DocumentReviewController::class, 'index'])->name('dossiers.index');
+    Route::post('documents/{document}/approve', [DocumentReviewController::class, 'approve'])->name('documents.approve');
+    Route::post('documents/{document}/reject', [DocumentReviewController::class, 'reject'])->name('documents.reject');
 });
 
 Route::middleware('auth')
@@ -271,10 +283,24 @@ Route::middleware(['auth', 'role:moniteur'])
     });
 
 Route::middleware(['auth', 'role:eleve'])
+    ->prefix('eleve')
+    ->name('eleve.')
+    ->group(function () {
+        Route::get('verification-otp', [EmailOtpController::class, 'show'])->name('otp.show');
+        Route::post('verification-otp', [EmailOtpController::class, 'verify'])->name('otp.verify');
+        Route::post('verification-otp/resend', [EmailOtpController::class, 'resend'])
+            ->middleware('throttle:1,1')
+            ->name('otp.resend');
+    });
+
+Route::middleware(['auth', 'role:eleve', 'otp.verified'])
     ->name('eleve.')
     ->group(function () {
         Route::view('eleve/dashboard', 'eleve.dashboard')->name('dashboard');
         Route::get('eleve/planning', StudentPlanningController::class)->name('planning');
+        Route::get('eleve/dossier', [StudentDossierController::class, 'show'])->name('dossier.show');
+        Route::post('eleve/dossier/submit', [StudentDossierController::class, 'submit'])->name('dossier.submit');
+        Route::post('eleve/dossier/{requiredDocumentType}', [StudentDossierController::class, 'upload'])->name('dossier.upload');
     });
 
 require __DIR__.'/auth.php';

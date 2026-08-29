@@ -21,4 +21,9 @@ class DocumentPolicy
     {
         return $user->hasRole('admin') && $document->structure_id === $user->structure_id;
     }
+
+    public function review(User $user, Document $document): bool
+    {
+        return $user->hasRole('admin') && $document->structure_id === $user->structure_id;
+    }
 }
