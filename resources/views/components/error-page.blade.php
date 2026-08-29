@@ -18,7 +18,7 @@
         <div class="min-h-screen flex flex-col items-center justify-center px-6 text-center">
             <a href="/" class="flex items-center gap-2 mb-8">
                 <x-brand-logo variant="icon" class="h-10 w-10" />
-                <span class="text-lg font-semibold text-content">AutoGest</span>
+                <span class="text-lg font-semibold text-content">{{ config('app.name', 'Auto-GestBoard') }}</span>
             </a>
 
             <div class="bg-surface shadow-soft rounded-ui-xl p-10 max-w-md w-full">

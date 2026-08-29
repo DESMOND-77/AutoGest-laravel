@@ -1,13 +1,13 @@
 <x-app-layout>
     <x-slot name="header">
-        <h2 class="font-semibold text-xl text-gray-800 dark:text-gray-200 leading-tight">
+        <h2 class="font-semibold text-xl text-content-secondary leading-tight">
             {{ $student->exists ? 'Modifier '.$student->fullName() : 'Nouvel élève' }}
         </h2>
     </x-slot>
 
     <div class="py-12">
         <div class="max-w-3xl mx-auto sm:px-6 lg:px-8">
-            <div class="bg-white dark:bg-gray-800 shadow-sm sm:rounded-lg p-6">
+            <div class="bg-surface shadow-soft-sm rounded-ui-lg p-6">
                 <form method="POST" action="{{ $student->exists ? route('students.update', $student) : route('students.store') }}">
                     @csrf
                     @if ($student->exists) @method('PUT') @endif
@@ -40,12 +40,12 @@
                             <x-text-input id="email" type="email" name="email" class="block mt-1 w-full" :value="old('email', $student->email)" required />
                             <x-input-error :messages="$errors->get('email')" class="mt-2" />
                             @unless ($student->exists)
-                                <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Un compte élève sera créé avec cette adresse et recevra un lien pour définir son mot de passe.</p>
+                                <p class="text-xs text-content-muted mt-1">Un compte élève sera créé avec cette adresse et recevra un lien pour définir son mot de passe.</p>
                             @endunless
                         </div>
                         <div>
                             <x-input-label for="license_category" value="Catégorie de permis" />
-                            <select id="license_category" name="license_category" class="border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 rounded-md shadow-sm block mt-1 w-full">
+                            <select id="license_category" name="license_category" class="border-border rounded-md shadow-sm block mt-1 w-full">
                                 @foreach (\App\Domain\Students\Enums\LicenseCategory::cases() as $case)
                                     <option value="{{ $case->value }}" @selected(old('license_category', $student->license_category?->value) === $case->value)>{{ $case->value }}</option>
                                 @endforeach
@@ -53,7 +53,7 @@
                         </div>
                         <div>
                             <x-input-label for="course_type" value="Type de cours" />
-                            <select id="course_type" name="course_type" class="border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 rounded-md shadow-sm block mt-1 w-full">
+                            <select id="course_type" name="course_type" class="border-border rounded-md shadow-sm block mt-1 w-full">
                                 @foreach (\App\Domain\Students\Enums\CourseType::cases() as $case)
                                     <option value="{{ $case->value }}" @selected(old('course_type', $student->course_type?->value) === $case->value)>{{ $case->label() }}</option>
                                 @endforeach
@@ -61,7 +61,7 @@
                         </div>
                         <div>
                             <x-input-label for="instructor_id" value="Moniteur" />
-                            <select id="instructor_id" name="instructor_id" class="border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 rounded-md shadow-sm block mt-1 w-full">
+                            <select id="instructor_id" name="instructor_id" class="border-border rounded-md shadow-sm block mt-1 w-full">
                                 <option value="">-</option>
                                 @foreach ($instructors as $instructor)
                                     <option value="{{ $instructor->id }}" @selected(old('instructor_id', $student->instructor_id) == $instructor->id)>{{ $instructor->name }}</option>
@@ -70,7 +70,7 @@
                         </div>
                         <div class="sm:col-span-2">
                             <x-input-label for="address" value="Adresse" />
-                            <textarea id="address" name="address" rows="2" class="border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 rounded-md shadow-sm block mt-1 w-full">{{ old('address', $student->address) }}</textarea>
+                            <textarea id="address" name="address" rows="2" class="border-border rounded-md shadow-sm block mt-1 w-full">{{ old('address', $student->address) }}</textarea>
                         </div>
                     </div>
 

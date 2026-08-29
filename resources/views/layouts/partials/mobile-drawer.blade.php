@@ -12,7 +12,7 @@
         x-transition:leave="transition-opacity ease-in duration-150"
         x-transition:leave-start="opacity-100"
         x-transition:leave-end="opacity-0"
-        class="fixed inset-0 bg-black/40"
+        class="fixed inset-0 bg-content/60"
         @click="mobileMenuOpen = false"
     ></div>
 
