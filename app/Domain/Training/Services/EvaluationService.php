@@ -12,6 +12,11 @@ use App\Models\User;
  * ownership check at all (see fixs.md #4) - the fix there was in the Policy
  * layer, not here. This service just does the actual upsert, one row per
  * skill, exactly once per (student, skill) pair via the unique constraint.
+ *
+ * validated_at is set once, on the transition INTO Acquired - not
+ * overwritten on every resubmission that keeps a skill Acquired, and
+ * cleared whenever a skill moves away from Acquired (a moniteur correcting
+ * a premature validation).
  */
 class EvaluationService
 {
@@ -23,12 +28,23 @@ class EvaluationService
         foreach ($levels as $skillId => $level) {
             $skillLevel = SkillLevel::from($level);
 
+            $existing = SkillProgress::query()
+                ->where('student_id', $student->id)
+                ->where('skill_id', (int) $skillId)
+                ->first();
+
+            $validatedAt = match (true) {
+                $skillLevel !== SkillLevel::Acquired => null,
+                $existing?->level === SkillLevel::Acquired => $existing->validated_at ?? now()->toDateString(),
+                default => now()->toDateString(),
+            };
+
             SkillProgress::query()->updateOrCreate(
                 ['student_id' => $student->id, 'skill_id' => (int) $skillId],
                 [
                     'instructor_id' => $instructor?->id,
                     'level' => $skillLevel->value,
-                    'validated_at' => $skillLevel === SkillLevel::Acquired ? now()->toDateString() : null,
+                    'validated_at' => $validatedAt,
                 ]
             );
         }

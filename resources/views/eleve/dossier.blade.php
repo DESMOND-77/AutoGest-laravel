@@ -2,6 +2,11 @@
     <x-slot name="header">Mon dossier</x-slot>
 
     <div class="py-6 space-y-4 max-w-3xl mx-auto">
+        <div class="flex items-center justify-between">
+            <span class="text-sm text-content-secondary">Statut du dossier</span>
+            <x-badge variant="info">{{ $student->dossier_status->label() }}</x-badge>
+        </div>
+
         @if (session('status'))
             <x-alert variant="success">{{ session('status') }}</x-alert>
         @endif

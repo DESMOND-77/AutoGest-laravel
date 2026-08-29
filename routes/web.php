@@ -7,6 +7,7 @@ use App\Domain\Documents\Http\Controllers\DocumentReviewController;
 use App\Domain\Finance\Http\Controllers\InvoiceController;
 use App\Domain\Finance\Http\Controllers\LedgerController;
 use App\Domain\Finance\Http\Controllers\PaymentController;
+use App\Domain\Finance\Http\Controllers\StudentPaymentsController;
 use App\Domain\Finance\Http\Controllers\TrainingPackageController;
 use App\Domain\Fleet\Http\Controllers\VehicleController;
 use App\Domain\Instructors\Http\Controllers\InstructorAvailabilityController;
@@ -31,6 +32,7 @@ use App\Domain\Training\Http\Controllers\EvaluationController;
 use App\Domain\Training\Http\Controllers\ExamController;
 use App\Domain\Training\Http\Controllers\QuizController;
 use App\Domain\Training\Http\Controllers\SkillController;
+use App\Domain\Training\Http\Controllers\StudentProgressionController;
 use App\Domain\Users\Http\Controllers\UserManagementController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\ProfileController;
@@ -319,6 +321,8 @@ Route::middleware(['auth', 'role:eleve', 'otp.verified'])
     ->group(function () {
         Route::view('eleve/dashboard', 'eleve.dashboard')->name('dashboard');
         Route::get('eleve/planning', StudentPlanningController::class)->name('planning');
+        Route::get('eleve/progression', StudentProgressionController::class)->name('progression');
+        Route::get('eleve/paiements', StudentPaymentsController::class)->name('paiements');
         Route::get('eleve/dossier', [StudentDossierController::class, 'show'])->name('dossier.show');
         Route::post('eleve/dossier/submit', [StudentDossierController::class, 'submit'])->name('dossier.submit');
         Route::post('eleve/dossier/{requiredDocumentType}', [StudentDossierController::class, 'upload'])->name('dossier.upload');
