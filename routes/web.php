@@ -78,6 +78,7 @@ Route::middleware(['auth', 'role:admin'])
 Route::middleware(['auth', 'role:admin|moniteur'])->group(function () {
     Route::resource('students', StudentController::class);
     Route::patch('students/{student}/stage', [StudentController::class, 'advanceStage'])->name('students.stage');
+    Route::post('students/{student}/account', [StudentController::class, 'createAccount'])->name('students.create-account');
 });
 
 Route::middleware(['auth', 'role:admin'])

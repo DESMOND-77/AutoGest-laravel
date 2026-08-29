@@ -2,7 +2,6 @@
 
 namespace App\Domain\Users\Http\Controllers;
 
-use App\Domain\Students\Models\Student;
 use App\Domain\Users\Http\Requests\StoreUserRequest;
 use App\Domain\Users\Services\UserManagementService;
 use App\Http\Controllers\Controller;
@@ -31,23 +30,20 @@ class UserManagementController extends Controller
             $query->role($roleFilter);
         }
 
-        $preselectedStudent = $request->filled('student')
-            ? Student::query()->whereNull('user_id')->find($request->integer('student'))
-            : null;
-
         return view('users.index', [
             'users' => $query->paginate(20)->withQueryString(),
             'roleFilter' => $roleFilter,
             'roleCounts' => collect(['admin', 'moniteur', 'eleve'])
                 ->mapWithKeys(fn (string $role) => [$role => User::role($role)->count()]),
-            'unlinkedStudents' => Student::query()->whereNull('user_id')->orderBy('last_name')->get(),
-            'preselectedStudent' => $preselectedStudent,
         ]);
     }
 
     public function store(StoreUserRequest $request): RedirectResponse
     {
-        $this->users->createAccount($request->validated(), Auth::user());
+        $this->users->createAccount([
+            ...$request->validated(),
+            'role' => 'admin',
+        ], Auth::user());
 
         return redirect()->route('settings.users.index')
             ->with('status', 'Compte créé. Un lien de définition de mot de passe a été envoyé.');

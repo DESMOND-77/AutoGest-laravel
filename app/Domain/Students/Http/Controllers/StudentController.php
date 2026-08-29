@@ -12,11 +12,13 @@ use App\Domain\Students\Models\Student;
 use App\Domain\Students\Repositories\StudentRepositoryInterface;
 use App\Domain\Students\Services\EnrollmentService;
 use App\Domain\Students\Services\LifecycleService;
+use App\Domain\Users\Services\UserManagementService;
 use App\Http\Controllers\Controller;
 use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\View\View;
 
 class StudentController extends Controller
@@ -26,6 +28,7 @@ class StudentController extends Controller
         private readonly EnrollmentService $enrollment,
         private readonly LifecycleService $lifecycle,
         private readonly AuditService $audit,
+        private readonly UserManagementService $users,
     ) {}
 
     public function index(Request $request): View
@@ -58,10 +61,21 @@ class StudentController extends Controller
 
     public function store(StoreStudentRequest $request): RedirectResponse
     {
-        $student = $this->enrollment->register($request->validated());
+        $student = DB::transaction(function () use ($request) {
+            $student = $this->enrollment->register($request->validated());
+
+            $this->users->createAccount([
+                'name' => $student->fullName(),
+                'email' => $student->email,
+                'role' => 'eleve',
+                'student_id' => $student->id,
+            ], Auth::user());
+
+            return $student;
+        });
 
         return redirect()->route('students.show', $student)
-            ->with('status', 'Élève créé.');
+            ->with('status', 'Élève créé. Un lien de définition de mot de passe lui a été envoyé.');
     }
 
     public function show(Student $student): View
@@ -98,6 +112,10 @@ class StudentController extends Controller
 
         $this->audit->log('student.deleted', $student, $student->only(['first_name', 'last_name']), [], Auth::user());
 
+        if ($student->user_id) {
+            $this->users->deactivate(User::query()->findOrFail($student->user_id), Auth::user());
+        }
+
         $this->students->delete($student);
 
         return redirect()->route('students.index')
@@ -116,6 +134,28 @@ class StudentController extends Controller
 
         return redirect()->route('students.show', $student)
             ->with('status', 'Étape mise à jour.');
+    }
+
+    public function createAccount(Student $student): RedirectResponse
+    {
+        $this->authorize('update', $student);
+
+        if ($student->user_id) {
+            return back()->withErrors(['account' => 'Cet élève a déjà un compte.']);
+        }
+
+        if (! $student->email) {
+            return back()->withErrors(['account' => 'Renseignez d\'abord une adresse e-mail pour cet élève.']);
+        }
+
+        $this->users->createAccount([
+            'name' => $student->fullName(),
+            'email' => $student->email,
+            'role' => 'eleve',
+            'student_id' => $student->id,
+        ], Auth::user());
+
+        return back()->with('status', 'Compte créé. Un lien de définition de mot de passe a été envoyé.');
     }
 
     private function instructors()

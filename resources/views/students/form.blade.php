@@ -37,7 +37,11 @@
                         </div>
                         <div>
                             <x-input-label for="email" value="E-mail" />
-                            <x-text-input id="email" type="email" name="email" class="block mt-1 w-full" :value="old('email', $student->email)" />
+                            <x-text-input id="email" type="email" name="email" class="block mt-1 w-full" :value="old('email', $student->email)" required />
+                            <x-input-error :messages="$errors->get('email')" class="mt-2" />
+                            @unless ($student->exists)
+                                <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Un compte élève sera créé avec cette adresse et recevra un lien pour définir son mot de passe.</p>
+                            @endunless
                         </div>
                         <div>
                             <x-input-label for="license_category" value="Catégorie de permis" />

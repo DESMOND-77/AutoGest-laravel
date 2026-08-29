@@ -87,7 +87,7 @@ it('shows a "Créer un compte" link on a student with no login account, but not 
     ]);
 
     $this->actingAs($admin)->get(route('students.show', $withoutAccount))
-        ->assertSee(route('settings.users.index', ['student' => $withoutAccount->id]), false);
+        ->assertSee(route('students.create-account', $withoutAccount), false);
 
     $this->actingAs($admin)->get(route('students.show', $withAccount))
         ->assertDontSee('Créer un compte');

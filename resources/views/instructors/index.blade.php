@@ -6,14 +6,22 @@
             <x-alert variant="success">{{ session('status') }}</x-alert>
         @endif
 
+        @if ($errors->any())
+            <x-alert variant="danger">{{ $errors->first() }}</x-alert>
+        @endif
+
         @can('create', \App\Domain\Instructors\Models\Instructor::class)
             <x-card>
                 <div class="text-sm font-semibold text-content mb-3">Nouveau moniteur</div>
                 <form id="instructors-create-form" method="POST" action="{{ route('instructors.store') }}" class="grid grid-cols-1 sm:grid-cols-4 gap-3 items-end">
                     @csrf
                     <div>
-                        <x-input-label for="user_id" value="Utilisateur (id)" />
-                        <x-text-input id="user_id" type="number" name="user_id" class="block mt-1 w-full" required />
+                        <x-input-label for="name" value="Nom complet" />
+                        <x-text-input id="name" name="name" class="block mt-1 w-full" required />
+                    </div>
+                    <div>
+                        <x-input-label for="email" value="E-mail" />
+                        <x-text-input id="email" type="email" name="email" class="block mt-1 w-full" required />
                     </div>
                     <div>
                         <x-input-label for="license_number" value="N° agrément" />
@@ -27,6 +35,9 @@
                         <x-primary-button>Ajouter</x-primary-button>
                     </div>
                 </form>
+                <p class="text-xs text-content-muted mt-3">
+                    Le nouveau compte moniteur reçoit un e-mail avec un lien pour définir son mot de passe.
+                </p>
             </x-card>
         @endcan
 
