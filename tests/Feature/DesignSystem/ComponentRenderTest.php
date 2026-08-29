@@ -18,3 +18,33 @@ it('renders the icon-only brand mark', function () {
         ->toContain('images/brand/icon.jpg')
         ->toContain('h-8 w-8');
 });
+
+it('renders the primary button with the brand-green primary token', function () {
+    $html = Blade::render('<x-button variant="primary">Ajouter un élève</x-button>');
+    expect($html)
+        ->toContain('bg-primary')
+        ->toContain('text-primary-content')
+        ->toContain('<button');
+});
+
+it('renders the secondary button as a navy outline', function () {
+    $html = Blade::render('<x-button variant="secondary">Annuler</x-button>');
+    expect($html)
+        ->toContain('border-secondary')
+        ->toContain('text-secondary');
+});
+
+it('renders as an anchor when href is provided', function () {
+    $html = Blade::render('<x-button variant="primary" href="/students/create">Nouveau</x-button>');
+    expect($html)->toContain('<a')->toContain('href="/students/create"');
+});
+
+it('keeps the legacy x-primary-button alias working', function () {
+    $html = Blade::render('<x-primary-button>Enregistrer</x-primary-button>');
+    expect($html)->toContain('bg-primary')->toContain('text-primary-content');
+});
+
+it('renders an icon-button with an accessible label', function () {
+    $html = Blade::render('<x-icon-button icon="plus" label="Ajouter" variant="primary" />');
+    expect($html)->toContain('aria-label="Ajouter"')->toContain('bg-primary');
+});
