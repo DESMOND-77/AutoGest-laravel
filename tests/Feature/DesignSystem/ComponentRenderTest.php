@@ -1,5 +1,6 @@
 <?php
 
+use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Blade;
 
@@ -96,4 +97,67 @@ it('colours the planning legend per spec §17 (conduite green, code blue, exam o
         ->toContain('bg-info')      // code
         ->toContain('bg-warning')   // mock exam
         ->not->toContain('bg-danger'); // no red in the session-type legend
+});
+
+it('renders a page header with title and actions slot', function () {
+    $html = Blade::render(
+        '<x-page-header title="Élèves" subtitle="248 actifs"><x-slot:actions>BTN</x-slot:actions></x-page-header>'
+    );
+    expect($html)->toContain('Élèves')->toContain('248 actifs')->toContain('BTN');
+});
+
+it('renders an empty state with an icon and a call to action', function () {
+    $html = Blade::render(
+        '<x-empty-state icon="truck" title="Aucun véhicule" message="Votre flotte est vide." action="/fleet/create" actionLabel="Ajouter un véhicule" />'
+    );
+    expect($html)->toContain('Aucun véhicule')->toContain('/fleet/create')->toContain('Ajouter un véhicule');
+});
+
+it('renders an avatar fallback initial on the brand primary', function () {
+    $html = Blade::render('<x-avatar name="Jean Dupont" size="md" />');
+    expect($html)->toContain('J')->toContain('bg-primary');
+});
+
+it('renders loading and error states', function () {
+    expect(Blade::render('<x-loading-state label="Chargement…" />'))->toContain('Chargement…');
+    expect(Blade::render('<x-error-state title="Oups" message="Échec" />'))
+        ->toContain('Oups')->toContain('text-danger');
+});
+
+it('renders a filter bar wrapper around its slot', function () {
+    $html = Blade::render('<x-filter-bar><input name="q" /></x-filter-bar>');
+    expect($html)->toContain('bg-surface')->toContain('<input name="q"');
+});
+
+it('renders a tooltip bubble around its slot', function () {
+    $html = Blade::render('<x-tooltip text="Infos">HOVER</x-tooltip>');
+    expect($html)->toContain('HOVER')->toContain('Infos')->toContain('x-data');
+});
+
+it('renders token-styled select and textarea controls', function () {
+    expect(Blade::render('<x-select><option>A</option></x-select>'))
+        ->toContain('<select')->toContain('bg-surface')->toContain('shadow-inset');
+    expect(Blade::render('<x-textarea placeholder="Note" />'))
+        ->toContain('<textarea')->toContain('bg-surface')->toContain('shadow-inset');
+});
+
+it('renders a paginator wrapper with French previous/next labels', function () {
+    $paginator = new LengthAwarePaginator([1, 2, 3], 30, 10, 2);
+    $html = Blade::render('<x-pagination :paginator="$paginator" />', ['paginator' => $paginator]);
+    expect($html)->toContain(__('pagination.previous'))->toContain(__('pagination.next'))->toContain('2 / 3');
+});
+
+it('renders a table with its headers', function () {
+    $html = Blade::render('<x-table :headers="[\'Élève\', \'Statut\']"><tr><td>x</td></tr></x-table>');
+    expect($html)->toContain('Élève')->toContain('Statut')->toContain('<tbody');
+});
+
+it('renders a breadcrumb with the last crumb emphasised', function () {
+    $html = Blade::render('<x-breadcrumb :items="[[\'label\' => \'Élèves\', \'url\' => \'/students\'], [\'label\' => \'Jean\']]" />');
+    expect($html)->toContain('Jean')->toContain('text-content font-medium')->toContain('/students');
+});
+
+it('renders x-stat-card as a kpi-card', function () {
+    $html = Blade::render('<x-stat-card icon="users" label="Actifs" value="10" />');
+    expect($html)->toContain('Actifs')->toContain('10');
 });
