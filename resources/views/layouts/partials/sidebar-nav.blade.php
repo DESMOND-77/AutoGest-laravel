@@ -42,7 +42,6 @@
             <div class="space-y-1">
                 <x-sidebar-link :href="route('students.index')" :active="request()->routeIs('students.*')" icon="users">Élèves</x-sidebar-link>
                 @if ($user?->hasRole('admin'))
-                    <x-sidebar-link :href="route('crm.leads.index')" :active="request()->routeIs('crm.*')" icon="user-plus">Prospects</x-sidebar-link>
                     <x-sidebar-link :href="route('dossiers.index')" :active="request()->routeIs('dossiers.*')" icon="clipboard-list" :badge="$pendingDossierStudentCount ?: null">Dossiers en attente</x-sidebar-link>
                     <x-sidebar-link :href="route('recyclage.index')" :active="request()->routeIs('recyclage.*')" icon="clock">Recyclage &amp; Tests</x-sidebar-link>
                 @endif
@@ -95,9 +94,22 @@
 
     @if ($user?->hasRole('admin'))
         <div>
-            <p x-show="!collapsed" x-cloak class="px-3 text-[11px] font-semibold uppercase tracking-wider text-content-muted mb-1">Flotte &amp; Boutique</p>
+            <p x-show="!collapsed" x-cloak class="px-3 text-[11px] font-semibold uppercase tracking-wider text-content-muted mb-1">Flotte</p>
             <div class="space-y-1">
                 <x-sidebar-link :href="route('fleet.index')" :active="request()->routeIs('fleet.*')" icon="truck">Véhicules</x-sidebar-link>
+            </div>
+        </div>
+
+        <div>
+            <p x-show="!collapsed" x-cloak class="px-3 text-[11px] font-semibold uppercase tracking-wider text-content-muted mb-1">Relation client</p>
+            <div class="space-y-1">
+                <x-sidebar-link :href="route('crm.leads.index')" :active="request()->routeIs('crm.*')" icon="user-plus">Prospects</x-sidebar-link>
+            </div>
+        </div>
+
+        <div>
+            <p x-show="!collapsed" x-cloak class="px-3 text-[11px] font-semibold uppercase tracking-wider text-content-muted mb-1">Boutique</p>
+            <div class="space-y-1">
                 <x-sidebar-link :href="route('store.index')" :active="request()->routeIs('store.*')" icon="shopping-bag">Boutique</x-sidebar-link>
             </div>
         </div>
