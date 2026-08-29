@@ -151,11 +151,11 @@
     <meta property="og:type" content="website">
     <meta property="og:title" content="{{ config('app.name', 'Auto-GestBoard') }} - Le logiciel tout-en-un pour auto-écoles">
     <meta property="og:description" content="Élèves, moniteurs, planning, facturation, flotte et examens : toute votre auto-école dans une seule plateforme.">
-    <meta property="og:image" content="{{ asset('images/logo.png') }}">
+    <meta property="og:image" content="{{ asset('images/brand/og.jpg') }}">
     <meta property="og:url" content="{{ url('/') }}">
     <meta name="twitter:card" content="summary">
 
-    <link rel="icon" type="image/png" href="{{ asset('images/logo.png') }}">
+    <link rel="icon" type="image/jpeg" href="{{ asset('images/brand/icon.jpg') }}">
 
     <link rel="preconnect" href="https://fonts.bunny.net">
     <link href="https://fonts.bunny.net/css?family=figtree:400,500,600,700|barlow-condensed:500,600,700|ibm-plex-mono:500" rel="stylesheet" />
@@ -174,8 +174,7 @@
     <header x-data="{ mobileOpen: false }" class="sticky top-0 z-50 border-b border-white/5 bg-asphalt/95 backdrop-blur">
         <nav class="mx-auto flex max-w-7xl items-center justify-between px-6 py-3 lg:px-8" aria-label="Navigation principale">
             <a href="/" class="flex items-center gap-2.5">
-                <img src="{{ asset('images/logo.png') }}" alt="Auto-GestBoard" class="h-9 w-auto">
-                <span class="font-display text-lg font-semibold uppercase tracking-wide text-white">Auto-GestBoard</span>
+                <img src="{{ asset('images/brand/logo-horizontal-on-navy.jpg') }}" alt="Auto-GestBoard" class="h-9 w-auto">
             </a>
 
             <div class="hidden items-center gap-8 lg:flex">
@@ -630,8 +629,7 @@
             <div class="grid gap-12 md:grid-cols-2 lg:grid-cols-5">
                 <div class="lg:col-span-2">
                     <a href="/" class="flex items-center gap-2.5">
-                        <img src="{{ asset('images/logo.png') }}" alt="Auto-GestBoard" class="h-9 w-auto">
-                        <span class="font-display text-lg font-semibold uppercase tracking-wide text-white">Auto-GestBoard</span>
+                        <img src="{{ asset('images/brand/logo-horizontal-on-navy.jpg') }}" alt="Auto-GestBoard" class="h-9 w-auto">
                     </a>
                     <p class="mt-4 max-w-sm text-sm leading-relaxed">
                         La plateforme Cloud multi-établissement qui centralise la gestion des élèves, moniteurs, planning et finances de votre auto-école.

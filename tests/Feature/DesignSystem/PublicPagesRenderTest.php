@@ -4,6 +4,12 @@ it('renders the landing page', function () {
     $this->get('/')->assertOk()->assertSee('Auto-GestBoard', escape: false);
 });
 
+it('serves the landing page with the official brand logo asset', function () {
+    $this->get('/')
+        ->assertOk()
+        ->assertSee('images/brand/', escape: false);
+});
+
 it('renders the login page with a wrong-credentials message in French', function () {
     $this->get('/login')->assertOk();
 
