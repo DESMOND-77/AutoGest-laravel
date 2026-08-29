@@ -9,7 +9,7 @@ use App\Models\User;
 
 /**
  * The legacy moniteur/evaluation.php looked up the target student with no
- * ownership check at all (see fixs.md #4) — the fix there was in the Policy
+ * ownership check at all (see fixs.md #4) - the fix there was in the Policy
  * layer, not here. This service just does the actual upsert, one row per
  * skill, exactly once per (student, skill) pair via the unique constraint.
  */

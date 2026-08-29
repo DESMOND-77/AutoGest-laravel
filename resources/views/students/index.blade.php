@@ -120,7 +120,7 @@
                                 <td class="px-5 py-3 text-content-secondary">{{ $student->license_category->value }}</td>
                                 <td class="px-5 py-3"><x-badge variant="info">{{ $student->lifecycle_stage->label() }}</x-badge></td>
                                 <td class="px-5 py-3 text-content-secondary">{{ $student->dossier_status->label() }}</td>
-                                <td class="px-5 py-3 text-content-secondary">{{ $student->instructor?->name ?? '—' }}</td>
+                                <td class="px-5 py-3 text-content-secondary">{{ $student->instructor?->name ?? '-' }}</td>
                             </tr>
                         @empty
                             <x-empty-table-row

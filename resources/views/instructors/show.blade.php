@@ -9,8 +9,8 @@
         <x-card>
             <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 text-sm">
                 <div><span class="text-content-muted">Statut</span><p class="text-content font-medium mt-0.5">{{ $instructor->status->label() }}</p></div>
-                <div><span class="text-content-muted">N° agrément</span><p class="text-content font-medium mt-0.5">{{ $instructor->license_number ?? '—' }}</p></div>
-                <div><span class="text-content-muted">Embauche</span><p class="text-content font-medium mt-0.5">{{ optional($instructor->hire_date)->format('d/m/Y') ?? '—' }}</p></div>
+                <div><span class="text-content-muted">N° agrément</span><p class="text-content font-medium mt-0.5">{{ $instructor->license_number ?? '-' }}</p></div>
+                <div><span class="text-content-muted">Embauche</span><p class="text-content font-medium mt-0.5">{{ optional($instructor->hire_date)->format('d/m/Y') ?? '-' }}</p></div>
             </div>
         </x-card>
 
@@ -35,7 +35,7 @@
             <ul class="text-sm divide-y divide-border/60">
                 @forelse ($instructor->availabilities as $availability)
                     <li class="py-2.5 flex justify-between items-center">
-                        <span class="text-content">Jour {{ $availability->day_of_week }} — {{ $availability->starts_at }} à {{ $availability->ends_at }}</span>
+                        <span class="text-content">Jour {{ $availability->day_of_week }} - {{ $availability->starts_at }} à {{ $availability->ends_at }}</span>
                         @can('update', $instructor)
                             <form method="POST" action="{{ route('instructors.availabilities.destroy', [$instructor, $availability]) }}">
                                 @csrf

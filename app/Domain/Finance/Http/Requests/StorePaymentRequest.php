@@ -26,7 +26,7 @@ class StorePaymentRequest extends FormRequest
 
     /**
      * A payment larger than what's left on the invoice was previously
-     * accepted silently, with no notion of overpayment/credit — see
+     * accepted silently, with no notion of overpayment/credit - see
      * docs/audit/business-workflow.md FIN-01.
      */
     private function notExceedingBalanceDue(): Closure

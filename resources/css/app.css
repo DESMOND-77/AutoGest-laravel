@@ -10,12 +10,12 @@
  * Soft Neumorphic design tokens for the authenticated app shell (dashboard,
  * students, scheduling, finance, ...). The landing page keeps its own
  * separate token set (ink/route/signal/cream/paper/slate/line/asphalt in
- * tailwind.config.js) — deliberately untouched, per the brief: the landing
+ * tailwind.config.js) - deliberately untouched, per the brief: the landing
  * page is acceptable as-is and this pass is scoped to the authenticated app.
  *
  * RGB triplets (not hex) so Tailwind's `rgb(var(--x) / <alpha-value>)`
  * pattern can still apply opacity modifiers (bg-surface/50, etc).
- * Light values live on :root; :root.dark overrides them — matching the
+ * Light values live on :root; :root.dark overrides them - matching the
  * `dark` class toggled on <html> by components/theme-toggle.blade.php.
  */
 :root {

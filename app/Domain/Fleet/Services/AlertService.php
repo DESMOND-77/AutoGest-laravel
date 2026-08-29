@@ -8,7 +8,7 @@ use Illuminate\Support\Collection;
 /**
  * The legacy app computed "CT/assurance expire sous 30 jours" twice, in two
  * different ways: a UNION SQL query in admin/dashboard.php and a separate
- * PHP DateTime loop in admin/flotte.php — the same rule, liable to drift.
+ * PHP DateTime loop in admin/flotte.php - the same rule, liable to drift.
  * This is the one and only place that rule is expressed now; both the fleet
  * page and the admin dashboard call it.
  */

@@ -16,7 +16,7 @@ return new class extends Migration
             $table->foreignId('question_id')->constrained('quiz_questions')->cascadeOnDelete();
 
             $table->string('text');
-            // Never sent to the client before an attempt is submitted — see
+            // Never sent to the client before an attempt is submitted - see
             // QuizQuestionResource and QuizGradingService, which is the only
             // place this column is ever read.
             $table->boolean('is_correct')->default(false);

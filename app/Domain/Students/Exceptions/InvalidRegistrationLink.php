@@ -10,7 +10,7 @@ use RuntimeException;
  * a public, unauthenticated visitor exactly *why* a token doesn't work is
  * free reconnaissance (does this school exist? is it suspended? how many
  * people used this link?). Only "expired" is split out, since a link
- * naturally ageing out reveals nothing about the tenant itself — see
+ * naturally ageing out reveals nothing about the tenant itself - see
  * docs/features/student-public-registration.md.
  */
 class InvalidRegistrationLink extends RuntimeException

@@ -8,7 +8,7 @@ use App\Domain\Students\Services\LifecycleService;
 
 /**
  * Both transitions fire back-to-back with no visible intermediate state for
- * the student — see the design's "Transitions automatiques vs manuelles"
+ * the student - see the design's "Transitions automatiques vs manuelles"
  * table. Injecting LifecycleService (rather than `new`-ing it, unlike
  * LogStageChange's plain `new LifecycleService` in its own tests) keeps this
  * listener consistent with how every controller in this codebase resolves

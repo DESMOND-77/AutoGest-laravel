@@ -1,4 +1,4 @@
-# Promptset — prompts d'implémentation pour agents IA spécialisés
+# Promptset - prompts d'implémentation pour agents IA spécialisés
 
 Ce répertoire contient un prompt par tâche, prêt à être copié tel quel dans un agent IA (Claude Code ou équivalent) pour reprendre les éléments **ajoutés ou non terminés** de `docs/audit/roadmap.md`.
 
@@ -13,7 +13,7 @@ Avant toute implémentation, chaque prompt suppose que l'agent :
 4. Ne modifie jamais `lifecycle_stage`/`dossier_status` hors des services de garde (`LifecycleService`/`DossierStatusService`).
 5. Ne crée aucune dépendance Composer/npm nouvelle sans validation explicite préalable.
 6. Termine par `vendor/bin/pint --dirty --format agent` puis `php artisan test --compact` (filtré sur les tests concernés).
-7. N'invente aucune intégration externe (API mobile money, WhatsApp, DGTT...) sans avoir vérifié la disponibilité réelle des CGU/API — voir les prompts concernés pour le détail.
+7. N'invente aucune intégration externe (API mobile money, WhatsApp, DGTT...) sans avoir vérifié la disponibilité réelle des CGU/API - voir les prompts concernés pour le détail.
 
 ## Index des prompts
 
@@ -36,19 +36,19 @@ Avant toute implémentation, chaque prompt suppose que l'agent :
 | `15-pwa-offline.md` | PWA avec cache offline (espace élève, agenda moniteur) | Étape 13ter #4 |
 | `16-api-publique-v1.md` | API publique versionnée (`/api/v1/`) avec Sanctum | Étape 13 pt.5 |
 | `17-preparation-production.md` | Alignement PHP/Docker/CI-CD/monitoring avant mise en production | Étape 14-15 |
-| `18-veille-dgtt-cnepc.md` | Veille réglementaire — permis digitalisé gabonais (aucun développement) | Étape 13ter #7 |
+| `18-veille-dgtt-cnepc.md` | Veille réglementaire - permis digitalisé gabonais (aucun développement) | Étape 13ter #7 |
 
 ## Ordre d'exécution recommandé
 
 Ne pas paralléliser aveuglément : certains prompts partagent des fichiers (ex. `04` et `06` touchent tous deux Finance/Reports ; `09`/`10` sont conditionnés à une décision métier préalable). Ordre suggéré, du moins risqué/plus rapide au plus structurant :
 
-1. `02`, `03` — activer des champs déjà en base, aucun nouveau domaine.
-2. `06`, `07` — enrichissement d'écrans existants (Reports, Training).
-3. `01` — implémente le domaine `Users`, prérequis de `04` (comptes élèves) si l'auto-inscription ne suffit pas.
-4. `04`, `05` — espaces élève/moniteur.
-5. `08` — change le workflow d'inscription, à faire après validation métier du besoin (cf. §3.1 de `comparaison-vanilla-vs-laravel.md`).
-6. `09`, `10` — uniquement après confirmation explicite du métier gabonais que ces modules répondent à un besoin réel.
-7. `11`, `12`, `13` — engagement élève (notifications, réservation).
-8. `14` — paiement mobile money, uniquement après vérification CGU/API réelles.
-9. `15`, `16`, `17` — infrastructure/plateforme, en fin de roadmap.
-10. `18` — veille continue, sans date de fin, aucun développement tant qu'aucune spécification officielle DGTT n'existe.
+1. `02`, `03` - activer des champs déjà en base, aucun nouveau domaine.
+2. `06`, `07` - enrichissement d'écrans existants (Reports, Training).
+3. `01` - implémente le domaine `Users`, prérequis de `04` (comptes élèves) si l'auto-inscription ne suffit pas.
+4. `04`, `05` - espaces élève/moniteur.
+5. `08` - change le workflow d'inscription, à faire après validation métier du besoin (cf. §3.1 de `comparaison-vanilla-vs-laravel.md`).
+6. `09`, `10` - uniquement après confirmation explicite du métier gabonais que ces modules répondent à un besoin réel.
+7. `11`, `12`, `13` - engagement élève (notifications, réservation).
+8. `14` - paiement mobile money, uniquement après vérification CGU/API réelles.
+9. `15`, `16`, `17` - infrastructure/plateforme, en fin de roadmap.
+10. `18` - veille continue, sans date de fin, aucun développement tant qu'aucune spécification officielle DGTT n'existe.

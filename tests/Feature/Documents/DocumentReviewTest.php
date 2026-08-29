@@ -65,7 +65,7 @@ it('never lets an admin review another tenant\'s document', function () {
     $otherAdmin->assignRole('admin');
 
     // Document is BelongsToTenant-scoped, so the route-model-bound lookup
-    // never matches a row for another tenant's admin — a 404, not a 403,
+    // never matches a row for another tenant's admin - a 404, not a 403,
     // which is the stronger guarantee (no existence leak). See
     // App\Support\BelongsToTenant.
     $this->actingAs($otherAdmin)->post(route('documents.approve', $this->document))->assertNotFound();

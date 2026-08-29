@@ -1,4 +1,4 @@
-# Design — Parcours d'inscription élève : auto-création de compte, OTP, constitution de dossier
+# Design - Parcours d'inscription élève : auto-création de compte, OTP, constitution de dossier
 
 Date : 2026-08-23
 Statut : approuvé par l'utilisateur, prêt pour planification d'implémentation.
@@ -20,10 +20,10 @@ Ce document remplace/complète le prompt `Promptset/04-espace-eleve-progression-
 `App\Domain\Students\Enums\LifecycleStage` conserve ses 11 cas existants (aucun renommage), seul le graphe de transitions (`allowedNextStages()`) change d'ordre :
 
 ```
-1  Prospect               — compte créé, email non vérifié
-2  Pré-inscription        — email vérifié (OTP)
+1  Prospect               - compte créé, email non vérifié
+2  Pré-inscription        - email vérifié (OTP)
 3  Constitution du dossier
-4  Validation             — dossier soumis, en revue secrétariat
+4  Validation             - dossier soumis, en revue secrétariat
 5  Inscription
 6  Paiement
 7  Cours théorique
@@ -52,22 +52,22 @@ Deux retours arrière autorisés dans le graphe (contre un seul aujourd'hui) :
 | `Validation → Inscription` | Tous les documents requis actifs sont `Approved` | Automatique |
 | `Inscription → Paiement` et toutes les étapes suivantes | Action explicite secrétariat/moniteur | **Manuel, inchangé** |
 
-Toute transition, automatique ou manuelle, passe exclusivement par `LifecycleService::transitionTo()` — jamais d'écriture directe de `lifecycle_stage`. Les transitions automatiques sont déclenchées par des listeners d'événements (OTP validé, dossier soumis, document rejeté/approuvé), pas par un nouveau mécanisme parallèle.
+Toute transition, automatique ou manuelle, passe exclusivement par `LifecycleService::transitionTo()` - jamais d'écriture directe de `lifecycle_stage`. Les transitions automatiques sont déclenchées par des listeners d'événements (OTP validé, dossier soumis, document rejeté/approuvé), pas par un nouveau mécanisme parallèle.
 
 ### Migration des données existantes
 
-Le réordonnancement ne modifie pas les valeurs de chaîne stockées en base (mêmes cas d'enum) — seul le graphe de transitions *futures* change. Aucun script de rétro-migration n'est prévu pour les élèves déjà positionnés sur les anciennes étapes réordonnées : le projet est en phase de développement, les données existantes sont des données de test. Si des données de production existaient, ce point serait à retraiter séparément.
+Le réordonnancement ne modifie pas les valeurs de chaîne stockées en base (mêmes cas d'enum) - seul le graphe de transitions *futures* change. Aucun script de rétro-migration n'est prévu pour les élèves déjà positionnés sur les anciennes étapes réordonnées : le projet est en phase de développement, les données existantes sont des données de test. Si des données de production existaient, ce point serait à retraiter séparément.
 
 ## Création de compte élève + validation OTP
 
 ### Formulaire de création de compte
 
-Remplace `resources/views/register/student.blade.php`, même point d'entrée `register/student?token=...` (résolution du tenant par le token du lien d'établissement, inchangée — voir `StudentRegistrationLinkService::validate()`).
+Remplace `resources/views/register/student.blade.php`, même point d'entrée `register/student?token=...` (résolution du tenant par le token du lien d'établissement, inchangée - voir `StudentRegistrationLinkService::validate()`).
 
 Champs collectés : prénom, nom, email, mot de passe + confirmation, téléphone, date de naissance, catégorie de permis visée (`LicenseCategory`), type de cours (`CourseType`). `birth_place`/`address` restent optionnels, saisissables plus tard.
 
 À la soumission, dans une transaction unique :
-1. Création du `User` (rôle `eleve` via Spatie, `structure_id` résolu depuis le token — jamais depuis la requête, `email_verified_at = null`).
+1. Création du `User` (rôle `eleve` via Spatie, `structure_id` résolu depuis le token - jamais depuis la requête, `email_verified_at = null`).
 2. Création du `Student` lié (`user_id`), `structure_id` du token, `lifecycle_stage = Prospect` (valeur par défaut existante, inchangée), champs saisis.
 3. Génération d'un OTP à 6 chiffres, stocké **haché**, expiration 10 minutes, compteur de tentatives à 0.
 4. Envoi de l'email contenant le code en clair.
@@ -87,7 +87,7 @@ Champs collectés : prénom, nom, email, mot de passe + confirmation, téléphon
 
 ### Événement déclenché
 
-`StudentEmailVerified` (ou réutilisation d'un événement Laravel standard si suffisant), écouté par un listener qui appelle `LifecycleService::transitionTo($student, LifecycleStage::PreEnrollment)` puis, immédiatement, `LifecycleService::transitionTo($student, LifecycleStage::DossierSetup)` — les deux transitions s'enchaînent automatiquement sans état intermédiaire visible nécessitant une action.
+`StudentEmailVerified` (ou réutilisation d'un événement Laravel standard si suffisant), écouté par un listener qui appelle `LifecycleService::transitionTo($student, LifecycleStage::PreEnrollment)` puis, immédiatement, `LifecycleService::transitionTo($student, LifecycleStage::DossierSetup)` - les deux transitions s'enchaînent automatiquement sans état intermédiaire visible nécessitant une action.
 
 ## Documents requis personnalisables + revue par document
 
@@ -97,13 +97,13 @@ Nouveau modèle `App\Domain\Students\Models\RequiredDocumentType`, dans le domai
 
 - `structure_id`, `label` (texte libre), `position` (int, ordre d'affichage), `is_active` (bool, défaut `true`).
 - CRUD complet réservé au rôle `admin`, écran `settings/documents-requis` (ou équivalent), ajouté au bloc Administration de la navigation.
-- Désactiver une entrée (`is_active = false`) ne supprime pas l'historique des documents déjà liés — elle disparaît simplement de la liste des pièces à fournir pour les nouveaux dossiers.
+- Désactiver une entrée (`is_active = false`) ne supprime pas l'historique des documents déjà liés - elle disparaît simplement de la liste des pièces à fournir pour les nouveaux dossiers.
 
 ### Extension du modèle `Document` existant
 
-Pas de nouveau système de documents parallèle — extension du modèle `Document` déjà versionné (`is_current`, `version`) :
+Pas de nouveau système de documents parallèle - extension du modèle `Document` déjà versionné (`is_current`, `version`) :
 
-- `required_document_type_id` (FK nullable vers `RequiredDocumentType` — rempli uniquement pour les documents de dossier élève, `null` pour tout document hors de ce contexte, ex. documents véhicule).
+- `required_document_type_id` (FK nullable vers `RequiredDocumentType` - rempli uniquement pour les documents de dossier élève, `null` pour tout document hors de ce contexte, ex. documents véhicule).
 - `review_status` enum (`Pending` par défaut, `Approved`, `Rejected`).
 - `rejection_reason` (text, nullable).
 - `reviewed_by_id` (FK `users`, nullable).
@@ -113,24 +113,24 @@ Pas de nouveau système de documents parallèle — extension du modèle `Docume
 
 Écran « Constitution du dossier » (`eleve/dossier`) listant les `RequiredDocumentType` actifs de l'établissement, avec pour chacun l'état courant (rien déposé / en attente de revue / rejeté + motif / approuvé) et une zone de dépôt/redépôt.
 
-Chaque dépôt crée une **nouvelle version** du `Document` correspondant (`is_current = true`, la précédente passe à `false`), `review_status` remis à `Pending`. L'historique complet — y compris les versions rejetées et leur motif — reste consultable, jamais supprimé.
+Chaque dépôt crée une **nouvelle version** du `Document` correspondant (`is_current = true`, la précédente passe à `false`), `review_status` remis à `Pending`. L'historique complet - y compris les versions rejetées et leur motif - reste consultable, jamais supprimé.
 
 Bouton « Soumettre mon dossier » : actif seulement quand chaque `RequiredDocumentType` actif a au moins une version de document déposée (peu importe son `review_status`). Si la liste des pièces requises est vide, le bouton est immédiatement actif. Le clic déclenche `LifecycleService::transitionTo($student, LifecycleStage::Validation)`.
 
-Si l'élève redépose un document déjà `Approved` avant que le dossier entier soit passé à `Inscription`, la nouvelle version repasse en `Pending` — l'UI avertit explicitement avant confirmation de cette conséquence.
+Si l'élève redépose un document déjà `Approved` avant que le dossier entier soit passé à `Inscription`, la nouvelle version repasse en `Pending` - l'UI avertit explicitement avant confirmation de cette conséquence.
 
 ### Flux de revue (secrétariat)
 
 Écran de file d'attente « Dossiers en attente de revue » (élèves à l'étape `Validation`), plus un accès depuis chaque fiche élève individuelle. Pour chaque document du dossier : action Approuver / Rejeter (motif obligatoire si rejet).
 
-Cette action n'est disponible/acceptée côté serveur que si `student.lifecycle_stage === Validation` — refusée sinon, pour empêcher tout rejet/approbation hors-contexte.
+Cette action n'est disponible/acceptée côté serveur que si `student.lifecycle_stage === Validation` - refusée sinon, pour empêcher tout rejet/approbation hors-contexte.
 
 - Un document rejeté → `LifecycleService::transitionTo($student, LifecycleStage::DossierSetup)` immédiat (peu importe l'état des autres documents). Le motif reste affiché côté élève jusqu'à ce qu'il redépose une nouvelle version de *ce* document précis.
 - Tous les documents requis actifs passent à `Approved` → `LifecycleService::transitionTo($student, LifecycleStage::Enrollment)` automatique.
 
 ### Cas limite : ajout d'une pièce requise après soumission
 
-Si l'admin ajoute un nouveau `RequiredDocumentType` après qu'un élève a déjà soumis son dossier (élève à l'étape `Validation` ou au-delà), cet élève **n'est pas** rétroactivement obligé de fournir la nouvelle pièce — seuls les dossiers non encore soumis au moment de l'ajout sont concernés.
+Si l'admin ajoute un nouveau `RequiredDocumentType` après qu'un élève a déjà soumis son dossier (élève à l'étape `Validation` ou au-delà), cet élève **n'est pas** rétroactivement obligé de fournir la nouvelle pièce - seuls les dossiers non encore soumis au moment de l'ajout sont concernés.
 
 ## Écrans impactés (résumé)
 
@@ -160,10 +160,10 @@ Ce design **remplace** l'implémentation prévue par `Promptset/03-revue-dossier
 - Anti-brute-force OTP : tentatives épuisées, expiration, renvoi throttlé.
 - Refus serveur d'une action de revue hors étape `Validation`.
 - Isolation tenant sur chaque nouvelle route/modèle (`RequiredDocumentType`, revue de documents, OTP).
-- Non-régression : les tests existants sur `PublicStudentRegistrationController` sont adaptés ou remplacés — aucun test rouge après ce changement. Vérifier aussi `docs/features/student-public-registration.md` (documentation existante) à mettre à jour en conséquence.
+- Non-régression : les tests existants sur `PublicStudentRegistrationController` sont adaptés ou remplacés - aucun test rouge après ce changement. Vérifier aussi `docs/features/student-public-registration.md` (documentation existante) à mettre à jour en conséquence.
 
 ## Hors périmètre de ce design
 
-- Envoi de l'OTP par SMS/WhatsApp (le canal reste l'email pour cette première version — cohérent avec `Promptset/11-notifications-sms.md`/`12-rappels-whatsapp-seances.md`, qui restent des sujets séparés).
+- Envoi de l'OTP par SMS/WhatsApp (le canal reste l'email pour cette première version - cohérent avec `Promptset/11-notifications-sms.md`/`12-rappels-whatsapp-seances.md`, qui restent des sujets séparés).
 - Réservation de créneau en libre-service, paiement mobile money (traités par ailleurs dans le Promptset).
 - Migration rétroactive des élèves existants vers le nouveau graphe de transitions (voir section dédiée ci-dessus).

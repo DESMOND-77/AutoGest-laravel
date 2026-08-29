@@ -9,7 +9,7 @@ use Illuminate\Support\Facades\DB;
 
 /**
  * The only place a quiz attempt is ever scored. Correctness is always
- * resolved server-side from QuizOption::is_correct — the request only ever
+ * resolved server-side from QuizOption::is_correct - the request only ever
  * supplies which option id the student picked, never whether it was right.
  * This closes the legacy Code Rousseau bug: the old quiz sent the correct
  * answers to the browser and revalidated the score against whatever the

@@ -49,9 +49,9 @@
                                         {{ $instructor->user->name }}
                                     </a>
                                 </td>
-                                <td class="px-5 py-3 text-content-secondary">{{ $instructor->license_number ?? '—' }}</td>
+                                <td class="px-5 py-3 text-content-secondary">{{ $instructor->license_number ?? '-' }}</td>
                                 <td class="px-5 py-3"><x-badge variant="info">{{ $instructor->status->label() }}</x-badge></td>
-                                <td class="px-5 py-3 text-content-secondary">{{ optional($instructor->hire_date)->format('d/m/Y') ?? '—' }}</td>
+                                <td class="px-5 py-3 text-content-secondary">{{ optional($instructor->hire_date)->format('d/m/Y') ?? '-' }}</td>
                             </tr>
                         @empty
                             <x-empty-table-row

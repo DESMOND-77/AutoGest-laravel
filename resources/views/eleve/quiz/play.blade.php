@@ -100,17 +100,17 @@
                     </div>
 
                     <div class="flex justify-between">
-                        <x-secondary-button @click="previous()" x-bind:disabled="current === 0">
-                            &larr; Précédent
+                        <x-secondary-button @click="previous()" x-bind:disabled="current === 0" class="inline-flex items-center gap-1">
+                            <x-icon name="chevron-left" class="w-4 h-4" /> Précédent
                         </x-secondary-button>
 
                         <button
                             x-show="current < questions.length - 1"
                             @click="next()"
                             :disabled="!answers[currentQuestion.id]"
-                            class="rounded-ui-md bg-primary px-4 py-2.5 text-sm font-medium text-primary-content shadow-soft-sm hover:shadow-soft-hover transition disabled:opacity-40 disabled:pointer-events-none"
+                            class="inline-flex items-center gap-1 rounded-ui-md bg-primary px-4 py-2.5 text-sm font-medium text-primary-content shadow-soft-sm hover:shadow-soft-hover transition disabled:opacity-40 disabled:pointer-events-none"
                         >
-                            Suivant &rarr;
+                            Suivant <x-icon name="chevron-right" class="w-4 h-4" />
                         </button>
 
                         <button
@@ -211,7 +211,7 @@
                     // QuizQuestionResource::collection() wraps the array in
                     // Laravel's default {"data": [...]} envelope, unlike the
                     // plain response()->json(...) calls elsewhere in this
-                    // controller — the other fetches in this file don't need
+                    // controller - the other fetches in this file don't need
                     // this unwrap.
                     const payload = await response.json();
                     this.questions = payload.data;
@@ -329,7 +329,7 @@
 
                 formatDate(value) {
                     if (! value) {
-                        return '—';
+                        return '-';
                     }
 
                     return new Date(value).toLocaleDateString('fr-FR');

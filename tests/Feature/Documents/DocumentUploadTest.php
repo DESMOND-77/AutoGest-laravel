@@ -23,20 +23,23 @@ beforeEach(function () {
     $this->admin->assignRole('admin');
 
     $this->student = Student::factory()->create(['structure_id' => $this->structure->id]);
+    $this->type = RequiredDocumentType::factory()->create(['structure_id' => $this->structure->id]);
 });
 
-it('uploads a document for a student and supersedes the previous version on re-upload', function () {
+it('lets an admin upload a document for a student against a required document type, and supersedes the previous version on re-upload', function () {
     $this->actingAs($this->admin)->post(route('students.documents.store', $this->student), [
-        'type' => DocumentType::IdCard->value,
+        'required_document_type_id' => $this->type->id,
         'file' => UploadedFile::fake()->create('cni.pdf', 100, 'application/pdf'),
     ])->assertRedirect();
 
     $first = Document::query()->where('documentable_id', $this->student->id)->sole();
     expect($first->version)->toBe(1);
     expect($first->is_current)->toBeTrue();
+    expect($first->required_document_type_id)->toBe($this->type->id);
+    expect($first->review_status)->toBe(DocumentReviewStatus::Pending);
 
     $this->actingAs($this->admin)->post(route('students.documents.store', $this->student), [
-        'type' => DocumentType::IdCard->value,
+        'required_document_type_id' => $this->type->id,
         'file' => UploadedFile::fake()->create('cni-v2.pdf', 100, 'application/pdf'),
     ])->assertRedirect();
 
@@ -44,9 +47,51 @@ it('uploads a document for a student and supersedes the previous version on re-u
 
     $current = Document::query()->where('documentable_id', $this->student->id)->where('is_current', true)->sole();
     expect($current->version)->toBe(2);
+    expect($current->review_status)->toBe(DocumentReviewStatus::Pending);
 
     Storage::disk('local')->assertExists($first->path);
     Storage::disk('local')->assertExists($current->path);
+});
+
+it('rejects an admin upload against a required document type that does not exist', function () {
+    $this->actingAs($this->admin)->post(route('students.documents.store', $this->student), [
+        'required_document_type_id' => 999999,
+        'file' => UploadedFile::fake()->create('cni.pdf', 100, 'application/pdf'),
+    ])->assertNotFound();
+
+    expect(Document::query()->where('documentable_id', $this->student->id)->exists())->toBeFalse();
+});
+
+it('rejects an oversized admin upload with an explicit French error', function () {
+    $response = $this->actingAs($this->admin)->post(route('students.documents.store', $this->student), [
+        'required_document_type_id' => $this->type->id,
+        'file' => UploadedFile::fake()->create('cni.pdf', 6000),
+    ]);
+
+    $response->assertSessionHasErrors(['file' => 'Ce fichier est trop volumineux (5 Mo maximum).']);
+    expect(Document::query()->where('documentable_id', $this->student->id)->exists())->toBeFalse();
+});
+
+it('rejects a disallowed file extension on an admin upload with an explicit French error', function () {
+    $response = $this->actingAs($this->admin)->post(route('students.documents.store', $this->student), [
+        'required_document_type_id' => $this->type->id,
+        'file' => UploadedFile::fake()->create('malware.exe', 10),
+    ]);
+
+    $response->assertSessionHasErrors(['file' => 'Format de fichier non autorisé. Formats acceptés : PDF, JPG, PNG ou WEBP.']);
+    expect(Document::query()->where('documentable_id', $this->student->id)->exists())->toBeFalse();
+});
+
+it('never lets an admin upload a student document against another tenant\'s required document type', function () {
+    $otherStructure = Structure::factory()->create();
+    $otherType = RequiredDocumentType::factory()->create(['structure_id' => $otherStructure->id]);
+
+    $this->actingAs($this->admin)->post(route('students.documents.store', $this->student), [
+        'required_document_type_id' => $otherType->id,
+        'file' => UploadedFile::fake()->create('cni.pdf', 100, 'application/pdf'),
+    ])->assertNotFound();
+
+    expect(Document::query()->where('documentable_id', $this->student->id)->exists())->toBeFalse();
 });
 
 it('lets the owning admin download the document', function () {

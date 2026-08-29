@@ -12,8 +12,8 @@ use Illuminate\View\View;
 
 /**
  * Tenant-admin management of the public student-registration link. The
- * plain token is only ever available right after generate()/regenerate() —
- * see StudentRegistrationLinkService's docblock — so this controller flashes
+ * plain token is only ever available right after generate()/regenerate() -
+ * see StudentRegistrationLinkService's docblock - so this controller flashes
  * it once for the immediately-following page render and never again.
  */
 class StudentRegistrationLinkController extends Controller

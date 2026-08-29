@@ -22,7 +22,7 @@ class StoreLessonSessionRequest extends FormRequest
         return [
             'student_id' => ['required', Rule::exists('students', 'id')->where('structure_id', $structureId)],
             'instructor_id' => ['required', Rule::exists('users', 'id')->where('structure_id', $structureId)],
-            // A "Conduite" (Practical) session always needs a car — see
+            // A "Conduite" (Practical) session always needs a car - see
             // SCHED-02 in docs/audit/business-workflow.md. Other session
             // types (theory, code, mock exam) stay vehicle-optional.
             'vehicle_id' => [

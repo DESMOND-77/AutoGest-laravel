@@ -18,7 +18,7 @@ use Illuminate\Support\Carbon;
 /**
  * Imports the legacy weekly schedule grids (etp*.csv = practical sessions,
  * ett*.csv = theoretical) that the legacy app's own setup/import.php
- * explicitly left unhandled — its docblock calls them "grilles
+ * explicitly left unhandled - its docblock calls them "grilles
  * hebdomadaires complexes à parser... Non géré par ce script" (see
  * docs/audit/legacy-feature-parity.md). This is a new import, not a port
  * of an existing one.
@@ -30,14 +30,14 @@ use Illuminate\Support\Carbon;
  * cells, and a moniteur-first-name cell.
  *
  * The catch: several real rows pack MULTIPLE whitespace-joined names into
- * a single cell — a slot shared by more than one student, or a moniteur
- * who changes across the week — with no delimiter and no reliable
+ * a single cell - a slot shared by more than one student, or a moniteur
+ * who changes across the week - with no delimiter and no reliable
  * positional pairing back to the day columns. Rather than guess a split,
  * any cell with more than one name token makes the whole row unimportable,
  * and it's skipped and reported rather than silently mis-imported. Follow
  * the workflow the project brief asks for: run with --dry-run first,
  * review the report, then run for real. Dry-run only checks for conflicts
- * against sessions already in the database — it does not simulate
+ * against sessions already in the database - it does not simulate
  * conflicts between two rows of the same import run.
  */
 class ImportLegacyPlanning extends Command
@@ -180,7 +180,7 @@ class ImportLegacyPlanning extends Command
         $hourCell = trim($row[0] ?? '');
 
         if (! preg_match('/^(\d{1,2})h(\d{2})-(\d{1,2})h(\d{2})$/', $hourCell, $m)) {
-            return; // title, blank, or footer row — not an hour slot
+            return; // title, blank, or footer row - not an hour slot
         }
 
         $startsAt = sprintf('%02d:%02d', (int) $m[1], (int) $m[2]);
@@ -351,7 +351,7 @@ class ImportLegacyPlanning extends Command
 
     /**
      * A single moniteur cell reads "M <first name>" (Monsieur) or "Mme
-     * <first name>" — one title token plus exactly one name token. Two or
+     * <first name>" - one title token plus exactly one name token. Two or
      * more such pairs in the same cell ("M Junior            M Cédric")
      * means the slot has more than one moniteur that week with no reliable
      * way to tell which day goes with which, so it's treated as ambiguous
@@ -393,7 +393,7 @@ class ImportLegacyPlanning extends Command
 
         // The header only names the end date's month, so a range crossing a
         // month boundary ("du 30 au 04 Avril 2026") never states the start
-        // month explicitly — walk backwards from the known end date until
+        // month explicitly - walk backwards from the known end date until
         // the day-of-month matches, which is arithmetic, not a guess.
         $startDate = $endDate->copy();
 
@@ -427,7 +427,7 @@ class ImportLegacyPlanning extends Command
         }
 
         // The legacy exports are ISO-8859-1 (Windows/French locale), not
-        // UTF-8 — decode before parsing so accented statuses/months match.
+        // UTF-8 - decode before parsing so accented statuses/months match.
         if (! mb_check_encoding($contents, 'UTF-8')) {
             $contents = mb_convert_encoding($contents, 'UTF-8', 'ISO-8859-1');
         }

@@ -7,7 +7,7 @@ use RuntimeException;
 /**
  * Thrown when a public registration's email or phone already matches an
  * existing student in the same tenant. The message is deliberately generic
- * (see §32 of the spec) — it never says *which* field matched or names the
+ * (see §32 of the spec) - it never says *which* field matched or names the
  * existing student, so an attacker probing emails can't use this endpoint
  * to enumerate a school's student roster.
  */

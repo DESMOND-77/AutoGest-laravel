@@ -17,7 +17,7 @@ use Illuminate\View\View;
 
 /**
  * The only public-facing side of this feature. Nothing here ever reads a
- * tenant/structure/school id from the request — the token is the sole
+ * tenant/structure/school id from the request - the token is the sole
  * source of truth for which tenant a visitor is registering with (§68 of
  * the spec). A visitor cannot even name a different tenant: no field for it
  * exists on PublicStudentRegistrationRequest.
@@ -82,7 +82,7 @@ class PublicStudentRegistrationController extends Controller
 
     /**
      * Re-resolves the link for re-rendering the form after a duplicate
-     * error — a failed *duplicate* check still means the token itself was
+     * error - a failed *duplicate* check still means the token itself was
      * fine a moment ago, so this is expected to succeed; if the link was
      * revoked in the split second between the two, falling back to null
      * just means the school name won't show, not a broken page.

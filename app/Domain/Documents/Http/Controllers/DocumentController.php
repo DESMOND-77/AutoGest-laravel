@@ -4,15 +4,18 @@ namespace App\Domain\Documents\Http\Controllers;
 
 use App\Domain\Documents\Enums\DocumentType;
 use App\Domain\Documents\Http\Requests\StoreDocumentRequest;
+use App\Domain\Documents\Http\Requests\StoreStudentDocumentRequest;
 use App\Domain\Documents\Models\Document;
 use App\Domain\Documents\Services\DocumentService;
 use App\Domain\Fleet\Models\Vehicle;
+use App\Domain\Students\Models\RequiredDocumentType;
 use App\Domain\Students\Models\Student;
 use App\Http\Controllers\Controller;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\View\View;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class DocumentController extends Controller
@@ -21,16 +24,28 @@ class DocumentController extends Controller
         private readonly DocumentService $documents,
     ) {}
 
-    public function storeForStudent(StoreDocumentRequest $request, Student $student): RedirectResponse
+    /**
+     * Every document an admin deposits for a student here is a dossier
+     * piece - it always carries a required_document_type_id and always
+     * versions/resets review_status exactly like the student's own
+     * self-service upload (StudentDossierController::upload()), so an
+     * admin filling in paperwork on a student's behalf produces the same
+     * kind of row a student uploading it themselves would.
+     */
+    public function storeForStudent(StoreStudentDocumentRequest $request, Student $student): RedirectResponse
     {
         $this->authorize('update', $student);
+
+        $requiredDocumentType = RequiredDocumentType::query()
+            ->findOrFail($request->validated('required_document_type_id'));
 
         $this->documents->upload(
             $request->file('file'),
             $student,
-            DocumentType::from($request->validated('type')),
+            DocumentType::Other,
             Auth::user(),
-            $request->validated('expires_at'),
+            null,
+            $requiredDocumentType,
         );
 
         return back()->with('status', 'Document déposé.');
@@ -58,5 +73,29 @@ class DocumentController extends Controller
         }
 
         return Storage::disk($document->disk)->download($document->path, $document->original_name);
+    }
+
+    /**
+     * The viewer page: an <iframe> pointing at stream() below, plus explicit
+     * download/print controls. Kept separate from download() - that one
+     * always forces an attachment (Content-Disposition: attachment), which
+     * would make the browser save the file instead of displaying it here.
+     */
+    public function show(Document $document): View
+    {
+        if (! Auth::user()->can('view', $document)) {
+            throw new AuthorizationException;
+        }
+
+        return view('documents.show', ['document' => $document]);
+    }
+
+    public function stream(Document $document): StreamedResponse
+    {
+        if (! Auth::user()->can('view', $document)) {
+            throw new AuthorizationException;
+        }
+
+        return Storage::disk($document->disk)->response($document->path, $document->original_name);
     }
 }

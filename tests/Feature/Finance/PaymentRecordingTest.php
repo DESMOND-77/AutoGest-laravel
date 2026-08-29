@@ -15,7 +15,7 @@ use Database\Seeders\RoleSeeder;
  * admin/eleves.php edit form showed payment fields but its save handler only
  * ever touched the `eleves` table, never `paiements`. In the rewrite, Student
  * and Invoice/Payment are separate aggregates behind separate policies and
- * controllers — there is no shared form to desync in the first place.
+ * controllers - there is no shared form to desync in the first place.
  */
 beforeEach(function () {
     $this->seed(RoleSeeder::class);

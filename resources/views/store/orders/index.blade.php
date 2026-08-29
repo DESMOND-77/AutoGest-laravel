@@ -17,7 +17,7 @@
                     <div>
                         <x-input-label for="student_id" value="Élève (optionnel)" />
                         <select id="student_id" name="student_id" class="mt-1 w-full rounded-ui-md border-0 bg-surface-inset text-content shadow-inset focus:shadow-inset-focus focus:ring-0 text-sm">
-                            <option value="">—</option>
+                            <option value="">-</option>
                             @foreach ($students as $student)
                                 <option value="{{ $student->id }}">{{ $student->fullName() }}</option>
                             @endforeach
@@ -63,7 +63,7 @@
                         @forelse ($orders as $order)
                             <tr class="hover:bg-surface-elevated/60 transition">
                                 <td class="px-5 py-3 text-content-secondary">{{ $order->ordered_at->format('d/m/Y') }}</td>
-                                <td class="px-5 py-3 text-content font-medium">{{ $order->student?->fullName() ?? $order->customer_name ?? '—' }}</td>
+                                <td class="px-5 py-3 text-content font-medium">{{ $order->student?->fullName() ?? $order->customer_name ?? '-' }}</td>
                                 <td class="px-5 py-3 text-content-secondary">{{ $order->items->map(fn ($i) => $i->product->name.' ×'.$i->quantity)->implode(', ') }}</td>
                                 <td class="px-5 py-3 text-content-secondary">{{ number_format($order->total, 0, ',', ' ') }} FCFA</td>
                                 <td class="px-5 py-3"><x-badge variant="info">{{ $order->status->label() }}</x-badge></td>

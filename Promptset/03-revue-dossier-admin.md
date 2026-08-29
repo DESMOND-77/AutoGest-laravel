@@ -1,4 +1,4 @@
-# Prompt — Écran de revue du dossier administratif (`dossier_status`)
+# Prompt - Écran de revue du dossier administratif (`dossier_status`)
 
 ## Contexte
 
@@ -12,16 +12,16 @@ Donner à l'admin un moyen de faire progresser le `dossier_status` d'un élève 
 
 ## Périmètre exact
 
-- Nouvelle route : `PATCH students/{student}/dossier-status`, groupe `role:admin` (le dossier reste une responsabilité admin, contrairement au `lifecycle_stage` qui peut être avancé par un moniteur — à confirmer selon l'usage réel, mais commencer restrictif).
+- Nouvelle route : `PATCH students/{student}/dossier-status`, groupe `role:admin` (le dossier reste une responsabilité admin, contrairement au `lifecycle_stage` qui peut être avancé par un moniteur - à confirmer selon l'usage réel, mais commencer restrictif).
 - Nouveau `App\Domain\Students\Http\Requests\UpdateDossierStatusRequest` (valide `dossier_status` contre l'enum `DossierStatus`).
 - `StudentController` (ou un contrôleur dédié `DossierStatusController`, à trancher selon la cohérence avec `advanceStage()` déjà présent dans `StudentController`) : nouvelle méthode qui appelle `DossierStatusService::transitionTo()`, capture `InvalidDossierTransition` et retourne une erreur utilisateur claire (pas une 500).
-- `resources/views/students/show.blade.php` (ou équivalent) : afficher le statut courant + un contrôle (bouton/select) limité aux transitions autorisées par `DossierStatus::allowedNextStages()` — même pattern visuel que le bouton d'avancement du `lifecycle_stage` déjà existant.
+- `resources/views/students/show.blade.php` (ou équivalent) : afficher le statut courant + un contrôle (bouton/select) limité aux transitions autorisées par `DossierStatus::allowedNextStages()` - même pattern visuel que le bouton d'avancement du `lifecycle_stage` déjà existant.
 - Policy : vérifier/étendre `StudentPolicy` si une action dédiée est nécessaire (`update` suffit probablement, mais à confirmer).
 
 ## Contraintes
 
-- **Ne jamais modifier `dossier_status` autrement que via `DossierStatusService`** — c'est la règle déjà actée par WF-03/WF-02 (`Student::setDossierStatus()` reste `protected`/bypass `$fillable`, à ne pas retirer).
-- Suivre le même pattern que `StudentController::advanceStage()` pour `lifecycle_stage` — lire ce code avant d'écrire le nouveau.
+- **Ne jamais modifier `dossier_status` autrement que via `DossierStatusService`** - c'est la règle déjà actée par WF-03/WF-02 (`Student::setDossierStatus()` reste `protected`/bypass `$fillable`, à ne pas retirer).
+- Suivre le même pattern que `StudentController::advanceStage()` pour `lifecycle_stage` - lire ce code avant d'écrire le nouveau.
 - Toute transition invalide doit produire un message d'erreur explicite côté UI (pas juste une exception non gérée).
 
 ## Étapes suggérées (TDD)

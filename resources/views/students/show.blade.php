@@ -12,7 +12,8 @@
         {{-- Profile header --}}
         <x-card>
             <div class="flex flex-col sm:flex-row sm:items-center gap-5">
-                <span class="flex h-16 w-16 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary text-xl font-semibold">
+                <span
+                    class="flex h-16 w-16 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary text-xl font-semibold">
                     {{ mb_substr($student->first_name, 0, 1) }}{{ mb_substr($student->last_name, 0, 1) }}
                 </span>
 
@@ -23,7 +24,9 @@
                     </div>
                     <p class="text-sm text-content-secondary mt-0.5">
                         {{ $student->license_category->value }} &middot; {{ $student->course_type->label() }}
-                        @if ($student->phone) &middot; {{ $student->phone }} @endif
+                        @if ($student->phone)
+                            &middot; {{ $student->phone }}
+                        @endif
                     </p>
 
                     @php
@@ -37,20 +40,24 @@
                             <span>{{ $progressPercent }}%</span>
                         </div>
                         <div class="bg-surface-inset rounded-full h-2 overflow-hidden">
-                            <div class="bg-primary h-2 rounded-full" style="width: {{ max(2, $progressPercent) }}%"></div>
+                            <div class="bg-primary h-2 rounded-full" style="width: {{ max(2, $progressPercent) }}%">
+                            </div>
                         </div>
                     </div>
                 </div>
 
                 <div class="flex flex-wrap gap-2 sm:flex-col sm:items-end shrink-0">
                     @can('evaluate', $student)
-                        <a href="{{ route('training.evaluation.show', $student) }}" class="text-sm text-content-secondary hover:text-primary transition">Évaluer</a>
+                        <a href="{{ route('training.evaluation.show', $student) }}"
+                            class="text-sm text-content-secondary hover:text-primary transition">Évaluer</a>
                     @endcan
                     @can('create', \App\Domain\Finance\Models\Invoice::class)
-                        <a href="{{ route('finance.invoices.create', $student) }}" class="text-sm text-content-secondary hover:text-primary transition">Nouvelle facture</a>
+                        <a href="{{ route('finance.invoices.create', $student) }}"
+                            class="text-sm text-content-secondary hover:text-primary transition">Nouvelle facture</a>
                     @endcan
                     @can('update', $student)
-                        <a href="{{ route('students.edit', $student) }}" class="text-sm text-content-secondary hover:text-primary transition">Modifier</a>
+                        <a href="{{ route('students.edit', $student) }}"
+                            class="text-sm text-content-secondary hover:text-primary transition">Modifier</a>
                     @endcan
                 </div>
             </div>
@@ -71,17 +78,27 @@
                 <x-card>
                     <div class="text-sm font-semibold text-content mb-3">Coordonnées</div>
                     <dl class="space-y-2 text-sm">
-                        <div class="flex items-center gap-2"><x-icon name="phone" class="w-4 h-4 text-content-muted" /><span class="text-content">{{ $student->phone ?? '—' }}</span></div>
-                        <div class="flex items-center gap-2"><x-icon name="envelope" class="w-4 h-4 text-content-muted" /><span class="text-content">{{ $student->email ?? '—' }}</span></div>
-                        <div class="flex items-center gap-2"><x-icon name="map-pin" class="w-4 h-4 text-content-muted" /><span class="text-content">{{ $student->address ?? '—' }}</span></div>
+                        <div class="flex items-center gap-2"><x-icon name="phone"
+                                class="w-4 h-4 text-content-muted" /><span
+                                class="text-content">{{ $student->phone ?? '-' }}</span></div>
+                        <div class="flex items-center gap-2"><x-icon name="envelope"
+                                class="w-4 h-4 text-content-muted" /><span
+                                class="text-content">{{ $student->email ?? '-' }}</span></div>
+                        <div class="flex items-center gap-2"><x-icon name="map-pin"
+                                class="w-4 h-4 text-content-muted" /><span
+                                class="text-content">{{ $student->address ?? '-' }}</span></div>
                     </dl>
                 </x-card>
                 <x-card>
                     <div class="text-sm font-semibold text-content mb-3">Dossier & Moniteur</div>
                     <dl class="space-y-2 text-sm">
-                        <div class="flex justify-between"><span class="text-content-secondary">Dossier</span><span class="text-content font-medium">{{ $student->dossier_status->label() }}</span></div>
-                        <div class="flex justify-between"><span class="text-content-secondary">Moniteur</span><span class="text-content font-medium">{{ $student->instructor?->name ?? '—' }}</span></div>
-                        <div class="flex justify-between"><span class="text-content-secondary">Inscrit le</span><span class="text-content font-medium">{{ $student->registered_at?->format('d/m/Y') ?? '—' }}</span></div>
+                        <div class="flex justify-between"><span class="text-content-secondary">Dossier</span><span
+                                class="text-content font-medium">{{ $student->dossier_status->label() }}</span></div>
+                        <div class="flex justify-between"><span class="text-content-secondary">Moniteur</span><span
+                                class="text-content font-medium">{{ $student->instructor?->name ?? '-' }}</span></div>
+                        <div class="flex justify-between"><span class="text-content-secondary">Inscrit le</span><span
+                                class="text-content font-medium">{{ $student->registered_at?->format('d/m/Y') ?? '-' }}</span>
+                        </div>
                     </dl>
                 </x-card>
             </div>
@@ -90,15 +107,33 @@
             <div x-show="tab === 'informations'" x-cloak>
                 <x-card>
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
-                        <div><span class="text-content-muted">Nom</span><p class="text-content font-medium">{{ $student->last_name }}</p></div>
-                        <div><span class="text-content-muted">Prénom</span><p class="text-content font-medium">{{ $student->first_name }}</p></div>
-                        <div><span class="text-content-muted">Date de naissance</span><p class="text-content font-medium">{{ $student->birth_date?->format('d/m/Y') ?? '—' }}</p></div>
-                        <div><span class="text-content-muted">Lieu de naissance</span><p class="text-content font-medium">{{ $student->birth_place ?? '—' }}</p></div>
-                        <div><span class="text-content-muted">Téléphone</span><p class="text-content font-medium">{{ $student->phone ?? '—' }}</p></div>
-                        <div><span class="text-content-muted">Téléphone secondaire</span><p class="text-content font-medium">{{ $student->phone_secondary ?? '—' }}</p></div>
-                        <div><span class="text-content-muted">E-mail</span><p class="text-content font-medium">{{ $student->email ?? '—' }}</p></div>
-                        <div><span class="text-content-muted">NEPH</span><p class="text-content font-medium">{{ $student->neph ?? '—' }}</p></div>
-                        <div class="sm:col-span-2"><span class="text-content-muted">Adresse</span><p class="text-content font-medium">{{ $student->address ?? '—' }}</p></div>
+                        <div><span class="text-content-muted">Nom</span>
+                            <p class="text-content font-medium">{{ $student->last_name }}</p>
+                        </div>
+                        <div><span class="text-content-muted">Prénom</span>
+                            <p class="text-content font-medium">{{ $student->first_name }}</p>
+                        </div>
+                        <div><span class="text-content-muted">Date de naissance</span>
+                            <p class="text-content font-medium">{{ $student->birth_date?->format('d/m/Y') ?? '-' }}</p>
+                        </div>
+                        <div><span class="text-content-muted">Lieu de naissance</span>
+                            <p class="text-content font-medium">{{ $student->birth_place ?? '-' }}</p>
+                        </div>
+                        <div><span class="text-content-muted">Téléphone</span>
+                            <p class="text-content font-medium">{{ $student->phone ?? '-' }}</p>
+                        </div>
+                        <div><span class="text-content-muted">Téléphone secondaire</span>
+                            <p class="text-content font-medium">{{ $student->phone_secondary ?? '-' }}</p>
+                        </div>
+                        <div><span class="text-content-muted">E-mail</span>
+                            <p class="text-content font-medium">{{ $student->email ?? '-' }}</p>
+                        </div>
+                        <div><span class="text-content-muted">NEPH</span>
+                            <p class="text-content font-medium">{{ $student->neph ?? '-' }}</p>
+                        </div>
+                        <div class="sm:col-span-2"><span class="text-content-muted">Adresse</span>
+                            <p class="text-content font-medium">{{ $student->address ?? '-' }}</p>
+                        </div>
                     </div>
                 </x-card>
             </div>
@@ -107,9 +142,15 @@
             <div x-show="tab === 'formation'" x-cloak class="space-y-5">
                 <x-card>
                     <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 text-sm mb-5">
-                        <div><span class="text-content-muted">Catégorie</span><p class="text-content font-medium">{{ $student->license_category->value }}</p></div>
-                        <div><span class="text-content-muted">Type de cours</span><p class="text-content font-medium">{{ $student->course_type->label() }}</p></div>
-                        <div><span class="text-content-muted">Étape actuelle</span><p class="text-content font-medium">{{ $student->lifecycle_stage->label() }}</p></div>
+                        <div><span class="text-content-muted">Catégorie</span>
+                            <p class="text-content font-medium">{{ $student->license_category->value }}</p>
+                        </div>
+                        <div><span class="text-content-muted">Type de cours</span>
+                            <p class="text-content font-medium">{{ $student->course_type->label() }}</p>
+                        </div>
+                        <div><span class="text-content-muted">Étape actuelle</span>
+                            <p class="text-content font-medium">{{ $student->lifecycle_stage->label() }}</p>
+                        </div>
                     </div>
 
                     <div class="border-t border-border/60 pt-4">
@@ -119,13 +160,24 @@
                                 <li class="flex items-center gap-2 text-sm">
                                     <span @class([
                                         'flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-[10px] font-semibold',
-                                        'bg-primary text-primary-content' => $stage->value === $student->lifecycle_stage->value,
-                                        'bg-success/15 text-success' => $done && $stage->value !== $student->lifecycle_stage->value,
-                                        'bg-surface-inset text-content-muted' => ! $done,
+                                        'bg-primary text-primary-content' =>
+                                            $stage->value === $student->lifecycle_stage->value,
+                                        'bg-success/15 text-success' =>
+                                            $done && $stage->value !== $student->lifecycle_stage->value,
+                                        'bg-surface-inset text-content-muted' => !$done,
                                     ])>
-                                        @if ($done && $stage->value !== $student->lifecycle_stage->value) &check; @else {{ $loop->iteration }} @endif
+                                        @if ($done && $stage->value !== $student->lifecycle_stage->value)
+                                            &check;
+                                        @else
+                                            {{ $loop->iteration }}
+                                        @endif
                                     </span>
-                                    <span @class(['text-content font-medium' => $stage->value === $student->lifecycle_stage->value, 'text-content-secondary' => $stage->value !== $student->lifecycle_stage->value])>
+                                    <span @class([
+                                        'text-content font-medium' =>
+                                            $stage->value === $student->lifecycle_stage->value,
+                                        'text-content-secondary' =>
+                                            $stage->value !== $student->lifecycle_stage->value,
+                                    ])>
                                         {{ $stage->label() }}
                                     </span>
                                 </li>
@@ -142,8 +194,9 @@
                                         @csrf
                                         @method('PATCH')
                                         <input type="hidden" name="stage" value="{{ $stage->value }}">
-                                        <button type="submit" class="text-sm bg-surface-inset px-3 py-1.5 rounded-ui-md text-content hover:shadow-soft-sm transition">
-                                            &rarr; {{ $stage->label() }}
+                                        <button type="submit"
+                                            class="inline-flex items-center gap-1 text-sm bg-surface-inset px-3 py-1.5 rounded-ui-md text-content hover:shadow-soft-sm transition">
+                                            <x-icon name="chevron-right" class="w-4 h-4" /> {{ $stage->label() }}
                                         </button>
                                     </form>
                                 @endforeach
@@ -165,14 +218,19 @@
                             ->get();
                     @endphp
                     @if ($sessions->isEmpty())
-                        <p class="text-sm text-content-muted p-6 text-center">Aucune séance planifiée pour cet élève.</p>
+                        <p class="text-sm text-content-muted p-6 text-center">Aucune séance planifiée pour cet élève.
+                        </p>
                     @else
                         <ul class="divide-y divide-border/60">
                             @foreach ($sessions as $session)
                                 <li class="px-5 py-3 flex items-center justify-between text-sm gap-3">
                                     <div class="min-w-0">
-                                        <p class="text-content font-medium">{{ $session->scheduled_date->format('d/m/Y') }} &middot; {{ $session->starts_at }}–{{ $session->ends_at }}</p>
-                                        <p class="text-content-muted text-xs">{{ $session->type->label() }} &middot; {{ $session->instructor?->name ?? '—' }} &middot; {{ $session->vehicle?->plate ?? '—' }}</p>
+                                        <p class="text-content font-medium">
+                                            {{ $session->scheduled_date->format('d/m/Y') }} &middot;
+                                            {{ $session->starts_at }}–{{ $session->ends_at }}</p>
+                                        <p class="text-content-muted text-xs">{{ $session->type->label() }} &middot;
+                                            {{ $session->instructor?->name ?? '-' }} &middot;
+                                            {{ $session->vehicle?->plate ?? '-' }}</p>
                                     </div>
                                     <x-badge :variant="$session->presence?->value === 'present' ? 'success' : ($session->presence?->value === 'absent' ? 'danger' : 'neutral')">
                                         {{ $session->presence?->label() ?? 'Prévue' }}
@@ -182,7 +240,10 @@
                         </ul>
                     @endif
                     <div class="px-5 py-3 border-t border-border/60">
-                        <a href="{{ route('scheduling.index', ['student_id' => $student->id]) }}" class="text-xs text-primary hover:underline">Voir le planning complet &rarr;</a>
+                        <a href="{{ route('scheduling.index', ['student_id' => $student->id]) }}"
+                            class="inline-flex items-center gap-1 text-xs text-primary hover:underline">
+                            Voir le planning complet <x-icon name="chevron-right" class="w-3 h-3" />
+                        </a>
                     </div>
                 </x-card>
             </div>
@@ -203,8 +264,12 @@
                             @foreach ($invoices as $invoice)
                                 <li class="px-5 py-3 flex items-center justify-between text-sm gap-3">
                                     <div class="min-w-0">
-                                        <a href="{{ route('finance.invoices.show', $invoice) }}" class="text-content font-medium hover:text-primary transition">{{ $invoice->label }}</a>
-                                        <p class="text-content-muted text-xs">{{ $invoice->issued_at?->format('d/m/Y') }} &middot; {{ number_format((float) $invoice->amount_paid, 0, ',', ' ') }} / {{ number_format((float) $invoice->amount_due, 0, ',', ' ') }} FCFA</p>
+                                        <a href="{{ route('finance.invoices.show', $invoice) }}"
+                                            class="text-content font-medium hover:text-primary transition">{{ $invoice->label }}</a>
+                                        <p class="text-content-muted text-xs">
+                                            {{ $invoice->issued_at?->format('d/m/Y') }} &middot;
+                                            {{ number_format((float) $invoice->amount_paid, 0, ',', ' ') }} /
+                                            {{ number_format((float) $invoice->amount_due, 0, ',', ' ') }} FCFA</p>
                                     </div>
                                     <x-badge :variant="$invoice->status->value === 'paid' ? 'success' : ($invoice->status->value === 'unpaid' ? 'danger' : 'warning')">
                                         {{ $invoice->status->label() }}
@@ -224,15 +289,25 @@
                             ->where('documentable_type', $student->getMorphClass())
                             ->where('documentable_id', $student->id)
                             ->where('is_current', true)
+                            ->with('requiredDocumentType')
                             ->latest()
                             ->get();
                     @endphp
 
                     <ul class="text-sm divide-y divide-border/60 mb-4">
                         @forelse ($documents as $document)
-                            <li class="py-2.5 flex justify-between items-center">
-                                <span class="text-content">{{ $document->type->label() }} — {{ $document->original_name }} (v{{ $document->version }})</span>
-                                <a href="{{ route('documents.download', $document) }}" class="text-xs text-primary hover:underline">Télécharger</a>
+                            <li class="py-2.5 flex justify-between items-center gap-3">
+                                <span class="text-content min-w-0">
+                                    {{ $document->requiredDocumentType?->label ?? $document->type->label() }} -
+                                    {{ $document->original_name }} (v{{ $document->version }})
+                                    @if ($document->required_document_type_id)
+                                        <x-badge :variant="$document->review_status->value === 'approved' ? 'success' : ($document->review_status->value === 'rejected' ? 'danger' : 'warning')" class="ml-1">
+                                            {{ $document->review_status->label() }}
+                                        </x-badge>
+                                    @endif
+                                </span>
+                                <a href="{{ route('documents.show', $document) }}"
+                                    class="text-xs text-primary hover:underline shrink-0">Visualiser</a>
                             </li>
                         @empty
                             <li class="py-2.5 text-content-muted">Aucun document.</li>
@@ -240,16 +315,32 @@
                     </ul>
 
                     @can('create', \App\Domain\Documents\Models\Document::class)
-                        <form method="POST" action="{{ route('students.documents.store', $student) }}" enctype="multipart/form-data" class="grid grid-cols-1 sm:grid-cols-3 gap-3 items-end pt-2">
-                            @csrf
-                            <select name="type" class="rounded-ui-md border-0 bg-surface-inset text-content shadow-inset focus:shadow-inset-focus focus:ring-0 text-sm block w-full">
-                                @foreach (\App\Domain\Documents\Enums\DocumentType::cases() as $case)
-                                    <option value="{{ $case->value }}">{{ $case->label() }}</option>
-                                @endforeach
-                            </select>
-                            <input type="file" name="file" class="text-sm text-content" required>
-                            <x-primary-button>Déposer</x-primary-button>
-                        </form>
+                        @php
+                            $requiredDocumentTypes = \App\Domain\Students\Models\RequiredDocumentType::query()
+                                ->active()
+                                ->ordered()
+                                ->get();
+                        @endphp
+                        @if ($requiredDocumentTypes->isEmpty())
+                            <p class="text-sm text-content-muted pt-2">
+                                Aucune pièce requise n'est configurée  - voir Paramètres &gt; Pièces
+                                requises.
+                            </p>
+                        @else
+                            <form method="POST" action="{{ route('students.documents.store', $student) }}"
+                                enctype="multipart/form-data"
+                                class="grid grid-cols-1 sm:grid-cols-3 gap-3 items-end pt-2">
+                                @csrf
+                                <select name="required_document_type_id"
+                                    class="rounded-ui-md border-0 bg-surface-inset text-content shadow-inset focus:shadow-inset-focus focus:ring-0 text-sm block w-full">
+                                    @foreach ($requiredDocumentTypes as $type)
+                                        <option value="{{ $type->id }}">{{ $type->label }}</option>
+                                    @endforeach
+                                </select>
+                                <input type="file" name="file" class="text-sm text-content" required>
+                                <x-primary-button>Déposer</x-primary-button>
+                            </form>
+                        @endif
                     @endcan
                 </x-card>
             </div>
@@ -271,7 +362,8 @@
                                 <li class="px-5 py-3 flex items-center justify-between text-sm gap-3">
                                     <div class="min-w-0">
                                         <p class="text-content font-medium">{{ $exam->type->label() }}</p>
-                                        <p class="text-content-muted text-xs">{{ $exam->exam_date->format('d/m/Y') }}</p>
+                                        <p class="text-content-muted text-xs">{{ $exam->exam_date->format('d/m/Y') }}
+                                        </p>
                                     </div>
                                     <x-badge :variant="$exam->result->value === 'passed' ? 'success' : ($exam->result->value === 'failed' ? 'danger' : 'neutral')">
                                         {{ $exam->result->label() }}
@@ -301,8 +393,10 @@
                         <ul class="divide-y divide-border/60">
                             @foreach ($logs as $log)
                                 <li class="px-5 py-3 text-sm">
-                                    <p class="text-content">{{ $log->action }} <span class="text-content-muted">— {{ $log->user?->name ?? 'Système' }}</span></p>
-                                    <p class="text-content-muted text-xs">{{ $log->created_at->format('d/m/Y H:i') }}</p>
+                                    <p class="text-content">{{ $log->action }} <span class="text-content-muted">-
+                                            {{ $log->user?->name ?? 'Système' }}</span></p>
+                                    <p class="text-content-muted text-xs">{{ $log->created_at->format('d/m/Y H:i') }}
+                                    </p>
                                 </li>
                             @endforeach
                         </ul>

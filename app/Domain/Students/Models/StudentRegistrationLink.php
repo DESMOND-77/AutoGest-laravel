@@ -16,7 +16,7 @@ use Illuminate\Support\Carbon;
 /**
  * A public, tenant-scoped self-registration link for prospective students.
  * The row is looked up by token_hash *before* any tenant is known (see
- * StudentRegistrationLinkService::validate) — at that point
+ * StudentRegistrationLinkService::validate) - at that point
  * TenantContext::hasTenant() is false, so BelongsToTenant's global scope
  * contributes no WHERE clause and the lookup naturally searches across every
  * tenant, exactly once, with no special-casing needed. Every other query
@@ -74,7 +74,7 @@ class StudentRegistrationLink extends Model
     }
 
     /**
-     * Not revoked and not expired — independent of remaining uses, unlike
+     * Not revoked and not expired - independent of remaining uses, unlike
      * isUsable(). Used by the admin settings page ("is there a link to show
      * at all"), where a maxed-out but otherwise live link is still the
      * tenant's "current" link worth displaying.
@@ -102,7 +102,7 @@ class StudentRegistrationLink extends Model
 
     /**
      * The full check a token must pass to actually be used for a public
-     * registration — everything scopeActive() checks, plus remaining uses.
+     * registration - everything scopeActive() checks, plus remaining uses.
      * Deliberately does *not* check the tenant's own status (Active vs
      * Suspended/Pending/Deactivated): that's a separate, explicit check in
      * the service so a suspended tenant produces its own clear failure

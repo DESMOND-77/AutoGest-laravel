@@ -53,7 +53,7 @@ it('walks a prospective student from public registration to Enrollment through e
 
     expect($student->fresh()->lifecycle_stage)->toBe(LifecycleStage::DossierSetup);
 
-    // 3. Dossier upload — student is still assembling their dossier.
+    // 3. Dossier upload - student is still assembling their dossier.
     $this->actingAs($user)->post(
         route('eleve.dossier.upload', $type),
         ['file' => UploadedFile::fake()->create('id.pdf', 10)],
@@ -67,7 +67,7 @@ it('walks a prospective student from public registration to Enrollment through e
     expect($student->fresh()->lifecycle_stage)->toBe(LifecycleStage::DossierSetup);
 
     // 5. Submission is only possible once every required piece is already
-    // approved, and immediately enrolls the student — there is nothing left
+    // approved, and immediately enrolls the student - there is nothing left
     // to review after submission.
     $this->actingAs($user)->post(route('eleve.dossier.submit'))->assertRedirect();
 

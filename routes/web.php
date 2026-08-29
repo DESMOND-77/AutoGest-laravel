@@ -214,8 +214,8 @@ Route::middleware(['auth', 'role:admin'])
     });
 
 // Public, unauthenticated: a prospective student opens the link an
-// auto-école generated above. The tenant comes from the token alone — see
-// PublicStudentRegistrationController's docblock — so this group carries no
+// auto-école generated above. The tenant comes from the token alone - see
+// PublicStudentRegistrationController's docblock - so this group carries no
 // 'auth' *or* 'guest' middleware, only per-IP throttling against token
 // brute-forcing and submission spam (§33-34 of the spec).
 Route::prefix('register/student')
@@ -270,6 +270,11 @@ Route::middleware(['auth', 'role:admin'])->group(function () {
 Route::middleware('auth')
     ->get('documents/{document}/download', [DocumentController::class, 'download'])
     ->name('documents.download');
+
+Route::middleware('auth')->group(function () {
+    Route::get('documents/{document}', [DocumentController::class, 'show'])->name('documents.show');
+    Route::get('documents/{document}/stream', [DocumentController::class, 'stream'])->name('documents.stream');
+});
 
 Route::middleware(['auth', 'role:admin|superadmin'])
     ->get('audit', [AuditLogController::class, 'index'])

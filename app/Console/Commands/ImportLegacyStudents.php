@@ -18,7 +18,7 @@ use Illuminate\Console\Command;
  * Ports the legacy setup/import.php script's `inscription.csv` import onto
  * the new relational schema. Where the legacy script wrote one flat
  * `paiements` row per student, this creates an Invoice (what's owed) and,
- * if anything was already received, a Payment against it — the Phase 2
+ * if anything was already received, a Payment against it - the Phase 2
  * invoice/payment split the design doc calls for. Deliberately does not
  * import the weekly schedule CSVs (etp*, ett*, Recyclage*) or the Code
  * Rousseau book-sales CSV, matching the legacy script's own documented
@@ -129,7 +129,7 @@ class ImportLegacyStudents extends Command
             ]);
 
             // lifecycle_stage/dossier_status are guarded columns (see
-            // Student::setLifecycleStage/setDossierStatus) — imported
+            // Student::setLifecycleStage/setDossierStatus) - imported
             // students start further along than a fresh registration, so
             // the database defaults ('prospect'/'incomplete') don't apply
             // here and must be set explicitly, bypassing the transition

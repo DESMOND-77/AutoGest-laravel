@@ -1,5 +1,5 @@
 <x-app-layout>
-    <x-slot name="header">Facture — {{ $invoice->student->fullName() }}</x-slot>
+    <x-slot name="header">Facture - {{ $invoice->student->fullName() }}</x-slot>
 
     <div class="py-6 space-y-5 max-w-3xl mx-auto">
         @if (session('status'))
@@ -58,7 +58,7 @@
                                 <td class="py-2.5">{{ $payment->paid_at->format('d/m/Y') }}</td>
                                 <td class="py-2.5 {{ $payment->isCancelled() ? '' : 'text-content font-medium' }}">{{ number_format($payment->amount, 0, ',', ' ') }} FCFA</td>
                                 <td class="py-2.5 text-content-secondary">{{ $payment->method->label() }}</td>
-                                <td class="py-2.5 text-content-secondary">{{ $payment->recordedBy?->name ?? '—' }}</td>
+                                <td class="py-2.5 text-content-secondary">{{ $payment->recordedBy?->name ?? '-' }}</td>
                                 <td class="py-2.5">
                                     <x-badge :variant="$payment->isCancelled() ? 'neutral' : 'success'">
                                         {{ $payment->isCancelled() ? 'Annulé' : 'Actif' }}

@@ -9,7 +9,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 /**
- * Scoped through its question (no direct structure_id) — same "scope via
+ * Scoped through its question (no direct structure_id) - same "scope via
  * parent relation" pattern the design doc calls for on tables without their
  * own tenant FK.
  */

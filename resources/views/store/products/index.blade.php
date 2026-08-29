@@ -36,7 +36,7 @@
                         @forelse ($products as $product)
                             <tr class="hover:bg-surface-elevated/60 transition">
                                 <td class="px-5 py-3 text-content font-medium">{{ $product->name }}</td>
-                                <td class="px-5 py-3 text-content-secondary">{{ $product->category ?? '—' }}</td>
+                                <td class="px-5 py-3 text-content-secondary">{{ $product->category ?? '-' }}</td>
                                 <td class="px-5 py-3 text-content-secondary">{{ number_format($product->price, 0, ',', ' ') }} FCFA</td>
                                 <td class="px-5 py-3">
                                     <x-badge :variant="$product->stock_quantity > 0 ? 'success' : 'danger'">{{ $product->stock_quantity }}</x-badge>

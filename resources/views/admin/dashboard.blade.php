@@ -4,7 +4,7 @@
     <div class="py-6 space-y-6 max-w-7xl mx-auto">
         <div>
             <h1 class="text-xl font-semibold text-content">Bonjour, {{ explode(' ', auth()->user()->name)[0] }} 👋</h1>
-            <p class="text-sm text-content-secondary">{{ now()->translatedFormat('l d F Y') }} — voici ce qui se passe dans votre établissement.</p>
+            <p class="text-sm text-content-secondary">{{ now()->translatedFormat('l d F Y') }} - voici ce qui se passe dans votre établissement.</p>
         </div>
 
         {{-- KPI row --}}
@@ -125,7 +125,9 @@
                         </li>
                     @endforeach
                 </ul>
-                <a href="{{ route('fleet.index') }}" class="mt-3 inline-block text-xs text-primary hover:underline">Voir la flotte &rarr;</a>
+                <a href="{{ route('fleet.index') }}" class="mt-3 inline-flex items-center gap-1 text-xs text-primary hover:underline">
+                    Voir la flotte <x-icon name="chevron-right" class="w-3 h-3" />
+                </a>
             </x-card>
         </div>
 

@@ -4,11 +4,11 @@
     <div class="py-6 space-y-4 max-w-7xl mx-auto">
         <x-card>
             <div class="flex flex-wrap gap-6 text-sm">
-                <a href="{{ route('moniteur.agenda') }}" class="text-primary hover:underline font-medium">
-                    Mon agenda &rarr;
+                <a href="{{ route('moniteur.agenda') }}" class="inline-flex items-center gap-1 text-primary hover:underline font-medium">
+                    Mon agenda <x-icon name="chevron-right" class="w-4 h-4" />
                 </a>
-                <a href="{{ route('students.index') }}" class="text-primary hover:underline font-medium">
-                    Mes élèves &rarr;
+                <a href="{{ route('students.index') }}" class="inline-flex items-center gap-1 text-primary hover:underline font-medium">
+                    Mes élèves <x-icon name="chevron-right" class="w-4 h-4" />
                 </a>
             </div>
         </x-card>

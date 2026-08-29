@@ -8,7 +8,7 @@ Deux familles d'endpoints JSON existent cependant et sont documentées ici.
 
 Tous les endpoints ci-dessous sont protégés par les mêmes sessions/cookies que le reste de l'application (`auth` middleware de Laravel) et par les Policies du domaine concerné. Aucune clé d'API distincte n'est actuellement fournie.
 
-> **TODO : Compléter avec les informations spécifiques au projet** — si une API publique authentifiée par jeton (Laravel Sanctum) est ajoutée à l'avenir, documenter ici le schéma d'authentification, le versionnement (`/api/v1/...`) et la politique de rate limiting.
+> **TODO : Compléter avec les informations spécifiques au projet** - si une API publique authentifiée par jeton (Laravel Sanctum) est ajoutée à l'avenir, documenter ici le schéma d'authentification, le versionnement (`/api/v1/...`) et la politique de rate limiting.
 
 ## Entraînement au code (quiz)
 

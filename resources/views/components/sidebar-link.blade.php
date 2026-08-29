@@ -1,7 +1,7 @@
 @props(['href', 'active' => false, 'icon' => null, 'badge' => null])
 
 {{--
-    Relies on an ancestor <aside x-data="{ collapsed: ... }"> — Blade
+    Relies on an ancestor <aside x-data="{ collapsed: ... }"> - Blade
     components inline into the same DOM position, so Alpine's `collapsed`
     stays in scope here without needing to thread it through as a prop.
 --}}

@@ -7,7 +7,7 @@ use App\Domain\Tenancy\Models\Structure;
 /**
  * Request-lifetime holder for the current tenant, set by ResolveTenant
  * middleware. Unlike current_structure_id() in the legacy app, there is no
- * silent fallback to a default tenant id — code that needs a tenant and finds
+ * silent fallback to a default tenant id - code that needs a tenant and finds
  * none must fail loudly.
  */
 class TenantContext

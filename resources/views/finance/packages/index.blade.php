@@ -49,7 +49,7 @@
                             <tr class="hover:bg-surface-elevated/60 transition">
                                 <td class="px-5 py-3 text-content font-medium">{{ $package->name }}</td>
                                 <td class="px-5 py-3 text-content-secondary">{{ $package->license_category }}</td>
-                                <td class="px-5 py-3 text-content-secondary">{{ $package->hours ?? '—' }}</td>
+                                <td class="px-5 py-3 text-content-secondary">{{ $package->hours ?? '-' }}</td>
                                 <td class="px-5 py-3 text-content-secondary">{{ number_format($package->price, 0, ',', ' ') }} FCFA</td>
                                 <td class="px-5 py-3 text-right">
                                     <form method="POST" action="{{ route('finance.packages.destroy', $package) }}" onsubmit="return confirm('Supprimer ce forfait ?');">

@@ -34,7 +34,7 @@ class PublicStudentRegistrationService
     /**
      * @param  array{name: string, email: string, password: string}  $accountData
      * @param  array<string, mixed>  $studentData  Already validated by
-     *                                             PublicStudentRegistrationRequest — never trusted for tenant_id/
+     *                                             PublicStudentRegistrationRequest - never trusted for tenant_id/
      *                                             structure_id, which aren't even accepted fields on that request.
      *
      * @throws InvalidRegistrationLink
@@ -57,7 +57,7 @@ class PublicStudentRegistrationService
                 // link spec. Unscoped for the same reason validate() is
                 // (see its docblock): this route carries no 'auth'/'guest'
                 // middleware, so an already-authenticated visitor still
-                // carries an ambient TenantContext from their own tenant —
+                // carries an ambient TenantContext from their own tenant -
                 // scoping this lookup by it would 404 a perfectly valid
                 // link belonging to a *different* tenant.
                 $locked = StudentRegistrationLink::withoutTenantScope()
@@ -122,7 +122,7 @@ class PublicStudentRegistrationService
     /**
      * Global, unscoped on purpose: a self-service account's email is its
      * login credential, so a duplicate anywhere (any tenant) must be
-     * rejected — but the message never says which school the existing
+     * rejected - but the message never says which school the existing
      * account belongs to (§ edge cases: "sans révéler à quel établissement
      * ce compte est déjà rattaché").
      */
@@ -133,7 +133,7 @@ class PublicStudentRegistrationService
 
     /**
      * Scoped implicitly to the tenant just activated by TenantContext::set()
-     * above — Student's BelongsToTenant global scope does the filtering.
+     * above - Student's BelongsToTenant global scope does the filtering.
      */
     private function duplicateStudent(array $data): bool
     {

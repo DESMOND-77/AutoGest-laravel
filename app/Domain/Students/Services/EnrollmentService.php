@@ -12,7 +12,7 @@ class EnrollmentService
     ) {}
 
     /**
-     * lifecycle_stage/dossier_status are intentionally absent from $data —
+     * lifecycle_stage/dossier_status are intentionally absent from $data -
      * they're guarded (see Student::setLifecycleStage/setDossierStatus) and
      * every new student starts at the same defaults ('prospect'/
      * 'incomplete'), enforced at the database column level.

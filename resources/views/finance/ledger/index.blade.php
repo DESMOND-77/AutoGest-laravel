@@ -50,7 +50,7 @@
                             <tr class="hover:bg-surface-elevated/60 transition">
                                 <td class="px-5 py-3 text-content-secondary">{{ $entry->occurred_on->format('d/m/Y') }}</td>
                                 <td class="px-5 py-3 text-content-secondary">{{ $entry->type->label() }}</td>
-                                <td class="px-5 py-3 text-content-secondary">{{ $entry->memo ?? '—' }}</td>
+                                <td class="px-5 py-3 text-content-secondary">{{ $entry->memo ?? '-' }}</td>
                                 <td @class(['px-5 py-3 font-medium', 'text-success' => $entry->type->isCredit(), 'text-danger' => ! $entry->type->isCredit()])>
                                     {{ $entry->type->isCredit() ? '+' : '-' }}{{ number_format($entry->amount, 0, ',', ' ') }} FCFA
                                 </td>

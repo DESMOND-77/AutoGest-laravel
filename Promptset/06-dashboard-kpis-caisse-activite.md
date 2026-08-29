@@ -1,4 +1,4 @@
-# Prompt — KPIs caisse et flux d'activité du jour sur le tableau de bord admin
+# Prompt - KPIs caisse et flux d'activité du jour sur le tableau de bord admin
 
 ## Contexte
 
@@ -8,7 +8,7 @@ Deux écarts confirmés par navigation réelle face à la version PHP vanilla de
 1. **Aucun indicateur de trésorerie** : solde de caisse courant, total des impayés en cours (« reste à collecter »).
 2. **Aucun flux d'activité du jour** : séances du jour, dernières opérations financières.
 
-Toutes les données sous-jacentes existent déjà dans les domaines `Finance` (`Invoice`, `Payment`, `LedgerEntry`) et `Scheduling` (`LessonSession`) — c'est un travail d'agrégation + UI, pas de nouveau domaine.
+Toutes les données sous-jacentes existent déjà dans les domaines `Finance` (`Invoice`, `Payment`, `LedgerEntry`) et `Scheduling` (`LessonSession`) - c'est un travail d'agrégation + UI, pas de nouveau domaine.
 
 ## Objectif
 
@@ -20,13 +20,13 @@ Ajouter au tableau de bord admin :
 
 ## Périmètre exact
 
-- `app/Domain/Reports/Services/ReportsService.php` (ou équivalent — vérifier le nom exact du service injecté dans `ReportsController`) : ajouter les méthodes d'agrégation, ex. `cashBalance()`, `outstandingBalance()`, `todaysSessions()`, `recentLedgerEntries(int $limit = 6)`. Vérifier avant tout si `LedgerService` expose déjà un calcul de solde réutilisable plutôt que de le dupliquer.
+- `app/Domain/Reports/Services/ReportsService.php` (ou équivalent - vérifier le nom exact du service injecté dans `ReportsController`) : ajouter les méthodes d'agrégation, ex. `cashBalance()`, `outstandingBalance()`, `todaysSessions()`, `recentLedgerEntries(int $limit = 6)`. Vérifier avant tout si `LedgerService` expose déjà un calcul de solde réutilisable plutôt que de le dupliquer.
 - `app/Domain/Reports/Http/Controllers/ReportsController.php` : passer ces nouvelles données à la vue.
 - `resources/views/admin/dashboard.blade.php` : ajouter les cartes KPI (réutiliser `<x-kpi-card>` déjà utilisé) et les deux blocs de flux (réutiliser le style des blocs « Examens à venir » déjà présent).
 
 ## Contraintes
 
-- Toutes les requêtes d'agrégation doivent être scopées au tenant courant — vérifier que `BelongsToTenant` s'applique bien par défaut sur les modèles concernés (c'est le cas pour tous les modèles du domaine), ne pas contourner ce scope.
+- Toutes les requêtes d'agrégation doivent être scopées au tenant courant - vérifier que `BelongsToTenant` s'applique bien par défaut sur les modèles concernés (c'est le cas pour tous les modèles du domaine), ne pas contourner ce scope.
 - Ne pas dupliquer une logique de calcul de solde si `LedgerService` en a déjà une (lire ce service avant d'écrire une nouvelle méthode).
 - Respecter le format monétaire déjà utilisé ailleurs dans l'app (`number_format($x, 0, ',', ' ') . ' FCFA'`).
 

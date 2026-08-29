@@ -12,7 +12,7 @@ use Illuminate\Support\Facades\Notification;
  * MT-02 follow-up: fleet:check-alerts loops every Structure, binding
  * TenantContext to each in turn. The loop body now runs inside a
  * try/finally so TenantContext::clear() always runs before moving to the
- * next structure, even if something inside throws — this test locks down
+ * next structure, even if something inside throws - this test locks down
  * that each structure's admins only ever see their own vehicles' alerts.
  */
 it('only notifies each structure\'s admins about their own expiring vehicles', function () {

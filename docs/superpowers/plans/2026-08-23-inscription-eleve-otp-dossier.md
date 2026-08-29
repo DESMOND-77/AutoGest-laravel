@@ -1,8 +1,8 @@
-# Inscription élève OTP + Dossier — Implementation Plan
+# Inscription élève OTP + Dossier - Implementation Plan
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Replace the current one-shot public student registration form with a multi-step flow — self-service account creation with password login, OTP email verification, a per-tenant-configurable required-document dossier that students submit themselves, and per-document (not per-dossier) admin review with automatic lifecycle transitions.
+**Goal:** Replace the current one-shot public student registration form with a multi-step flow - self-service account creation with password login, OTP email verification, a per-tenant-configurable required-document dossier that students submit themselves, and per-document (not per-dossier) admin review with automatic lifecycle transitions.
 
 **Architecture:** Two sequential phases sharing one reordered `LifecycleStage` graph.
 *Phase A* (Tasks 1–8) replaces `PublicStudentRegistrationService`'s Student-only creation with a User+Student creation, adds a new `email_otps` table/service/Mailable, and chains two automatic `LifecycleService::transitionTo()` calls (`Prospect → PreEnrollment → DossierSetup`) off a new `StudentEmailVerified` event once OTP is verified. This phase alone is fully testable end-to-end (account creation → OTP → student lands at `DossierSetup`) without touching documents at all.
@@ -10,19 +10,19 @@
 
 Everything reuses existing infrastructure: `BelongsToTenant`/`TenantContext` for isolation (no new tenancy mechanism), `LifecycleService::transitionTo()` for every stage change (never a direct `lifecycle_stage` write), `AuditService` for logging, the existing `DocumentService` versioning pattern (extended, not replaced), and the `StudentRegistrationLink` token-resolves-tenant mechanism (unchanged).
 
-**Tech Stack:** Laravel 12, PHP 8.5, Pest 3, Blade + Alpine.js + Tailwind (Soft UI tokens already in the app), Laravel Mail (first `Mailable` in this codebase — mail config already present in `.env.example`).
+**Tech Stack:** Laravel 12, PHP 8.5, Pest 3, Blade + Alpine.js + Tailwind (Soft UI tokens already in the app), Laravel Mail (first `Mailable` in this codebase - mail config already present in `.env.example`).
 
 **Spec:** `docs/superpowers/specs/2026-08-23-inscription-eleve-otp-dossier-design.md`
 
 ## Global Constraints
 
-- Every `lifecycle_stage` change — automatic or manual — goes through `LifecycleService::transitionTo()`. Never assign `lifecycle_stage` directly, not even in a listener.
-- `structure_id` is never read from request input for anything created during public registration or the eleve self-service flow — it is always resolved via `TenantContext` (set once, from the token, in `PublicStudentRegistrationService::register()`), exactly like the existing `Student` creation already does. `User` also uses `BelongsToTenant`, so the same auto-stamp applies to the new `User::create()` call.
+- Every `lifecycle_stage` change - automatic or manual - goes through `LifecycleService::transitionTo()`. Never assign `lifecycle_stage` directly, not even in a listener.
+- `structure_id` is never read from request input for anything created during public registration or the eleve self-service flow - it is always resolved via `TenantContext` (set once, from the token, in `PublicStudentRegistrationService::register()`), exactly like the existing `Student` creation already does. `User` also uses `BelongsToTenant`, so the same auto-stamp applies to the new `User::create()` call.
 - No parallel tenancy/authorization mechanism: reuse `BelongsToTenant`, `TenantContext`, the existing `role:` middleware, and Policies. A new ability goes on an existing Policy (`DocumentPolicy`) when the model it targets already has one; a brand-new model gets its own Policy mirroring `StudentRegistrationLinkPolicy`'s `hasRole('admin') && $model->structure_id === $user->structure_id` shape.
-- Domain-local listeners under `app/Domain/*/Listeners` are **not** auto-discovered in this codebase — `LogStageChange` proves this: it's registered by hand via `Event::listen(...)` in `AppServiceProvider::boot()`. Every new listener in this plan must be registered there the same way.
+- Domain-local listeners under `app/Domain/*/Listeners` are **not** auto-discovered in this codebase - `LogStageChange` proves this: it's registered by hand via `Event::listen(...)` in `AppServiceProvider::boot()`. Every new listener in this plan must be registered there the same way.
 - New Policies must be registered via `Gate::policy(...)` in `AppServiceProvider::boot()`.
 - OTP codes are stored hashed (`sha256`), never in plain text, never logged. Mirrors the existing `StudentRegistrationLink::token_hash` pattern.
-- `DuplicateRegistration`'s message stays generic — it must never reveal *which* field (email vs. phone vs. account-already-exists) matched, and never which tenant an existing account belongs to.
+- `DuplicateRegistration`'s message stays generic - it must never reveal *which* field (email vs. phone vs. account-already-exists) matched, and never which tenant an existing account belongs to.
 - Never flash a `password`/`password_confirmation` field back into the session (`$request->flashExcept([...])`, never `$request->flash()`, once the registration form collects a password).
 - Every new route/model gets an explicit tenant-isolation test (this project's most recurring bug class, per `docs/audit/multi-tenancy-audit.md`).
 - Run `vendor/bin/pint --dirty --format agent` after any PHP file change, before considering a task done.
@@ -32,7 +32,7 @@ Everything reuses existing infrastructure: `BelongsToTenant`/`TenantContext` for
 
 ## File Structure
 
-**Phase A — new files**
+**Phase A - new files**
 - `database/migrations/xxxx_create_email_otps_table.php`
 - `app/Domain/Students/Models/EmailOtp.php`
 - `app/Domain/Students/Database/Factories/EmailOtpFactory.php`
@@ -49,7 +49,7 @@ Everything reuses existing infrastructure: `BelongsToTenant`/`TenantContext` for
 - `tests/Unit/Students/EmailOtpServiceTest.php`
 - `tests/Feature/Students/EmailOtpVerificationTest.php`
 
-**Phase A — modified files**
+**Phase A - modified files**
 - `app/Domain/Students/Enums/LifecycleStage.php` (reordered transition graph)
 - `tests/Unit/Students/LifecycleServiceTest.php` (assertions for the new graph)
 - `config/services.php`, `.env.example` (new `email_otp` config block)
@@ -66,7 +66,7 @@ Everything reuses existing infrastructure: `BelongsToTenant`/`TenantContext` for
 **Removed**
 - `resources/views/register/student-success.blade.php` (superseded by the OTP screen)
 
-**Phase B — new files**
+**Phase B - new files**
 - `database/migrations/xxxx_create_required_document_types_table.php`
 - `database/migrations/xxxx_add_review_fields_to_documents_table.php`
 - `app/Domain/Students/Models/RequiredDocumentType.php`
@@ -88,7 +88,7 @@ Everything reuses existing infrastructure: `BelongsToTenant`/`TenantContext` for
 - `tests/Feature/Documents/DocumentReviewTest.php`
 - `tests/Feature/Students/DossierEndToEndTest.php`
 
-**Phase B — modified files**
+**Phase B - modified files**
 - `app/Domain/Documents/Models/Document.php` (new fillable/casts/relations)
 - `app/Domain/Documents/Services/DocumentService.php` (`$requiredDocumentType` param, review-status reset on new version)
 - `app/Domain/Documents/Policies/DocumentPolicy.php` (new `review` ability)
@@ -108,7 +108,7 @@ Everything reuses existing infrastructure: `BelongsToTenant`/`TenantContext` for
 - Test: `tests/Unit/Students/EmailOtpServiceTest.php` (this task only adds the model-level tests; the service tests land in Task 3)
 
 **Interfaces:**
-- Produces: `EmailOtp` model with `user_id, code_hash, expires_at, attempts, consumed_at` — `user_id` unique (one active OTP row per user, upserted).
+- Produces: `EmailOtp` model with `user_id, code_hash, expires_at, attempts, consumed_at` - `user_id` unique (one active OTP row per user, upserted).
 
 - [ ] **Step 1: Create the migration**
 
@@ -145,7 +145,7 @@ return new class extends Migration
 };
 ```
 
-`user_id` is `unique()` on purpose — the spec requires "un User n'a jamais plus d'un OTP actif à la fois"; a unique column lets `EmailOtpService::generate()` use a plain `updateOrCreate()` instead of a manual delete-then-insert.
+`user_id` is `unique()` on purpose - the spec requires "un User n'a jamais plus d'un OTP actif à la fois"; a unique column lets `EmailOtpService::generate()` use a plain `updateOrCreate()` instead of a manual delete-then-insert.
 
 - [ ] **Step 2: Create the model**
 
@@ -191,7 +191,7 @@ class EmailOtp extends Model
 }
 ```
 
-Not tenant-scoped: this table is keyed by `user_id`, not `structure_id`, and is never queried across tenants — it doesn't need `BelongsToTenant`.
+Not tenant-scoped: this table is keyed by `user_id`, not `structure_id`, and is never queried across tenants - it doesn't need `BelongsToTenant`.
 
 - [ ] **Step 3: Create the factory**
 
@@ -263,7 +263,7 @@ git commit -m "feat(students): add email_otps table and EmailOtp model"
 - Test: run the full Students unit+feature suite to catch any other test asserting the old graph
 
 **Interfaces:**
-- Produces: the same 15 `LifecycleStage` cases (no renaming, no removal — string values on rows already in the database stay valid), with `allowedNextStages()` matching the design's §18-40 ordering. `PracticalExam`'s existing back-edge to `ContinuousEvaluation` is unchanged; a new back-edge `Validation → DossierSetup` is added.
+- Produces: the same 15 `LifecycleStage` cases (no renaming, no removal - string values on rows already in the database stay valid), with `allowedNextStages()` matching the design's §18-40 ordering. `PracticalExam`'s existing back-edge to `ContinuousEvaluation` is unchanged; a new back-edge `Validation → DossierSetup` is added.
 
 - [ ] **Step 1: Update `allowedNextStages()`**
 
@@ -301,7 +301,7 @@ Also update the enum's class docblock, which currently describes the old orderin
 /**
  * The student lifecycle from the 2026-08-23 design (docs/superpowers/specs/
  * 2026-08-23-inscription-eleve-otp-dossier-design.md): Prospect -> ... ->
- * LicenseObtained -> FormerStudent, with two allowed back-edges — Validation
+ * LicenseObtained -> FormerStudent, with two allowed back-edges - Validation
  * -> DossierSetup on a rejected document, and PracticalExam ->
  * ContinuousEvaluation on a failed exam.
  */
@@ -309,7 +309,7 @@ Also update the enum's class docblock, which currently describes the old orderin
 
 - [ ] **Step 2: Update the existing unit test's golden-path assertion**
 
-`tests/Unit/Students/LifecycleServiceTest.php`'s three existing tests (`Prospect → PreEnrollment`, "rejects a transition that skips stages" targeting `LicenseObtained`, and the `PracticalExam → ContinuousEvaluation` retake loop) all still hold true under the new graph unchanged — `Prospect`'s only allowed target is still `PreEnrollment`, and `LicenseObtained` is still unreachable directly from `Prospect`. No edit needed to those three, but add one new test documenting the new back-edge:
+`tests/Unit/Students/LifecycleServiceTest.php`'s three existing tests (`Prospect → PreEnrollment`, "rejects a transition that skips stages" targeting `LicenseObtained`, and the `PracticalExam → ContinuousEvaluation` retake loop) all still hold true under the new graph unchanged - `Prospect`'s only allowed target is still `PreEnrollment`, and `LicenseObtained` is still unreachable directly from `Prospect`. No edit needed to those three, but add one new test documenting the new back-edge:
 
 ```php
 it('allows a rejected dossier to send the student back to dossier setup', function () {
@@ -337,7 +337,7 @@ php artisan test --compact --filter=LifecycleServiceTest
 grep -rn "LifecycleStage::Enrollment\|LifecycleStage::PreEnrollment\|LifecycleStage::DossierSetup\|LifecycleStage::Validation" app tests resources
 ```
 
-Read every match. Fix any test or seeder that assumed `PreEnrollment → Enrollment` was a direct transition (there should be none outside `LifecycleServiceTest`, since no route uses `advanceStage` to jump past `DossierSetup`/`Validation` yet — `StudentController::advanceStage` just calls `LifecycleService::transitionTo()` with whatever the caller passed, so it's graph-agnostic).
+Read every match. Fix any test or seeder that assumed `PreEnrollment → Enrollment` was a direct transition (there should be none outside `LifecycleServiceTest`, since no route uses `advanceStage` to jump past `DossierSetup`/`Validation` yet - `StudentController::advanceStage` just calls `LifecycleService::transitionTo()` with whatever the caller passed, so it's graph-agnostic).
 
 Expected: PASS, no other file needs changes.
 
@@ -362,7 +362,7 @@ git commit -m "feat(students): reorder lifecycle graph for the OTP/dossier flow"
 
 **Interfaces:**
 - Consumes: `EmailOtp` model (Task 1), `App\Models\User`.
-- Produces: `EmailOtpService::generate(User $user): string` (plain 6-digit code, also sends the Mailable — wired up fully once Task 4 lands; for this task, generate() calls `Mail::to()->send()` against a Mailable that will exist by the time Task 4 finishes — write Task 3 and Task 4 in order, or stub the Mailable class name now since PHP doesn't check the class exists until it's actually instantiated at runtime). `EmailOtpService::resend(User $user): string` (delegates to `generate()`). `EmailOtpService::verify(User $user, string $code): void` (throws `InvalidOtp`).
+- Produces: `EmailOtpService::generate(User $user): string` (plain 6-digit code, also sends the Mailable - wired up fully once Task 4 lands; for this task, generate() calls `Mail::to()->send()` against a Mailable that will exist by the time Task 4 finishes - write Task 3 and Task 4 in order, or stub the Mailable class name now since PHP doesn't check the class exists until it's actually instantiated at runtime). `EmailOtpService::resend(User $user): string` (delegates to `generate()`). `EmailOtpService::verify(User $user, string $code): void` (throws `InvalidOtp`).
 
 Because `generate()` needs `EmailOtpMail` (Task 4) to compile-reference it, do Task 4 immediately after this task's Step 1-2, before writing the service body in Step 3. The steps below are ordered so the class exists before it's referenced.
 
@@ -401,7 +401,7 @@ use RuntimeException;
 
 /**
  * Mirrors InvalidRegistrationLink's shape (reason() + static constructors),
- * but here every reason is safe to show — unlike the public registration
+ * but here every reason is safe to show - unlike the public registration
  * token, the OTP screen already knows exactly who the visitor is
  * (authenticated as the eleve, before verification), so there's nothing to
  * enumerate by distinguishing "wrong code" from "expired" from "too many
@@ -524,9 +524,9 @@ it('rejects when no code was ever generated', function () {
 php artisan test --compact --filter=EmailOtpServiceTest
 ```
 
-Expected: FAIL — `App\Domain\Students\Services\EmailOtpService` and `App\Domain\Students\Mail\EmailOtpMail` don't exist yet.
+Expected: FAIL - `App\Domain\Students\Services\EmailOtpService` and `App\Domain\Students\Mail\EmailOtpMail` don't exist yet.
 
-- [ ] **Step 5: Create `EmailOtpMail` now (fully specified in Task 4 — create it here as a minimal stub so this task's service compiles, then Task 4 fills in the real subject/view)**
+- [ ] **Step 5: Create `EmailOtpMail` now (fully specified in Task 4 - create it here as a minimal stub so this task's service compiles, then Task 4 fills in the real subject/view)**
 
 ```php
 <?php
@@ -559,7 +559,7 @@ class EmailOtpMail extends Mailable
 }
 ```
 
-(This is the same class Task 4 finalizes — Task 4 just adds the Blade view it references. Nothing here is thrown away.)
+(This is the same class Task 4 finalizes - Task 4 just adds the Blade view it references. Nothing here is thrown away.)
 
 - [ ] **Step 6: Implement `EmailOtpService`**
 
@@ -576,7 +576,7 @@ use Illuminate\Support\Facades\Mail;
 
 /**
  * The only place allowed to generate, resend, or verify an email OTP. A user
- * only ever has one active row (see the migration's unique(user_id)) —
+ * only ever has one active row (see the migration's unique(user_id)) -
  * generate() upserts, so a resend transparently replaces and invalidates
  * whatever code came before it.
  */
@@ -657,7 +657,7 @@ git commit -m "feat(students): add EmailOtpService (generate/resend/verify)"
 ## Task 4: `EmailOtpMail` view
 
 **Files:**
-- Modify: `app/Domain/Students/Mail/EmailOtpMail.php` (already created in Task 3 — no change needed, this task only adds its view)
+- Modify: `app/Domain/Students/Mail/EmailOtpMail.php` (already created in Task 3 - no change needed, this task only adds its view)
 - Create: `resources/views/emails/otp.blade.php`
 
 **Interfaces:**
@@ -687,7 +687,7 @@ git commit -m "feat(students): add EmailOtpService (generate/resend/verify)"
 php artisan tinker --execute 'echo (new App\Domain\Students\Mail\EmailOtpMail("123456"))->render();'
 ```
 
-Expected: renders HTML containing `123456`, no errors. (This is a render check, not a stored side effect — acceptable per this project's "no tinker for things tests already cover" rule, since no test exercises the *rendered HTML output* itself, only that the Mailable is sent.)
+Expected: renders HTML containing `123456`, no errors. (This is a render check, not a stored side effect - acceptable per this project's "no tinker for things tests already cover" rule, since no test exercises the *rendered HTML output* itself, only that the Mailable is sent.)
 
 - [ ] **Step 3: Commit**
 
@@ -760,7 +760,7 @@ it('chains prospect straight through pre-enrollment to dossier setup', function 
 php artisan test --compact --filter=ActivateStudentAfterEmailVerificationTest
 ```
 
-Expected: FAIL — class not found.
+Expected: FAIL - class not found.
 
 - [ ] **Step 4: Implement the listener**
 
@@ -775,7 +775,7 @@ use App\Domain\Students\Services\LifecycleService;
 
 /**
  * Both transitions fire back-to-back with no visible intermediate state for
- * the student — see the design's "Transitions automatiques vs manuelles"
+ * the student - see the design's "Transitions automatiques vs manuelles"
  * table. Injecting LifecycleService (rather than `new`-ing it, unlike
  * LogStageChange's plain `new LifecycleService` in its own tests) keeps this
  * listener consistent with how every controller in this codebase resolves
@@ -833,7 +833,7 @@ git commit -m "feat(students): auto-transition Prospect to DossierSetup on email
 
 ---
 
-## Task 6: Rewrite public registration — create a `User` + `Student`, send OTP, auto-login
+## Task 6: Rewrite public registration - create a `User` + `Student`, send OTP, auto-login
 
 **Files:**
 - Modify: `app/Domain/Students/Http/Requests/PublicStudentRegistrationRequest.php`
@@ -845,7 +845,7 @@ git commit -m "feat(students): auto-transition Prospect to DossierSetup on email
 
 **Interfaces:**
 - Consumes: `EmailOtpService::generate()` (Task 3), `App\Models\User`.
-- Produces: `PublicStudentRegistrationRequest::accountData(): array{name, email, password}`, `PublicStudentRegistrationRequest::studentData(): array` (unchanged shape, minus `registration_token`/`password`/`password_confirmation`). `PublicStudentRegistrationService::register(string $plainToken, array $accountData, array $studentData): Student` (signature changes from the old single-`$data` form — this is a breaking change to the method Task 8's tests must follow).
+- Produces: `PublicStudentRegistrationRequest::accountData(): array{name, email, password}`, `PublicStudentRegistrationRequest::studentData(): array` (unchanged shape, minus `registration_token`/`password`/`password_confirmation`). `PublicStudentRegistrationService::register(string $plainToken, array $accountData, array $studentData): Student` (signature changes from the old single-`$data` form - this is a breaking change to the method Task 8's tests must follow).
 
 - [ ] **Step 1: Update the FormRequest**
 
@@ -861,7 +861,7 @@ use Illuminate\Validation\Rules\Enum;
 use Illuminate\Validation\Rules\Password;
 
 /**
- * No `tenant_id` / `structure_id` field exists here, on purpose — see §29-30
+ * No `tenant_id` / `structure_id` field exists here, on purpose - see §29-30
  * of docs/superpowers/specs/2026-08-23-inscription-eleve-otp-dossier-design.md.
  * The only thing this request accepts that identifies a tenant at all is
  * `registration_token`, and even that isn't trusted directly: the controller
@@ -872,7 +872,7 @@ class PublicStudentRegistrationRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        // Open to the public by design — the registration_token is the
+        // Open to the public by design - the registration_token is the
         // authorization mechanism, not a Policy/Gate check (there is no
         // authenticated actor to check one against).
         return true;
@@ -896,7 +896,7 @@ class PublicStudentRegistrationRequest extends FormRequest
     }
 
     /**
-     * Everything the Student row needs — structure_id is never in this
+     * Everything the Student row needs - structure_id is never in this
      * array (auto-stamped from TenantContext, see PublicStudentRegistrationService).
      */
     public function studentData(): array
@@ -959,7 +959,7 @@ class PublicStudentRegistrationService
     /**
      * @param  array{name: string, email: string, password: string}  $accountData
      * @param  array<string, mixed>  $studentData  Already validated by
-     *                                              PublicStudentRegistrationRequest — never trusted for tenant_id/
+     *                                              PublicStudentRegistrationRequest - never trusted for tenant_id/
      *                                              structure_id, which aren't even accepted fields on that request.
      *
      * @throws InvalidRegistrationLink
@@ -1042,7 +1042,7 @@ class PublicStudentRegistrationService
     /**
      * Global, unscoped on purpose: a self-service account's email is its
      * login credential, so a duplicate anywhere (any tenant) must be
-     * rejected — but the message never says which school the existing
+     * rejected - but the message never says which school the existing
      * account belongs to (§ edge cases: "sans révéler à quel établissement
      * ce compte est déjà rattaché").
      */
@@ -1053,7 +1053,7 @@ class PublicStudentRegistrationService
 
     /**
      * Scoped implicitly to the tenant just activated by TenantContext::set()
-     * above — Student's BelongsToTenant global scope does the filtering.
+     * above - Student's BelongsToTenant global scope does the filtering.
      */
     private function duplicateStudent(array $data): bool
     {
@@ -1101,7 +1101,7 @@ use Illuminate\View\View;
 
 /**
  * The only public-facing side of this feature. Nothing here ever reads a
- * tenant/structure/school id from the request — the token is the sole
+ * tenant/structure/school id from the request - the token is the sole
  * source of truth for which tenant a visitor is registering with (§68 of
  * the spec). A visitor cannot even name a different tenant: no field for it
  * exists on PublicStudentRegistrationRequest.
@@ -1166,7 +1166,7 @@ class PublicStudentRegistrationController extends Controller
 
     /**
      * Re-resolves the link for re-rendering the form after a duplicate
-     * error — a failed *duplicate* check still means the token itself was
+     * error - a failed *duplicate* check still means the token itself was
      * fine a moment ago, so this is expected to succeed; if the link was
      * revoked in the split second between the two, falling back to null
      * just means the school name won't show, not a broken page.
@@ -1182,9 +1182,9 @@ class PublicStudentRegistrationController extends Controller
 }
 ```
 
-`success()` is removed — the flow now ends at `eleve.otp.show`, not a static confirmation page.
+`success()` is removed - the flow now ends at `eleve.otp.show`, not a static confirmation page.
 
-- [ ] **Step 4: Update the view — add password fields, drop nothing else**
+- [ ] **Step 4: Update the view - add password fields, drop nothing else**
 
 Edit `resources/views/register/student.blade.php`: insert a password block right after the `email` field (before the `license_category`/`course_type` grid), and make `email`/`birth_date` required (remove "(optionnel)" from their labels, add `required`):
 
@@ -1232,7 +1232,7 @@ Route::prefix('register/student')
     });
 ```
 
-(The `eleve.otp.show` route it now redirects to is added in Task 7 — until that task lands, this route doesn't exist yet, so don't run the feature test suite expecting `store()` to redirect successfully until Task 7 is done. Unit-level pieces of this task are still independently testable.)
+(The `eleve.otp.show` route it now redirects to is added in Task 7 - until that task lands, this route doesn't exist yet, so don't run the feature test suite expecting `store()` to redirect successfully until Task 7 is done. Unit-level pieces of this task are still independently testable.)
 
 - [ ] **Step 6: Pint**
 
@@ -1240,7 +1240,7 @@ Route::prefix('register/student')
 vendor/bin/pint --dirty --format agent
 ```
 
-Do not run the full test suite yet — `tests/Feature/Students/PublicStudentRegistrationTest.php` still targets the old single-`$data` signature and the now-removed `success` route; it's rewritten in Task 8, once Task 7's OTP routes exist for `store()` to redirect to.
+Do not run the full test suite yet - `tests/Feature/Students/PublicStudentRegistrationTest.php` still targets the old single-`$data` signature and the now-removed `success` route; it's rewritten in Task 8, once Task 7's OTP routes exist for `store()` to redirect to.
 
 - [ ] **Step 7: Commit**
 
@@ -1272,7 +1272,7 @@ git commit -m "feat(students): public registration creates a User account and se
 php artisan make:middleware EnsureEmailOtpVerified --no-interaction
 ```
 
-Move it to `app/Domain/Students/Http/Middleware/EnsureEmailOtpVerified.php` (matching `ResolveTenant`'s domain-namespaced location — the default `app/Http/Middleware` is unused elsewhere in this codebase) and update its namespace:
+Move it to `app/Domain/Students/Http/Middleware/EnsureEmailOtpVerified.php` (matching `ResolveTenant`'s domain-namespaced location - the default `app/Http/Middleware` is unused elsewhere in this codebase) and update its namespace:
 
 ```php
 <?php
@@ -1285,7 +1285,7 @@ use Symfony\Component\HttpFoundation\Response;
 
 /**
  * Applied only to the eleve routes that require a verified account
- * (dashboard, planning, quiz, dossier) — not to the OTP screen's own routes,
+ * (dashboard, planning, quiz, dossier) - not to the OTP screen's own routes,
  * or every request would redirect back to itself.
  */
 class EnsureEmailOtpVerified
@@ -1437,7 +1437,7 @@ class EmailOtpController extends Controller
 
 - [ ] **Step 6: Add the routes**
 
-Edit `routes/web.php`. Add the OTP-only group (auth + role:eleve, no `otp.verified` — this is where the redirect lands), and add `otp.verified` to the existing eleve/quiz groups:
+Edit `routes/web.php`. Add the OTP-only group (auth + role:eleve, no `otp.verified` - this is where the redirect lands), and add `otp.verified` to the existing eleve/quiz groups:
 
 ```php
 use App\Domain\Students\Http\Controllers\EmailOtpController;
@@ -1480,7 +1480,7 @@ Route::middleware(['auth', 'role:eleve', 'otp.verified'])
     });
 ```
 
-(This second `eleve.` group is distinct from the OTP-only one above — Laravel allows the same route-name prefix across multiple `Route::group()` calls; this already happens elsewhere in this file, e.g. `finance.` and `training.` each appear more than once.)
+(This second `eleve.` group is distinct from the OTP-only one above - Laravel allows the same route-name prefix across multiple `Route::group()` calls; this already happens elsewhere in this file, e.g. `finance.` and `training.` each appear more than once.)
 
 - [ ] **Step 7: Pint**
 
@@ -1508,7 +1508,7 @@ git commit -m "feat(students): OTP verification screen and otp.verified middlewa
 
 - [ ] **Step 1: Rewrite `PublicStudentRegistrationTest.php`**
 
-Replace its content entirely — the golden path now asserts a `User` + `Student` pair, a redirect to `eleve.otp.show`, and an unverified email, instead of asserting a `Student` alone and a redirect to the removed `success` route:
+Replace its content entirely - the golden path now asserts a `User` + `Student` pair, a redirect to `eleve.otp.show`, and an unverified email, instead of asserting a `Student` alone and a redirect to the removed `success` route:
 
 ```php
 <?php
@@ -1883,7 +1883,7 @@ it('locks out after 5 wrong attempts even with the eventual right code', functio
 php artisan test --compact
 ```
 
-Expected: PASS, no red tests anywhere (this also catches any place `LifecycleStage::Enrollment`/`PublicStudentRegistrationService::register()`'s old signature was relied on elsewhere — e.g. `tests/Feature/Students/StudentRegistrationLinkAdminTest.php` doesn't call `register()` directly, so it should be unaffected, but re-run it explicitly if anything fails).
+Expected: PASS, no red tests anywhere (this also catches any place `LifecycleStage::Enrollment`/`PublicStudentRegistrationService::register()`'s old signature was relied on elsewhere - e.g. `tests/Feature/Students/StudentRegistrationLinkAdminTest.php` doesn't call `register()` directly, so it should be unaffected, but re-run it explicitly if anything fails).
 
 - [ ] **Step 4: Pint + commit**
 
@@ -2071,7 +2071,7 @@ it('denies a non-admin role entirely', function () {
 php artisan test --compact --filter=RequiredDocumentTypePolicyTest
 ```
 
-Expected: FAIL — Policy class doesn't exist / not registered.
+Expected: FAIL - Policy class doesn't exist / not registered.
 
 - [ ] **Step 6: Create the policy**
 
@@ -2384,10 +2384,10 @@ git commit -m "feat(students): admin CRUD for per-tenant required document types
 - Create: `app/Domain/Documents/Enums/DocumentReviewStatus.php`
 - Modify: `app/Domain/Documents/Models/Document.php`
 - Modify: `app/Domain/Documents/Services/DocumentService.php`
-- Test: `tests/Feature/Documents/DocumentUploadTest.php` (add coverage for the new optional param — do not remove any existing test)
+- Test: `tests/Feature/Documents/DocumentUploadTest.php` (add coverage for the new optional param - do not remove any existing test)
 
 **Interfaces:**
-- Produces: `Document::requiredDocumentType(): BelongsTo`, `Document::reviewedBy(): BelongsTo`; `DocumentService::upload(..., ?RequiredDocumentType $requiredDocumentType = null): Document` (new trailing optional param — fully backward compatible with the two existing call sites in `DocumentController`).
+- Produces: `Document::requiredDocumentType(): BelongsTo`, `Document::reviewedBy(): BelongsTo`; `DocumentService::upload(..., ?RequiredDocumentType $requiredDocumentType = null): Document` (new trailing optional param - fully backward compatible with the two existing call sites in `DocumentController`).
 
 - [ ] **Step 1: Migration**
 
@@ -2529,7 +2529,7 @@ class Document extends Model
 }
 ```
 
-(`App\Domain\Documents` depending on `App\Domain\Students` is explicitly allowed — see `tests/Architecture/DomainBoundariesTest.php`'s `'Documents domain only depends on Students and Fleet among business domains'` rule.)
+(`App\Domain\Documents` depending on `App\Domain\Students` is explicitly allowed - see `tests/Architecture/DomainBoundariesTest.php`'s `'Documents domain only depends on Students and Fleet among business domains'` rule.)
 
 - [ ] **Step 4: Write the failing test for the new `DocumentService::upload()` param**
 
@@ -2581,7 +2581,7 @@ Add the needed `use` statements (`App\Domain\Documents\Enums\DocumentReviewStatu
 php artisan test --compact --filter=DocumentUploadTest
 ```
 
-Expected: FAIL — `DocumentService::upload()` doesn't accept a 6th argument yet.
+Expected: FAIL - `DocumentService::upload()` doesn't accept a 6th argument yet.
 
 - [ ] **Step 6: Update `DocumentService`**
 
@@ -2601,13 +2601,13 @@ use Illuminate\Support\Facades\DB;
 
 /**
  * Replaces the legacy pattern of loose file-path columns on `eleves`
- * (photo, cni_path, justif_domicile...) — no history, and re-uploading a
+ * (photo, cni_path, justif_domicile...) - no history, and re-uploading a
  * document silently threw the old file away. Every upload here becomes a
  * new version; the previous one is kept, just no longer flagged current.
  *
  * When $requiredDocumentType is given (student dossier uploads), the
  * "previous version" lookup keys on required_document_type_id instead of
- * DocumentType — several dossier pieces can share the same generic
+ * DocumentType - several dossier pieces can share the same generic
  * DocumentType::Other, so type alone can't tell them apart. Passing it also
  * resets review_status to Pending on the new row: a fresh upload always
  * needs a fresh review, even if the version it replaces was Approved.
@@ -3058,7 +3058,7 @@ class DocumentPolicy
 }
 ```
 
-(No new `Gate::policy()` registration needed — `DocumentPolicy` is already registered for `Document::class` in `AppServiceProvider`.)
+(No new `Gate::policy()` registration needed - `DocumentPolicy` is already registered for `Document::class` in `AppServiceProvider`.)
 
 - [ ] **Step 2: `RejectDossierDocumentRequest`**
 
@@ -3174,7 +3174,7 @@ class DocumentReviewController extends Controller
 }
 ```
 
-`Document` isn't itself tenant-scoped away here since `documentable`/`Student::query()` calls happen with `TenantContext` active during a normal authenticated admin request (`ResolveTenant` middleware), so both queries are already implicitly scoped — consistent with how every other admin controller in this codebase relies on the same middleware.
+`Document` isn't itself tenant-scoped away here since `documentable`/`Student::query()` calls happen with `TenantContext` active during a normal authenticated admin request (`ResolveTenant` middleware), so both queries are already implicitly scoped - consistent with how every other admin controller in this codebase relies on the same middleware.
 
 - [ ] **Step 4: View**
 
@@ -3221,7 +3221,7 @@ class DocumentReviewController extends Controller
 </x-app-layout>
 ```
 
-(The reject form's hardcoded `reason` is a v1 placeholder — a proper reason-input modal is a natural follow-up once this screen is verified working end-to-end; it's out of this plan's scope since the design spec only requires the reason field to be mandatory and shown to the student, which it already is.)
+(The reject form's hardcoded `reason` is a v1 placeholder - a proper reason-input modal is a natural follow-up once this screen is verified working end-to-end; it's out of this plan's scope since the design spec only requires the reason field to be mandatory and shown to the student, which it already is.)
 
 - [ ] **Step 5: Routes**
 
@@ -3502,7 +3502,7 @@ Expected: PASS.
 php artisan test --compact
 ```
 
-Expected: PASS, zero red — this is the checkpoint that confirms `DomainBoundariesTest`'s `Documents depends only on Students and Fleet` rule still holds after Task 11's new `Document → RequiredDocumentType` relation, and that nothing in Tasks 1-13 introduced a stray dependency the architecture tests would catch.
+Expected: PASS, zero red - this is the checkpoint that confirms `DomainBoundariesTest`'s `Documents depends only on Students and Fleet` rule still holds after Task 11's new `Document → RequiredDocumentType` relation, and that nothing in Tasks 1-13 introduced a stray dependency the architecture tests would catch.
 
 - [ ] **Step 4: Pint + commit**
 
@@ -3519,7 +3519,7 @@ git commit -m "test(students): end-to-end coverage for the full registration-to-
 **Files:**
 - Modify: `docs/features/student-public-registration.md`
 
-**Interfaces:** none — documentation only.
+**Interfaces:** none - documentation only.
 
 - [ ] **Step 1: Rewrite the "Workflow integration" section**
 
@@ -3536,7 +3536,7 @@ eleve route (dashboard, planning, quiz, dossier) until the 6-digit code sent
 to the account's email is confirmed. Codes are stored hashed (`sha256`,
 mirroring `StudentRegistrationLink::token_hash`), expire after
 `EMAIL_OTP_EXPIRY_MINUTES` (default 10), and lock out after
-`EMAIL_OTP_MAX_ATTEMPTS` wrong guesses (default 5) — at that point the only
+`EMAIL_OTP_MAX_ATTEMPTS` wrong guesses (default 5) - at that point the only
 way forward is a resend, itself throttled to once per minute.
 
 Verifying dispatches `StudentEmailVerified`, whose listener
@@ -3555,7 +3555,7 @@ extended with an optional `$requiredDocumentType` param that keys the
 "previous version" lookup on `required_document_type_id` instead of
 `DocumentType`, since dossier pieces share the generic `DocumentType::Other`).
 
-"Soumettre mon dossier" transitions the student to `Validation` — server-side
+"Soumettre mon dossier" transitions the student to `Validation` - server-side
 gated on every active required type having at least one uploaded version,
 regardless of its review status.
 
@@ -3566,7 +3566,7 @@ sends the student back to `DossierSetup` (`Validation → DossierSetup`),
 regardless of the other documents' state; approving the *last* remaining
 pending/rejected active-type document advances the student to `Enrollment`.
 Both directions are refused server-side (403) if the student isn't currently
-at `Validation` when the review action runs — this is enforced in
+at `Validation` when the review action runs - this is enforced in
 `DocumentReviewController::decide()`, not just hidden in the UI.
 ```
 
@@ -3581,6 +3581,6 @@ git commit -m "docs(students): document the OTP + dossier review flow"
 
 ## Final checklist
 
-- [ ] `php artisan test --compact` — full suite green.
-- [ ] `vendor/bin/pint --format agent` (no `--dirty`, whole tree) — clean.
+- [ ] `php artisan test --compact` - full suite green.
+- [ ] `vendor/bin/pint --format agent` (no `--dirty`, whole tree) - clean.
 - [ ] Manually walk the flow once in a real browser (per this project's UI-verification convention): generate a link as admin, register publicly, verify OTP, upload/submit a dossier, approve it as admin, confirm the student lands on `Enrollment`.

@@ -1,4 +1,4 @@
-# Prompt — PWA avec cache offline (espace élève, agenda moniteur)
+# Prompt - PWA avec cache offline (espace élève, agenda moniteur)
 
 ## Contexte
 
@@ -8,20 +8,20 @@
 
 Rendre installable et partiellement utilisable hors-ligne : le planning déjà chargé (élève et moniteur) et l'app shell (navigation, mise en page) doivent rester consultables sans connexion, avec un indicateur clair de mode hors-ligne.
 
-**Hors périmètre explicite** : les actions d'écriture (réservation, quiz, marquage de présence) ne sont **pas** à rendre fonctionnelles hors-ligne dans une première itération — la synchronisation différée est un problème de cohérence de données à part entière (conflits, double-écriture) qui ne doit pas être improvisé dans ce prompt. Se limiter à la lecture seule hors-ligne des données déjà chargées.
+**Hors périmètre explicite** : les actions d'écriture (réservation, quiz, marquage de présence) ne sont **pas** à rendre fonctionnelles hors-ligne dans une première itération - la synchronisation différée est un problème de cohérence de données à part entière (conflits, double-écriture) qui ne doit pas être improvisé dans ce prompt. Se limiter à la lecture seule hors-ligne des données déjà chargées.
 
 ## Périmètre exact
 
 - `public/manifest.json` : nom, icônes, couleurs de thème, `display: standalone`.
-- Service Worker (`public/sw.js` ou généré via un plugin Vite PWA — vérifier si `vite.config.js` a déjà un plugin PWA disponible avant d'en ajouter un nouveau ; si un nouveau paquet npm est nécessaire, le proposer et le faire valider avant `npm install`, cf. contrainte projet de ne pas ajouter de dépendance sans accord).
+- Service Worker (`public/sw.js` ou généré via un plugin Vite PWA - vérifier si `vite.config.js` a déjà un plugin PWA disponible avant d'en ajouter un nouveau ; si un nouveau paquet npm est nécessaire, le proposer et le faire valider avant `npm install`, cf. contrainte projet de ne pas ajouter de dépendance sans accord).
 - Stratégie de cache : `Cache API` pour les assets statiques (JS/CSS/icônes) en `stale-while-revalidate` ; `IndexedDB` (ou `Cache API` sur les réponses JSON/HTML déjà rendues) pour les dernières données de planning consultées par l'utilisateur courant.
-- Indicateur UI de mode hors-ligne (bandeau visible, réutilisant le composant de bannière déjà généralisé au projet — cf. `docs/audit/roadmap.md` étape 10 point 5 UX-05).
-- Scope d'application : cibler en priorité les routes `eleve.planning`, `moniteur.agenda`, `quiz.*` (lecture des questions déjà chargées) — pas l'ensemble de l'app admin, dont l'usage hors-ligne n'est pas le besoin identifié.
+- Indicateur UI de mode hors-ligne (bandeau visible, réutilisant le composant de bannière déjà généralisé au projet - cf. `docs/audit/roadmap.md` étape 10 point 5 UX-05).
+- Scope d'application : cibler en priorité les routes `eleve.planning`, `moniteur.agenda`, `quiz.*` (lecture des questions déjà chargées) - pas l'ensemble de l'app admin, dont l'usage hors-ligne n'est pas le besoin identifié.
 
 ## Contraintes
 
 - Ne jamais mettre en cache des données sensibles au-delà de ce que l'utilisateur voit déjà à l'écran (pas de pré-chargement agressif de données d'autres élèves/tenants).
-- Le Service Worker doit être scopé pour ne jamais servir de contenu périmé silencieusement sans indication visuelle — toujours signaler à l'utilisateur qu'il consulte une version en cache.
+- Le Service Worker doit être scopé pour ne jamais servir de contenu périmé silencieusement sans indication visuelle - toujours signaler à l'utilisateur qu'il consulte une version en cache.
 - Pas de nouvelle dépendance npm sans validation explicite.
 - Tester le comportement de désinstallation/mise à jour du Service Worker (un déploiement ne doit jamais laisser un utilisateur bloqué sur une version JS obsolète en cache).
 

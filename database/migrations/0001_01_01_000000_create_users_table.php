@@ -24,7 +24,7 @@ return new class extends Migration
 
             // Scoped per tenant: two different driving schools may share an email.
             // structure_id is NULL only for the platform super-admin, so a plain
-            // UNIQUE(structure_id, email) would allow duplicate super-admin emails —
+            // UNIQUE(structure_id, email) would allow duplicate super-admin emails -
             // acceptable since there is only ever one super-admin account in practice,
             // enforced at the application layer instead of the schema.
             $table->unique(['structure_id', 'email']);

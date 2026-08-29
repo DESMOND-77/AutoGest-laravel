@@ -1,5 +1,5 @@
 <x-app-layout>
-    <x-slot name="header">{{ $vehicle->plate }} — {{ $vehicle->brand }} {{ $vehicle->model }}</x-slot>
+    <x-slot name="header">{{ $vehicle->plate }} - {{ $vehicle->brand }} {{ $vehicle->model }}</x-slot>
 
     <div class="py-6 space-y-5 max-w-3xl mx-auto">
         @if (session('status'))
@@ -16,8 +16,8 @@
             <div class="grid grid-cols-2 sm:grid-cols-3 gap-4 text-sm">
                 <div><span class="text-content-muted">Kilométrage</span><p class="text-content font-medium mt-0.5">{{ number_format($vehicle->mileage, 0, ',', ' ') }} km</p></div>
                 <div><span class="text-content-muted">Catégorie</span><p class="text-content font-medium mt-0.5">{{ $vehicle->category }}</p></div>
-                <div><span class="text-content-muted">Contrôle technique</span><p class="text-content font-medium mt-0.5">{{ optional($vehicle->technical_inspection_expires_at)->format('d/m/Y') ?? '—' }}</p></div>
-                <div><span class="text-content-muted">Assurance</span><p class="text-content font-medium mt-0.5">{{ optional($vehicle->insurance_expires_at)->format('d/m/Y') ?? '—' }}</p></div>
+                <div><span class="text-content-muted">Contrôle technique</span><p class="text-content font-medium mt-0.5">{{ optional($vehicle->technical_inspection_expires_at)->format('d/m/Y') ?? '-' }}</p></div>
+                <div><span class="text-content-muted">Assurance</span><p class="text-content font-medium mt-0.5">{{ optional($vehicle->insurance_expires_at)->format('d/m/Y') ?? '-' }}</p></div>
             </div>
         </x-card>
 
@@ -56,7 +56,7 @@
             <ul class="text-sm divide-y divide-border/60">
                 @forelse ($vehicle->maintenanceLogs as $log)
                     <li class="py-2.5 flex justify-between">
-                        <span class="text-content">{{ $log->performed_on->format('d/m/Y') }} — {{ $log->type }}</span>
+                        <span class="text-content">{{ $log->performed_on->format('d/m/Y') }} - {{ $log->type }}</span>
                         <span class="text-content-secondary">{{ number_format($log->cost, 0, ',', ' ') }} FCFA</span>
                     </li>
                 @empty
@@ -80,7 +80,7 @@
             <ul class="text-sm divide-y divide-border/60 mb-4">
                 @forelse ($vehicleDocuments as $document)
                     <li class="py-2.5 flex justify-between items-center">
-                        <span class="text-content">{{ $document->type->label() }} — {{ $document->original_name }} (v{{ $document->version }})</span>
+                        <span class="text-content">{{ $document->type->label() }} - {{ $document->original_name }} (v{{ $document->version }})</span>
                         <a href="{{ route('documents.download', $document) }}" class="text-xs text-primary hover:underline">Télécharger</a>
                     </li>
                 @empty

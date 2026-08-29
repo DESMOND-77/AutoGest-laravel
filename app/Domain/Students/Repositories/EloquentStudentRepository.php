@@ -7,7 +7,7 @@ use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 
 /**
  * The tenant filter itself lives in Student::bootBelongsToTenant() (global
- * scope), not here — this repository only needs to worry about query shape,
+ * scope), not here - this repository only needs to worry about query shape,
  * never about which tenant it's allowed to see.
  */
 class EloquentStudentRepository implements StudentRepositoryInterface

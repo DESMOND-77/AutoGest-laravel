@@ -10,6 +10,10 @@
             <x-alert variant="danger">{{ $errors->first('dossier') }}</x-alert>
         @endif
 
+        @if ($errors->has('file'))
+            <x-alert variant="danger">{{ $errors->first('file') }}</x-alert>
+        @endif
+
         <x-card>
             <div class="divide-y divide-surface-inset">
                 @forelse ($types as $type)
@@ -20,9 +24,12 @@
                             @if ($document)
                                 <span @class([
                                     'text-xs font-semibold px-2 py-0.5 rounded-full',
-                                    'bg-warning/10 text-warning' => $document->review_status->value === 'pending',
-                                    'bg-success/10 text-success' => $document->review_status->value === 'approved',
-                                    'bg-danger/10 text-danger' => $document->review_status->value === 'rejected',
+                                    'bg-warning/10 text-warning' =>
+                                        $document->review_status->value === 'pending',
+                                    'bg-success/10 text-success' =>
+                                        $document->review_status->value === 'approved',
+                                    'bg-danger/10 text-danger' =>
+                                        $document->review_status->value === 'rejected',
                                 ])>{{ $document->review_status->label() }}</span>
                             @else
                                 <span class="text-xs text-content-muted">Rien déposé</span>
@@ -30,21 +37,25 @@
                         </div>
 
                         @if ($document?->review_status->value === 'pending')
-                            <p class="text-xs text-content-secondary mt-1">En attente de validation par l'administration.</p>
+                            <p class="text-xs text-content-secondary mt-1">En attente de validation par l'administration.
+                            </p>
                         @elseif ($document?->review_status->value === 'rejected')
-                            <p class="text-xs text-danger mt-1">Pièce rejetée : {{ $document->rejection_reason }}. Veuillez la corriger.</p>
+                            <p class="text-xs text-danger mt-1">Pièce rejetée : {{ $document->rejection_reason }}.
+                                Veuillez la corriger.</p>
                         @elseif ($document?->review_status->value === 'approved')
                             <p class="text-xs text-success mt-1">Pièce validée.</p>
                         @endif
 
                         @if (!$document || $document->review_status->value !== 'approved')
-                            <form method="POST" action="{{ route('eleve.dossier.upload', $type) }}" enctype="multipart/form-data" class="mt-2 flex gap-2">
+                            <form method="POST" action="{{ route('eleve.dossier.upload', $type) }}"
+                                enctype="multipart/form-data" class="mt-2 flex gap-2">
                                 @csrf
-                                <input type="file" name="file" class="text-xs flex-1" required>
+                                <input type="file" name="file" accept=".pdf,.jpg,.jpeg,.png,.webp" class="text-xs flex-1" required>
                                 <x-primary-button class="text-xs">
                                     {{ $document ? 'Redéposer' : 'Déposer' }}
                                 </x-primary-button>
                             </form>
+                            <p class="text-xs text-content-muted mt-1">PDF, JPG, PNG ou WEBP — 5 Mo maximum.</p>
                         @endif
                     </div>
                 @empty

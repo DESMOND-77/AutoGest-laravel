@@ -1,5 +1,5 @@
 <x-app-layout>
-    <x-slot name="header">Évaluation — {{ $student->fullName() }}</x-slot>
+    <x-slot name="header">Évaluation - {{ $student->fullName() }}</x-slot>
 
     <div class="py-6 max-w-2xl mx-auto">
         @if (session('status'))

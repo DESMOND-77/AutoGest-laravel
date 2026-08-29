@@ -31,7 +31,7 @@
                     @if ($revealedToken)
                         @php $publicUrl = route('public-registration.show', ['token' => $revealedToken]); @endphp
                         <x-alert variant="warning" class="mb-3">
-                            Ce lien ne sera affiché qu'une seule fois. Copiez-le maintenant — vous ne pourrez plus le consulter en clair ensuite (vous pourrez toujours le régénérer).
+                            Ce lien ne sera affiché qu'une seule fois. Copiez-le maintenant - vous ne pourrez plus le consulter en clair ensuite (vous pourrez toujours le régénérer).
                         </x-alert>
                         <div class="flex items-center gap-2">
                             <input
@@ -80,7 +80,7 @@
                         </div>
                         <div>
                             <dt class="text-content-muted">Dernière utilisation</dt>
-                            <dd class="text-content font-medium mt-0.5">{{ $link->last_used_at?->format('d/m/Y') ?? '—' }}</dd>
+                            <dd class="text-content font-medium mt-0.5">{{ $link->last_used_at?->format('d/m/Y') ?? '-' }}</dd>
                         </div>
                     </dl>
 

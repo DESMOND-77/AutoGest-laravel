@@ -17,14 +17,14 @@ Merci de **ne jamais signaler une vulnérabilité de sécurité via une Issue Gi
 
 Pour signaler une vulnérabilité de manière responsable :
 
-1. Utilisez l'onglet **[Security Advisories](https://github.com/DESMOND-77/AutoGest/security/advisories/new)** du dépôt GitHub (recommandé — canal chiffré et privé), **ou**
+1. Utilisez l'onglet **[Security Advisories](https://github.com/DESMOND-77/AutoGest/security/advisories/new)** du dépôt GitHub (recommandé - canal chiffré et privé), **ou**
 2. Envoyez un e-mail à **TODO: Complete with project-specific information** (adresse de contact sécurité à définir) en incluant :
    - une description claire de la vulnérabilité et de son impact potentiel (fuite de données inter-tenant, contournement d'authentification, injection, etc.) ;
    - les étapes de reproduction (requête HTTP, payload, compte de test utilisé) ;
    - la version ou le commit concerné ;
    - si possible, un correctif ou une piste de correction.
 
-Merci de fournir suffisamment d'informations pour reproduire le problème (URL, rôle utilisateur concerné — Super-Admin, Admin, Moniteur ou Élève — et `structure_id` de test).
+Merci de fournir suffisamment d'informations pour reproduire le problème (URL, rôle utilisateur concerné - Super-Admin, Admin, Moniteur ou Élève - et `structure_id` de test).
 
 ## Délai de réponse
 

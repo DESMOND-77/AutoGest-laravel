@@ -8,7 +8,7 @@ use Illuminate\Support\Facades\Notification;
 
 /**
  * On-demand notification (Notification::route(...)), not $student->notify():
- * Student isn't a Notifiable model — many students have no user account at
+ * Student isn't a Notifiable model - many students have no user account at
  * all, only a phone number on file.
  */
 class NotifyStudentSmsOnPaymentReceived

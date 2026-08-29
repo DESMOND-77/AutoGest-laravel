@@ -9,7 +9,7 @@ use Database\Seeders\RoleSeeder;
 /**
  * MT-05 follow-up: Store/Order had no tenant isolation coverage. There is no
  * per-order show/update route today (only index+store), so the isolation
- * surface is the index listing — this locks that down against a future
+ * surface is the index listing - this locks that down against a future
  * per-order route being added without tenant scoping in mind.
  */
 beforeEach(function () {

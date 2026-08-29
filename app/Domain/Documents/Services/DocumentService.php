@@ -13,13 +13,13 @@ use Illuminate\Support\Facades\DB;
 
 /**
  * Replaces the legacy pattern of loose file-path columns on `eleves`
- * (photo, cni_path, justif_domicile...) — no history, and re-uploading a
+ * (photo, cni_path, justif_domicile...) - no history, and re-uploading a
  * document silently threw the old file away. Every upload here becomes a
  * new version; the previous one is kept, just no longer flagged current.
  *
  * When $requiredDocumentType is given (student dossier uploads), the
  * "previous version" lookup keys on required_document_type_id instead of
- * DocumentType — several dossier pieces can share the same generic
+ * DocumentType - several dossier pieces can share the same generic
  * DocumentType::Other, so type alone can't tell them apart. Passing it also
  * resets review_status to Pending on the new row: a fresh upload always
  * needs a fresh review, even if the version it replaces was Approved.
