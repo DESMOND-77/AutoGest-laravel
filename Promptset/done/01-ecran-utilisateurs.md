@@ -46,7 +46,7 @@ Donner à l'admin un écran `/settings/users` (ou `/utilisateurs`, à choisir en
 
 ## Critères d'acceptation
 
-- Un admin peut créer un compte élève et un compte admin depuis un seul écran, avec rôle assigné via Spatie.
+- Un admin peut créer un compte élève,un compte moniteur(via `/instructors`) et un compte admin depuis un seul écran, avec rôle assigné via Spatie.
 - Un admin peut déclencher une réinitialisation de mot de passe pour un utilisateur de son tenant.
 - Aucun accès cross-tenant possible (test d'isolation explicite).
 - `/instructors` reste la seule source de vérité pour la création des moniteurs - pas de duplication.

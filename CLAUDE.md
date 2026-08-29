@@ -1,3 +1,7 @@
+# CLAUDE.md
+
+This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+
 <laravel-boost-guidelines>
 === foundation rules ===
 
@@ -188,3 +192,62 @@ This project has domain-specific skills available in `**/skills/**`. You MUST ac
 - Do NOT delete tests without approval.
 
 </laravel-boost-guidelines>
+
+## Project: Auto-GestBoard
+
+A multi-tenant SaaS platform for driving schools (auto-écoles) — students, instructors, scheduling, invoicing, fleet, exams, and a shop, in one application. It replaces a legacy vanilla-PHP app (`autoecole_jh`) via a strangler-fig migration, module by module.
+
+### Commands
+
+```bash
+composer run dev              # concurrently runs: php artisan serve, queue:listen, pail (logs), vite dev
+php artisan test --compact    # full suite (Unit + Feature + Architecture)
+php artisan test --compact --filter=SomeTestName        # single test/class
+php artisan test --compact --filter=DomainBoundariesTest # domain-boundary rules only
+vendor/bin/pint --dirty --format agent                   # format changed files (run before finishing any PHP change)
+php artisan route:list        # inspect routes, filterable by --method/--name/--path
+php artisan migrate:fresh --seed   # reset DB (local dev only — never on shared/prod data)
+php artisan fleet:check-alerts     # send vehicle expiry alerts (contrôle technique / assurance)
+php artisan import:legacy-students {structure} {path}   # import historical student/payment data
+```
+
+Tests run against a **separate MySQL database** (`autoecole_jh_laravel_test`, configured in `phpunit.xml`), distinct from the dev database (`DB_DATABASE` in `.env`). A migration only reaches the dev database when `php artisan migrate` is run against it explicitly — the test suite auto-migrating does not apply it there.
+
+### Architecture: Domain-Driven Modules
+
+The codebase is organized by **business domain**, not by technical layer — there is no global `app/Models/` or `app/Http/Controllers/` for domain logic (only the shared `User` model and cross-cutting Auth/Profile/Dashboard controllers live outside `app/Domain/`). Each domain is self-contained under `app/Domain/<Domain>/`:
+
+```
+app/Domain/<Domain>/
+├── Models/               Eloquent models (use BelongsToTenant + HasFactory)
+├── Services/             Business logic — the ONLY place a rule is written (never in a Controller or Blade view)
+├── Repositories/         Interface + Eloquent implementation, for the domain's main aggregate
+├── Policies/             Authorization — always checks tenant ownership AND the business relationship
+├── Http/Controllers/     Thin — orchestrate a Service call, no business logic
+├── Http/Requests/        Input validation
+├── Http/Resources/       Explicit JSON serialization (whitelisted fields)
+├── Enums/                Typed states/categories
+├── Events/ Listeners/    Decoupled side effects (notifications, audit log, etc.)
+├── Database/Factories/   Test factories
+└── Jobs/                 Async work, where applicable
+```
+
+Domains: `Tenancy` (core/tenant), `Users`, `Students`, `Instructors`, `Training`, `Scheduling`, `Fleet`, `Finance`, `Store`, `CRM`, `Documents`, `Notifications`, `Audit`, `Reports`, `Settings`.
+
+**Dependencies between domains are unidirectional** and enforced by `tests/Architecture/DomainBoundariesTest.php` (Pest Arch tests) — e.g. `Finance` may depend on `Students`, but `Students` must never depend on `Finance`. When adding a new domain or a new cross-domain call, add/update the corresponding rule in that test file; this is what stops the kind of direct cross-domain coupling the legacy app had (e.g. its vehicle-maintenance page wrote straight into the financial transactions table). See `docs/architecture.md` for the full dependency graph.
+
+### Multi-Tenancy
+
+Tenancy is **row-level**: every business table carries a `structure_id`, auto-filtered and auto-stamped by the `App\Support\BelongsToTenant` trait (global Eloquent scope), with the current tenant resolved by the `ResolveTenant` middleware from the session.
+
+- The Super-Admin operates outside tenancy (`structure_id = null`) via a dedicated Guard/Gate.
+- Every mutation goes through a **Policy** that checks both tenant ownership (`$model->structure_id === $user->structure_id`) and the relevant business relationship (e.g. an instructor may only evaluate their assigned students).
+- Unique constraints (email, license plate, etc.) are **scoped per tenant** (`unique(structure_id, column)`), never global.
+- **Implicit route-model binding resolves before `ResolveTenant` sets the current tenant** — so a route like `{student}` is NOT protected by the global tenant scope alone at bind time. Any new route using model binding must have a corresponding Policy check; don't rely on the scope alone for cross-tenant protection there.
+
+### Conventions Beyond Boost's Defaults
+
+- When modifying a migration column, repeat every attribute already defined on it (Laravel 12 drops any attribute not restated).
+- Enum casts go in a model's `casts()` method, not the `$casts` property — matches existing models.
+- New business tables get `structure_id` as the first column after `id()`, with a foreign key to `structures`.
+- Match the sibling file in the same domain exactly (naming, structure, style) before introducing a new pattern.

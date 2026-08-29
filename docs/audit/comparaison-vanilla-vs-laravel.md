@@ -1,4 +1,4 @@
-# Comparaison fonctionnelle vérifiée - Auto-GestBoard (PHP vanilla) vs AutoGest-Laravel
+# Comparaison fonctionnelle vérifiée - Auto-GestBoard (PHP vanilla situe dans `/home/foxtrot/Documents/autoecole/autoecole_jh/`) vs AutoGest-Laravel `./`
 
 Date : 2026-08-23
 Méthode : navigation réelle des deux applications en environnement local (`http://autogest.local/` et `http://localhost:8000/`), avec les comptes fournis (superadmin, admin et moniteur de l'établissement « Auto-École J/H »), recoupée avec une lecture du code Laravel (`app/Domain/*`, vues Blade) pour distinguer précisément ce qui **n'existe pas du tout** de ce qui **existe en base/backend mais n'est pas exposé à l'écran**.

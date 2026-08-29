@@ -2,13 +2,13 @@
 
 ## Contexte
 
-`Student.dossier_status` (enum `DossierStatus` : `Incomplete → Complete → Submitted → Validated`, avec retour `Submitted → Incomplete` en cas de rejet) a déjà sa machine à états gardée : `App\Domain\Students\Services\DossierStatusService::transitionTo()` (même patron que `LifecycleService` pour `lifecycle_stage`, voir `docs/audit/business-workflow.md` WF-03). **Aucune route HTTP, aucun écran, n'utilise ce service aujourd'hui.** Seuls l'import legacy et la création initiale de l'élève positionnent la valeur par défaut (`Incomplete`).
+`Student.dossier_status` (enum `DossierStatus` : `Incomplete → Complete → Validated → Submitted`, avec retour `validated → Incomplete` en cas de rejet ou ajout d'unne nouvelle piece requise) a déjà sa machine à états gardée : `App\Domain\Students\Services\DossierStatusService::transitionTo()` (même patron que `LifecycleService` pour `lifecycle_stage`, voir `docs/audit/business-workflow.md` WF-03). **Aucune route HTTP, aucun écran, n'utilise ce service aujourd'hui.** Seuls l'import legacy et la création initiale de l'élève positionnent la valeur par défaut (`Incomplete`).
 
-La version PHP vanilla de référence expose et fait évoluer ce statut directement dans son formulaire d'inscription (`docs/audit/comparaison-vanilla-vs-laravel.md`, §1.4/§2.2). Ici, on choisit de l'exposer sur la **fiche élève**, pas seulement à la création, pour permettre un vrai suivi de dossier dans le temps (upload de pièces → dossier complet → soumis → validé/rejeté).
+La version PHP vanilla de référence expose et fait évoluer ce statut directement dans son formulaire d'inscription (`docs/audit/comparaison-vanilla-vs-laravel.md`, §1.4/§2.2). Ici, on choisit de l'exposer sur la **fiche élève**, pas seulement à la création, pour permettre un vrai suivi de dossier dans le temps (upload de pièces → dossier complet → validé/rejeté → soumis).
 
 ## Objectif
 
-Donner à l'admin un moyen de faire progresser le `dossier_status` d'un élève depuis sa fiche, avec les mêmes garanties de contrôle de transition que pour `lifecycle_stage`.
+un moyen de faire progresser automatiquement le `dossier_status` d'un élève et le visualiser depuis sa fiche.
 
 ## Périmètre exact
 
@@ -22,7 +22,7 @@ Donner à l'admin un moyen de faire progresser le `dossier_status` d'un élève 
 
 - **Ne jamais modifier `dossier_status` autrement que via `DossierStatusService`** - c'est la règle déjà actée par WF-03/WF-02 (`Student::setDossierStatus()` reste `protected`/bypass `$fillable`, à ne pas retirer).
 - Suivre le même pattern que `StudentController::advanceStage()` pour `lifecycle_stage` - lire ce code avant d'écrire le nouveau.
-- Toute transition invalide doit produire un message d'erreur explicite côté UI (pas juste une exception non gérée).
+
 
 ## Étapes suggérées (TDD)
 
@@ -35,7 +35,6 @@ Donner à l'admin un moyen de faire progresser le `dossier_status` d'un élève 
 
 ## Critères d'acceptation
 
-- Un admin peut faire progresser le dossier d'un élève dans l'ordre `Incomplet → Complet → Soumis → Validé` (avec retour `Soumis → Incomplet` en cas de rejet), directement depuis la fiche élève.
-- Toute tentative de saut d'étape est bloquée avec un message clair.
+- Visualiser la progression du dossier d'un élève dans l'ordre `Incomplet → Complet → Validé → Soumis` (avec retour `Validé → Incomplet` en cas de rejet ou ajout d'une nouvelle piece requise), directement depuis la fiche élève.
 - Le changement est couvert par un test d'isolation tenant.
 - Cohérent visuellement avec le contrôle existant pour `lifecycle_stage`.
