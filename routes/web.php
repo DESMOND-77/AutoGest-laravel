@@ -82,6 +82,10 @@ Route::middleware(['auth', 'role:admin|moniteur'])->group(function () {
 });
 
 Route::middleware(['auth', 'role:admin'])
+    ->get('students/{student}/dossier/download', [StudentController::class, 'downloadDossier'])
+    ->name('students.dossier-download');
+
+Route::middleware(['auth', 'role:admin'])
     ->prefix('finance')
     ->name('finance.')
     ->group(function () {

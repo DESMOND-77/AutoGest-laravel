@@ -19,7 +19,9 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\View\View;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class StudentController extends Controller
 {
@@ -134,6 +136,18 @@ class StudentController extends Controller
 
         return redirect()->route('students.show', $student)
             ->with('status', 'Étape mise à jour.');
+    }
+
+    public function downloadDossier(Student $student): StreamedResponse
+    {
+        $this->authorize('update', $student);
+
+        abort_unless($student->documents_zip_path, 404);
+
+        return Storage::disk('local')->download(
+            $student->documents_zip_path,
+            "dossier-{$student->fullName()}.zip"
+        );
     }
 
     public function createAccount(Student $student): RedirectResponse

@@ -290,7 +290,34 @@
             </div>
 
             {{-- Documents --}}
-            <div x-show="tab === 'documents'" x-cloak>
+            <div x-show="tab === 'documents'" x-cloak class="space-y-5">
+                <x-card>
+                    <div class="flex items-center justify-between mb-3">
+                        <div class="text-sm font-semibold text-content">Dossier administratif</div>
+                        <x-badge variant="info">{{ $student->dossier_status->label() }}</x-badge>
+                    </div>
+
+                    <ol class="flex flex-wrap gap-1.5">
+                        @foreach (\App\Domain\Students\Enums\DossierStatus::cases() as $status)
+                            <li @class([
+                                'px-2.5 py-1 rounded-ui-md text-xs font-medium',
+                                'bg-primary text-primary-content' => $status === $student->dossier_status,
+                                'bg-surface-inset text-content-secondary' => $status !== $student->dossier_status,
+                            ])>
+                                {{ $status->label() }}
+                            </li>
+                        @endforeach
+                    </ol>
+
+                    @if ($student->documents_zip_path)
+                        <div class="mt-4 pt-4 border-t border-border/60">
+                            <a href="{{ route('students.dossier-download', $student) }}" class="inline-flex items-center gap-1 text-sm text-primary hover:underline">
+                                <x-icon name="archive-box" class="w-4 h-4" /> Télécharger le dossier (ZIP)
+                            </a>
+                        </div>
+                    @endif
+                </x-card>
+
                 <x-card>
                     @php
                         $documents = \App\Domain\Documents\Models\Document::query()

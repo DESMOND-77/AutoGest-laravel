@@ -22,6 +22,8 @@ class StoreExamRequest extends FormRequest
             'exam_date' => ['required', 'date'],
             'location' => ['nullable', 'string', 'max:200'],
             'inspector' => ['nullable', 'string', 'max:150'],
+            'fault_count' => ['nullable', 'integer', 'min:0'],
+            'comment' => ['nullable', 'string', 'max:1000'],
         ];
     }
 }
