@@ -7,7 +7,7 @@
 
     <div class="py-12">
         <div class="max-w-3xl mx-auto sm:px-6 lg:px-8">
-            <div class="bg-surface shadow-soft-sm rounded-ui-lg p-6">
+            <div class="bg-surface shadow-sm sm:rounded-lg p-6">
                 <form method="POST" action="{{ $student->exists ? route('students.update', $student) : route('students.store') }}">
                     @csrf
                     @if ($student->exists) @method('PUT') @endif
