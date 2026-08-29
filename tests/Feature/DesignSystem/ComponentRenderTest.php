@@ -48,3 +48,15 @@ it('renders an icon-button with an accessible label', function () {
     $html = Blade::render('<x-icon-button icon="plus" label="Ajouter" variant="primary" />');
     expect($html)->toContain('aria-label="Ajouter"')->toContain('bg-primary');
 });
+
+it('renders each of the four alert levels with a matching icon', function () {
+    foreach ([
+        'success' => 'document-check',
+        'info' => 'bell',
+        'warning' => 'exclamation-triangle',
+        'error' => 'x-mark',
+    ] as $variant => $icon) {
+        $html = Blade::render('<x-alert variant="'.$variant.'" title="T">Message</x-alert>');
+        expect($html)->toContain($icon)->toContain('T');
+    }
+});
