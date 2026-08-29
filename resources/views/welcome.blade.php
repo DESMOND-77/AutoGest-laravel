@@ -174,7 +174,7 @@
     <header x-data="{ mobileOpen: false }" class="sticky top-0 z-50 border-b border-white/5 bg-asphalt/95 backdrop-blur">
         <nav class="mx-auto flex max-w-7xl items-center justify-between px-6 py-3 lg:px-8" aria-label="Navigation principale">
             <a href="/" class="flex items-center gap-2.5">
-                <img src="{{ asset('images/brand/logo-horizontal-on-navy.jpg') }}" alt="Auto-GestBoard" class="h-9 w-auto">
+                <img src="{{ asset('images/brand/logo-horizontal-on-navy.jpg') }}" alt="Auto-GestBoard" class="h-9 w-auto bg-brand-navy-900 rounded">
             </a>
 
             <div class="hidden items-center gap-8 lg:flex">
@@ -629,7 +629,7 @@
             <div class="grid gap-12 md:grid-cols-2 lg:grid-cols-5">
                 <div class="lg:col-span-2">
                     <a href="/" class="flex items-center gap-2.5">
-                        <img src="{{ asset('images/brand/logo-horizontal-on-navy.jpg') }}" alt="Auto-GestBoard" class="h-9 w-auto">
+                        <img src="{{ asset('images/brand/logo-horizontal-on-navy.jpg') }}" alt="Auto-GestBoard" class="h-9 w-auto bg-brand-navy-900 rounded">
                     </a>
                     <p class="mt-4 max-w-sm text-sm leading-relaxed">
                         La plateforme Cloud multi-établissement qui centralise la gestion des élèves, moniteurs, planning et finances de votre auto-école.

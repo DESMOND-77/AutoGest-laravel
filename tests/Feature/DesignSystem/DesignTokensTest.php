@@ -11,10 +11,17 @@ it('defines the official brand navy + green scales', function () use ($css) {
         ->toContain('--brand-green-100: 221 247 239'); // #DDF7EF
 });
 
-it('maps primary to brand green and secondary to brand navy in light mode', function () use ($css) {
+it('maps primary to brand green 700 (#08785C, AA-contrast fill) and secondary to brand navy in light mode', function () use ($css) {
     expect($css())
-        ->toContain('--color-primary: 15 175 129')
+        ->toContain('--color-primary: 8 120 92')
         ->toContain('--color-secondary: 8 37 67');
+});
+
+it('deliberately inverts --color-secondary to the light value in dark mode', function () use ($css) {
+    // In :root.dark the navy secondary would be navy-on-navy (invisible), so
+    // dark mode intentionally keeps --color-secondary as the light slate value.
+    $dark = substr($css(), strpos($css(), ':root.dark'));
+    expect($dark)->toContain('--color-secondary: 226 232 240');
 });
 
 it('uses a navy background in dark mode, not an inverted grey', function () use ($css) {

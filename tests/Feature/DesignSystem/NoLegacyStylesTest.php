@@ -10,13 +10,11 @@ function domainBladeViews(): Collection
 {
     // The landing page and its components keep their own separate palette
     // (route/signal/asphalt) on purpose — see resources/css/app.css header.
-    $allowed = ['welcome.blade.php'];
-
     return collect(File::allFiles(resource_path('views')))
         ->filter(fn ($f) => str_ends_with($f->getFilename(), '.blade.php'))
         ->reject(fn ($f) => str_contains($f->getPathname(), '/components/landing/'))
         ->reject(fn ($f) => str_contains($f->getPathname(), '/components/brand/'))
-        ->reject(fn ($f) => in_array($f->getFilename(), $allowed, true));
+        ->reject(fn ($f) => $f->getPathname() === resource_path('views/welcome.blade.php'));
 }
 
 function offenders(string $pattern): Collection

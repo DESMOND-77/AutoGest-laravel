@@ -7,6 +7,8 @@
 @php
     $variant = $variant === 'danger' ? 'error' : $variant;
 
+    $role = in_array($variant, ['warning', 'error'], true) ? 'alert' : 'status';
+
     $map = [
         'success' => ['classes' => 'bg-success/10 text-success', 'icon' => 'document-check'],
         'info' => ['classes' => 'bg-info/10 text-info', 'icon' => 'bell'],
@@ -20,7 +22,7 @@
 <div
     @if ($dismissible) x-data="{ shown: true }" x-show="shown" x-cloak @endif
     {{ $attributes->merge(['class' => 'flex items-start gap-3 rounded-ui-md p-4 text-sm '.$config['classes']]) }}
-    role="alert"
+    role="{{ $role }}"
     data-icon="{{ $config['icon'] }}"
 >
     <x-icon :name="$config['icon']" class="w-5 h-5 shrink-0 mt-0.5" />

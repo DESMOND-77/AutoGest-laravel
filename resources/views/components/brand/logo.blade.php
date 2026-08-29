@@ -17,8 +17,9 @@
 @endphp
 
 @if ($variant === 'icon')
-    <img src="{{ asset($icon) }}" alt="{{ $name }}"
-         {{ $attributes->merge(['class' => 'h-8 w-8 rounded-ui-sm object-contain']) }} />
+    <span {{ $attributes->merge(['class' => 'inline-flex items-center justify-center bg-white rounded-ui-sm p-0.5']) }}>
+        <img src="{{ asset($icon) }}" alt="{{ $name }}" class="h-full w-full object-contain" />
+    </span>
 @elseif ($variant === 'mono')
     <img src="{{ asset($mono) }}" alt="{{ $name }}"
          {{ $attributes->merge(['class' => 'h-8 w-auto object-contain']) }} />

@@ -1,1 +1,1 @@
-<x-button variant="secondary" type="button" {{ $attributes }}>{{ $slot }}</x-button>
+<x-button variant="secondary" {{ $attributes->merge(['type' => 'button']) }}>{{ $slot }}</x-button>

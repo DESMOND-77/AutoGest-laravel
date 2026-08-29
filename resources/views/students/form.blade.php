@@ -45,32 +45,32 @@
                         </div>
                         <div>
                             <x-input-label for="license_category" value="Catégorie de permis" />
-                            <select id="license_category" name="license_category" class="border-border rounded-md shadow-sm block mt-1 w-full">
+                            <x-select id="license_category" name="license_category" class="mt-1">
                                 @foreach (\App\Domain\Students\Enums\LicenseCategory::cases() as $case)
                                     <option value="{{ $case->value }}" @selected(old('license_category', $student->license_category?->value) === $case->value)>{{ $case->value }}</option>
                                 @endforeach
-                            </select>
+                            </x-select>
                         </div>
                         <div>
                             <x-input-label for="course_type" value="Type de cours" />
-                            <select id="course_type" name="course_type" class="border-border rounded-md shadow-sm block mt-1 w-full">
+                            <x-select id="course_type" name="course_type" class="mt-1">
                                 @foreach (\App\Domain\Students\Enums\CourseType::cases() as $case)
                                     <option value="{{ $case->value }}" @selected(old('course_type', $student->course_type?->value) === $case->value)>{{ $case->label() }}</option>
                                 @endforeach
-                            </select>
+                            </x-select>
                         </div>
                         <div>
                             <x-input-label for="instructor_id" value="Moniteur" />
-                            <select id="instructor_id" name="instructor_id" class="border-border rounded-md shadow-sm block mt-1 w-full">
+                            <x-select id="instructor_id" name="instructor_id" class="mt-1">
                                 <option value="">-</option>
                                 @foreach ($instructors as $instructor)
                                     <option value="{{ $instructor->id }}" @selected(old('instructor_id', $student->instructor_id) == $instructor->id)>{{ $instructor->name }}</option>
                                 @endforeach
-                            </select>
+                            </x-select>
                         </div>
                         <div class="sm:col-span-2">
                             <x-input-label for="address" value="Adresse" />
-                            <textarea id="address" name="address" rows="2" class="border-border rounded-md shadow-sm block mt-1 w-full">{{ old('address', $student->address) }}</textarea>
+                            <x-textarea id="address" name="address" rows="2" class="mt-1">{{ old('address', $student->address) }}</x-textarea>
                         </div>
                     </div>
 

@@ -43,7 +43,7 @@
 
     --color-border: 220 227 233;
 
-    --color-primary: 15 175 129;          /* brand green — CTA / active */
+    --color-primary: 8 120 92;            /* brand green 700 (#08785C, AA-contrast fill) — CTA / active */
     --color-primary-content: 255 255 255;
     --color-secondary: 8 37 67;           /* brand navy — nav / secondary btn */
     --color-secondary-content: 255 255 255;
@@ -85,7 +85,7 @@
 
     --color-border: 24 58 85;            /* #183A55 */
 
-    --color-primary: 15 175 129;
+    --color-primary: 8 120 92;
     --color-primary-content: 255 255 255;
     --color-secondary: 226 232 240;      /* light — navy outline is invisible on navy */
     --color-secondary-content: 8 37 67;

@@ -46,6 +46,17 @@ it('keeps the legacy x-primary-button alias working', function () {
     expect($html)->toContain('bg-primary')->toContain('text-primary-content');
 });
 
+it('lets a call site override the type on each legacy button alias', function () {
+    expect(Blade::render('<x-secondary-button type="submit">S</x-secondary-button>'))->toContain('type="submit"');
+    expect(Blade::render('<x-primary-button type="button">P</x-primary-button>'))->toContain('type="button"');
+    expect(Blade::render('<x-danger-button type="button">D</x-danger-button>'))->toContain('type="button"');
+});
+
+it('merges a caller class through each legacy button alias', function () {
+    expect(Blade::render('<x-secondary-button class="w-full">S</x-secondary-button>'))->toContain('w-full');
+    expect(Blade::render('<x-primary-button class="w-full">P</x-primary-button>'))->toContain('w-full');
+});
+
 it('renders an icon-button with an accessible label', function () {
     $html = Blade::render('<x-icon-button icon="plus" label="Ajouter" variant="primary" />');
     expect($html)->toContain('aria-label="Ajouter"')->toContain('bg-primary');
