@@ -17,7 +17,10 @@ class NotifyStudentSmsOnPaymentReceived
     {
         $student = $event->payment->invoice->student;
 
-        if (! $student->phone) {
+        // A boutique walk-in sale produces an Invoice with no student at all
+        // (invoices.student_id is nullable since the Store module) - there is
+        // nobody to text, so bail out before dereferencing null.
+        if (! $student || ! $student->phone) {
             return;
         }
 

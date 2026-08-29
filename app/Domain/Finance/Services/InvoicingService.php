@@ -30,4 +30,17 @@ class InvoicingService
             'issued_at' => $data['issued_at'] ?? now()->toDateString(),
         ]);
     }
+
+    public function createGeneric(?Student $student, array $data): Invoice
+    {
+        return $this->invoices->create([
+            'student_id' => $student?->id,
+            'training_package_id' => null,
+            'label' => $data['label'] ?? 'Facture',
+            'amount_due' => $data['amount_due'] ?? 0,
+            'amount_paid' => 0,
+            'status' => InvoiceStatus::Unpaid,
+            'issued_at' => $data['issued_at'] ?? now()->toDateString(),
+        ]);
+    }
 }

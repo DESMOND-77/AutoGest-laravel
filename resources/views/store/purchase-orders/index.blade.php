@@ -1,7 +1,7 @@
 <x-app-layout>
-    <x-slot name="header">Catalogue boutique</x-slot>
+    <x-slot name="header">Commandes fournisseurs</x-slot>
 
-    <div class="py-6 space-y-5 max-w-3xl mx-auto">
+    <div class="py-6 space-y-5 max-w-4xl mx-auto">
         @if (session('status'))
             <x-alert variant="success">{{ session('status') }}</x-alert>
         @endif
@@ -9,6 +9,6 @@
             <x-alert variant="danger">{{ $errors->first() }}</x-alert>
         @endif
 
-        @include('store.partials.produits', ['catalogProducts' => $products])
+        @include('store.partials.reapprovisionnement', ['catalogProducts' => $products])
     </div>
 </x-app-layout>

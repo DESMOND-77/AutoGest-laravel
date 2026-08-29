@@ -2,7 +2,6 @@
 
 namespace App\Domain\Store\Http\Controllers;
 
-use App\Domain\Store\Exceptions\InsufficientStock;
 use App\Domain\Store\Http\Requests\StoreOrderRequest;
 use App\Domain\Store\Models\Order;
 use App\Domain\Store\Models\Product;
@@ -24,7 +23,7 @@ class OrderController extends Controller
 
         return view('store.orders.index', [
             'orders' => Order::query()->with(['student', 'items.product'])->latest('ordered_at')->paginate(20),
-            'products' => Product::query()->where('active', true)->where('stock_quantity', '>', 0)->get(),
+            'products' => Product::query()->where('active', true)->get(),
             'students' => Student::query()->orderBy('last_name')->get(),
         ]);
     }
@@ -35,16 +34,26 @@ class OrderController extends Controller
             ? Student::query()->find($request->validated('student_id'))
             : null;
 
-        try {
-            $order = $this->orders->place(
-                $request->validated('items'),
-                $student,
-                $request->validated('customer_name'),
-            );
-        } catch (InsufficientStock $e) {
-            return back()->withErrors(['items' => $e->getMessage()])->withInput();
+        $result = $this->orders->place(
+            $request->validated('items'),
+            $student,
+            $request->validated('customer_name'),
+        );
+
+        $status = "Commande #{$result['order']->id} enregistrée.";
+        if ($result['lowStock'] !== []) {
+            $status .= ' Attention, stock insuffisant pour : '.implode(', ', $result['lowStock']).'.';
         }
 
-        return redirect()->route('store.orders.index')->with('status', "Commande #{$order->id} enregistrée.");
+        return redirect()->route('store.orders.index')->with('status', $status);
+    }
+
+    public function cancel(Order $order): RedirectResponse
+    {
+        $this->authorize('cancel', $order);
+
+        $this->orders->cancel($order);
+
+        return redirect()->route('store.orders.index')->with('status', "Commande #{$order->id} annulée, stock remis à jour.");
     }
 }

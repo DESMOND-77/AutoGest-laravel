@@ -2,7 +2,8 @@
 
 namespace App\Domain\Store\Models;
 
-use App\Domain\Store\Database\Factories\ProductFactory;
+use App\Domain\Store\Database\Factories\PurchaseOrderFactory;
+use App\Domain\Store\Enums\PurchaseOrderStatus;
 use App\Support\BelongsToTenant;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -10,33 +11,20 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
-class Product extends Model
+class PurchaseOrder extends Model
 {
     use BelongsToTenant, HasFactory;
 
     protected static function newFactory(): Factory
     {
-        return ProductFactory::new();
+        return PurchaseOrderFactory::new();
     }
 
-    protected $fillable = [
-        'structure_id',
-        'supplier_id',
-        'name',
-        'sku',
-        'barcode',
-        'category',
-        'price',
-        'cost_price',
-        'stock_quantity',
-        'reorder_threshold',
-        'active',
-    ];
+    protected $fillable = ['structure_id', 'supplier_id', 'status', 'ordered_at'];
 
     protected $casts = [
-        'price' => 'decimal:2',
-        'cost_price' => 'decimal:2',
-        'active' => 'boolean',
+        'status' => PurchaseOrderStatus::class,
+        'ordered_at' => 'date',
     ];
 
     public function supplier(): BelongsTo
@@ -44,8 +32,8 @@ class Product extends Model
         return $this->belongsTo(Supplier::class);
     }
 
-    public function stockMovements(): HasMany
+    public function items(): HasMany
     {
-        return $this->hasMany(StockMovement::class);
+        return $this->hasMany(PurchaseOrderItem::class);
     }
 }
