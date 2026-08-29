@@ -15,6 +15,31 @@ arch('Students domain does not depend on Finance, Fleet or Store')
         'App\Domain\Store',
     ]);
 
+arch('Recyclage domain does not depend on Finance or Students')
+    ->expect('App\Domain\Recyclage')
+    ->not->toUse([
+        'App\Domain\Finance',
+        'App\Domain\Students',
+    ]);
+
+arch('no business domain depends on Recyclage')
+    ->expect([
+        'App\Domain\Students',
+        'App\Domain\Finance',
+        'App\Domain\Fleet',
+        'App\Domain\Store',
+        'App\Domain\Scheduling',
+        'App\Domain\Training',
+        'App\Domain\CRM',
+        'App\Domain\Documents',
+        'App\Domain\Audit',
+        'App\Domain\Notifications',
+        'App\Domain\Instructors',
+        'App\Domain\Settings',
+        'App\Domain\Reports',
+    ])
+    ->not->toUse('App\Domain\Recyclage');
+
 arch('Fleet domain does not depend on Students, Scheduling, Finance or CRM')
     ->expect('App\Domain\Fleet')
     ->not->toUse([
@@ -65,6 +90,7 @@ arch('only Scheduling and Training depend on Instructors')
         'App\Domain\Audit',
         'App\Domain\Reports',
         'App\Domain\Settings',
+        'App\Domain\Recyclage',
     ])
     ->not->toUse('App\Domain\Instructors');
 
@@ -101,6 +127,7 @@ arch('no business domain depends on Settings')
         'App\Domain\Audit',
         'App\Domain\Reports',
         'App\Domain\Instructors',
+        'App\Domain\Recyclage',
     ])
     ->not->toUse('App\Domain\Settings');
 
@@ -162,6 +189,7 @@ arch('Notifications domain depends on nothing but Core')
         'App\Domain\Audit',
         'App\Domain\Instructors',
         'App\Domain\Settings',
+        'App\Domain\Recyclage',
     ]);
 
 arch('Audit domain depends on nothing but Core')
@@ -178,6 +206,7 @@ arch('Audit domain depends on nothing but Core')
         'App\Domain\Notifications',
         'App\Domain\Instructors',
         'App\Domain\Settings',
+        'App\Domain\Recyclage',
     ]);
 
 arch('Reports domain only depends on Finance, Training, Fleet, Students and Scheduling')
@@ -209,6 +238,7 @@ arch('no business domain depends on Reports')
         'App\Domain\Notifications',
         'App\Domain\Instructors',
         'App\Domain\Settings',
+        'App\Domain\Recyclage',
     ])
     ->not->toUse('App\Domain\Reports');
 

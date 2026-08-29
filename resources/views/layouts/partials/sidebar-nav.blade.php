@@ -44,6 +44,7 @@
                 @if ($user?->hasRole('admin'))
                     <x-sidebar-link :href="route('crm.leads.index')" :active="request()->routeIs('crm.*')" icon="user-plus">Prospects</x-sidebar-link>
                     <x-sidebar-link :href="route('dossiers.index')" :active="request()->routeIs('dossiers.*')" icon="clipboard-list" :badge="$pendingDossierStudentCount ?: null">Dossiers en attente</x-sidebar-link>
+                    <x-sidebar-link :href="route('recyclage.index')" :active="request()->routeIs('recyclage.*')" icon="clock">Recyclage &amp; Tests</x-sidebar-link>
                 @endif
                 @can('viewAny', \App\Domain\Instructors\Models\Instructor::class)
                     <x-sidebar-link :href="route('instructors.index')" :active="request()->routeIs('instructors.*')" icon="academic-cap">Moniteurs</x-sidebar-link>

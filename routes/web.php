@@ -13,6 +13,7 @@ use App\Domain\Fleet\Http\Controllers\VehicleController;
 use App\Domain\Instructors\Http\Controllers\InstructorAvailabilityController;
 use App\Domain\Instructors\Http\Controllers\InstructorController;
 use App\Domain\Notifications\Http\Controllers\NotificationController;
+use App\Domain\Recyclage\Http\Controllers\RecyclageController;
 use App\Domain\Reports\Http\Controllers\ReportsController;
 use App\Domain\Scheduling\Http\Controllers\AgendaController;
 use App\Domain\Scheduling\Http\Controllers\LessonSessionController;
@@ -176,6 +177,15 @@ Route::middleware(['auth', 'role:admin'])
     ->group(function () {
         Route::post('/', [VehicleController::class, 'store'])->name('store');
         Route::delete('{vehicle}', [VehicleController::class, 'destroy'])->name('destroy');
+    });
+
+Route::middleware(['auth', 'role:admin'])
+    ->prefix('recyclage')
+    ->name('recyclage.')
+    ->group(function () {
+        Route::get('/', [RecyclageController::class, 'index'])->name('index');
+        Route::post('/', [RecyclageController::class, 'store'])->name('store');
+        Route::delete('{entry}', [RecyclageController::class, 'destroy'])->name('destroy');
     });
 
 Route::middleware(['auth', 'role:admin|moniteur'])
