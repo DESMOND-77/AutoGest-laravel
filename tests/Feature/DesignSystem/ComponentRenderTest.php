@@ -60,3 +60,25 @@ it('renders each of the four alert levels with a matching icon', function () {
         expect($html)->toContain($icon)->toContain('T');
     }
 });
+
+it('renders an active sidebar link as solid green (spec §11)', function () {
+    $html = Blade::render(
+        '<x-sidebar-link href="/x" :active="true" icon="users">Élèves</x-sidebar-link>'
+    );
+    expect($html)->toContain('bg-primary')->toContain('text-primary-content');
+});
+
+it('renders the KPI card without indigo', function () {
+    $html = Blade::render(
+        '<x-kpi-card icon="users" label="Élèves actifs" value="248" trend="+12%" />'
+    );
+    expect($html)->not->toContain('indigo')->toContain('text-primary');
+});
+
+it('renders the modal shell on brand surfaces', function () {
+    $html = Blade::render('<x-modal name="m">Body</x-modal>');
+    expect($html)
+        ->not->toContain('bg-gray-800')
+        ->not->toContain('bg-white')
+        ->toContain('bg-surface');
+});
