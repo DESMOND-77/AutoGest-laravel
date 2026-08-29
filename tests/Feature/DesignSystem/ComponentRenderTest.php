@@ -1,5 +1,6 @@
 <?php
 
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Blade;
 
 it('renders the horizontal brand lockup for light and dark surfaces', function () {
@@ -81,4 +82,18 @@ it('renders the modal shell on brand surfaces', function () {
         ->not->toContain('bg-gray-800')
         ->not->toContain('bg-white')
         ->toContain('bg-surface');
+});
+
+it('colours the planning legend per spec §17 (conduite green, code blue, exam orange)', function () {
+    $sessions = collect();
+    $html = Blade::render('<x-planning-grid :sessions="$sessions" :week="$week" />', [
+        'sessions' => $sessions,
+        'week' => Carbon::parse('2026-08-31'),
+    ]);
+
+    expect($html)
+        ->toContain('bg-primary')   // conduite / practical
+        ->toContain('bg-info')      // code
+        ->toContain('bg-warning')   // mock exam
+        ->not->toContain('bg-danger'); // no red in the session-type legend
 });

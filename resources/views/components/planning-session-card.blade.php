@@ -4,8 +4,8 @@
     $typeStyles = [
         'theoretical' => 'bg-info/15 border-info text-content',
         'practical' => 'bg-primary/15 border-primary text-content',
-        'code' => 'bg-warning/15 border-warning text-content',
-        'mock_exam' => 'bg-danger/15 border-danger text-content',
+        'code' => 'bg-info/15 border-info text-content',
+        'mock_exam' => 'bg-warning/15 border-warning text-content',
     ];
 
     $isCancelled = $session->presence === \App\Domain\Scheduling\Enums\PresenceStatus::Cancelled;
