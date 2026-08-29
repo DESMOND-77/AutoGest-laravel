@@ -71,12 +71,31 @@ export default {
                 warning: 'rgb(var(--color-warning) / <alpha-value>)',
                 danger: 'rgb(var(--color-danger) / <alpha-value>)',
                 info: 'rgb(var(--color-info) / <alpha-value>)',
+                'brand-navy': {
+                    950: 'rgb(var(--brand-navy-950) / <alpha-value>)',
+                    900: 'rgb(var(--brand-navy-900) / <alpha-value>)',
+                    800: 'rgb(var(--brand-navy-800) / <alpha-value>)',
+                    700: 'rgb(var(--brand-navy-700) / <alpha-value>)',
+                },
+                'brand-green': {
+                    100: 'rgb(var(--brand-green-100) / <alpha-value>)',
+                    400: 'rgb(var(--brand-green-400) / <alpha-value>)',
+                    500: 'rgb(var(--brand-green-500) / <alpha-value>)',
+                    600: 'rgb(var(--brand-green-600) / <alpha-value>)',
+                    700: 'rgb(var(--brand-green-700) / <alpha-value>)',
+                },
+                secondary: {
+                    DEFAULT: 'rgb(var(--color-secondary) / <alpha-value>)',
+                    content: 'rgb(var(--color-secondary-content) / <alpha-value>)',
+                },
             },
             borderRadius: {
+                'ui-xs': 'var(--radius-xs)',
                 'ui-sm': 'var(--radius-sm)',
                 'ui-md': 'var(--radius-md)',
                 'ui-lg': 'var(--radius-lg)',
                 'ui-xl': 'var(--radius-xl)',
+                'ui-pill': 'var(--radius-pill)',
             },
             boxShadow: {
                 'soft-sm': 'var(--shadow-soft-sm)',

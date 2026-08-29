@@ -38,3 +38,14 @@ it('exposes the normalised radius scale', function () use ($css) {
         ->toContain('--radius-xs:')
         ->toContain('--radius-pill: 9999px');
 });
+
+it('registers brand + secondary colours and the full radius scale in tailwind config', function () {
+    $config = File::get(base_path('tailwind.config.js'));
+
+    expect($config)
+        ->toContain("'brand-navy'")
+        ->toContain("'brand-green'")
+        ->toContain('secondary:')
+        ->toContain("'ui-xs'")
+        ->toContain("'ui-pill'");
+});
