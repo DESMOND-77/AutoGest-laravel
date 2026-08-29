@@ -64,6 +64,7 @@ use App\Domain\Users\Policies\UserPolicy;
 use App\Models\User;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\RateLimiter;
@@ -117,6 +118,12 @@ class AppServiceProvider extends ServiceProvider
         Gate::policy(QuizAttempt::class, QuizAttemptPolicy::class);
         Gate::policy(Structure::class, StructurePolicy::class);
         Gate::policy(RecyclageEntry::class, RecyclageEntryPolicy::class);
+
+        // The official brand lockup lives at components/brand/logo.blade.php
+        // (its own path so the design-system grep guard can allow-list the
+        // dark:hidden/dark:block theme swap). Alias it so the rest of the
+        // app can call the flat <x-brand-logo /> tag.
+        Blade::component('components.brand.logo', 'brand-logo');
 
         // RecordVehicleExpenseInLedger lives in app/Listeners, where Laravel's
         // event auto-discovery already finds it by its handle(VehicleExpenseRecorded)

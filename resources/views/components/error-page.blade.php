@@ -17,7 +17,7 @@
     <body class="font-sans text-content antialiased bg-background">
         <div class="min-h-screen flex flex-col items-center justify-center px-6 text-center">
             <a href="/" class="flex items-center gap-2 mb-8">
-                <x-application-logo class="w-10 h-10 fill-current text-primary" />
+                <x-brand-logo variant="icon" class="h-10 w-10" />
                 <span class="text-lg font-semibold text-content">AutoGest</span>
             </a>
 

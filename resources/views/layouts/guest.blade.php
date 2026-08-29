@@ -6,6 +6,7 @@
         <meta name="csrf-token" content="{{ csrf_token() }}">
 
         <title>{{ config('app.name', 'Laravel') }}</title>
+        <link rel="icon" type="image/jpeg" href="{{ asset('images/brand/icon.jpg') }}">
 
         <x-theme-init-script />
 
@@ -19,8 +20,7 @@
     <body class="font-sans text-content antialiased bg-background">
         <div class="min-h-screen flex flex-col sm:justify-center items-center pt-6 sm:pt-0">
             <a href="/" class="flex items-center gap-2">
-                <x-application-logo class="w-10 h-10 fill-current text-primary" />
-                <span class="text-lg font-semibold text-content">AutoGest</span>
+                <x-brand-logo variant="full" class="h-9 w-auto" />
             </a>
 
             <div class="w-full sm:max-w-md mt-6 px-6 py-6 bg-surface shadow-soft overflow-hidden rounded-ui-xl">

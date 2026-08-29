@@ -10,8 +10,8 @@
 >
     <div class="flex items-center gap-2 px-4 py-5" :class="collapsed && 'justify-center px-2'">
         <a href="{{ route('dashboard') }}" class="flex items-center gap-2 min-w-0">
-            <x-application-logo class="h-8 w-8 shrink-0 fill-current text-primary" />
-            <span x-show="!collapsed" x-cloak class="font-semibold text-content truncate">AutoGest</span>
+            <x-brand-logo variant="full" x-show="!collapsed" x-cloak class="h-7 w-auto" />
+            <x-brand-logo variant="icon" x-show="collapsed" x-cloak class="h-8 w-8" />
         </a>
     </div>
 
