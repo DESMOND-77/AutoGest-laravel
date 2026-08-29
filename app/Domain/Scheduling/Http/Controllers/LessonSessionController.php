@@ -38,7 +38,7 @@ class LessonSessionController extends Controller
             'week' => $week,
             'filters' => $request->only(['instructor_id', 'vehicle_id', 'student_id']),
             'students' => Student::query()->orderBy('last_name')->get(),
-            'instructors' => User::role('moniteur')->orderBy('name')->get(),
+            'instructors' => User::role('moniteur')->active()->orderBy('name')->get(),
             'vehicles' => Vehicle::query()->orderBy('plate')->get(),
         ]);
     }

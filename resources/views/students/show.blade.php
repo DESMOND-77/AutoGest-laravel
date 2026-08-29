@@ -59,6 +59,11 @@
                         <a href="{{ route('students.edit', $student) }}"
                             class="text-sm text-content-secondary hover:text-primary transition">Modifier</a>
                     @endcan
+                    @can('update', $student)
+                        @if (! $student->user_id)
+                            <a href="{{ route('settings.users.index', ['student' => $student->id]) }}" class="text-sm text-content-secondary hover:text-primary transition">Créer un compte</a>
+                        @endif
+                    @endcan
                 </div>
             </div>
         </x-card>

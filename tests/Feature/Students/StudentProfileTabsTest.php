@@ -73,3 +73,22 @@ it('lists a student\'s dossier documents with their review status and a viewer l
         ->assertSee(route('documents.show', $document), false)
         ->assertSee('name="required_document_type_id"', false);
 });
+
+it('shows a "Créer un compte" link on a student with no login account, but not on one that already has one', function () {
+    $this->seed(RoleSeeder::class);
+    $structure = Structure::factory()->create();
+    $admin = User::factory()->create(['structure_id' => $structure->id]);
+    $admin->assignRole('admin');
+
+    $withoutAccount = Student::factory()->create(['structure_id' => $structure->id]);
+    $withAccount = Student::factory()->create([
+        'structure_id' => $structure->id,
+        'user_id' => User::factory()->create(['structure_id' => $structure->id])->id,
+    ]);
+
+    $this->actingAs($admin)->get(route('students.show', $withoutAccount))
+        ->assertSee(route('settings.users.index', ['student' => $withoutAccount->id]), false);
+
+    $this->actingAs($admin)->get(route('students.show', $withAccount))
+        ->assertDontSee('Créer un compte');
+});

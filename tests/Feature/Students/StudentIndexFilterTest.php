@@ -52,3 +52,17 @@ it('filters students by instructor', function () {
     $response->assertSee('Sylvie Mabika');
     $response->assertDontSee('Jean Ondo');
 });
+
+it('excludes a deactivated moniteur from the instructor picker', function () {
+    $activeInstructor = User::factory()->create(['structure_id' => $this->structure->id]);
+    $activeInstructor->assignRole('moniteur');
+    $deactivatedInstructor = User::factory()->create(['structure_id' => $this->structure->id, 'is_active' => false]);
+    $deactivatedInstructor->assignRole('moniteur');
+
+    $response = $this->actingAs($this->admin)->get(route('students.index'));
+
+    $response->assertOk();
+    $instructorIds = $response->viewData('instructors')->pluck('id');
+    expect($instructorIds)->toContain($activeInstructor->id);
+    expect($instructorIds)->not->toContain($deactivatedInstructor->id);
+});

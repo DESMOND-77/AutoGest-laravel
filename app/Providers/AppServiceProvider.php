@@ -56,6 +56,8 @@ use App\Domain\Training\Models\Skill;
 use App\Domain\Training\Policies\ExamPolicy;
 use App\Domain\Training\Policies\QuizAttemptPolicy;
 use App\Domain\Training\Policies\SkillPolicy;
+use App\Domain\Users\Policies\UserPolicy;
+use App\Models\User;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Event;
@@ -88,6 +90,7 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        Gate::policy(User::class, UserPolicy::class);
         Gate::policy(Student::class, StudentPolicy::class);
         Gate::policy(StudentRegistrationLink::class, StudentRegistrationLinkPolicy::class);
         Gate::policy(RequiredDocumentType::class, RequiredDocumentTypePolicy::class);

@@ -79,6 +79,13 @@ class PublicStudentRegistrationService
                     'name' => $accountData['name'],
                     'email' => $accountData['email'],
                     'password' => Hash::make($accountData['password']),
+                    // Explicit, not just relying on the column's DB default:
+                    // create() doesn't refresh the in-memory model from the
+                    // DB, and Auth::login($user) below caches this exact
+                    // instance in the guard for the rest of the session -
+                    // an unset is_active casts to null/false and would trip
+                    // EnsureUserIsActive on the very next request.
+                    'is_active' => true,
                 ]);
                 $user->assignRole('eleve');
 
