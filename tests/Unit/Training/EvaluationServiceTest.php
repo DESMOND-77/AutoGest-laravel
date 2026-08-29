@@ -12,7 +12,6 @@ use Carbon\Carbon;
 beforeEach(function () {
     $this->structure = Structure::factory()->create();
     $this->student = Student::factory()->create(['structure_id' => $this->structure->id]);
-    $this->skill = Skill::factory()->create(['structure_id' => $this->structure->id]);
     $this->service = new EvaluationService;
     TenantContext::set($this->structure);
 });
@@ -22,6 +21,7 @@ afterEach(function () {
 });
 
 it('sets validated_at when a skill first becomes acquired', function () {
+    $this->skill = Skill::factory()->create(['structure_id' => $this->structure->id]);
     Carbon::setTestNow('2026-07-21 10:00:00');
 
     $this->service->record($this->student, [$this->skill->id => SkillLevel::Acquired->value]);
@@ -33,6 +33,7 @@ it('sets validated_at when a skill first becomes acquired', function () {
 });
 
 it('does not change validated_at when a resubmission keeps the level at acquired', function () {
+    $this->skill = Skill::factory()->create(['structure_id' => $this->structure->id]);
     Carbon::setTestNow('2026-07-21 10:00:00');
     $this->service->record($this->student, [$this->skill->id => SkillLevel::Acquired->value]);
 
@@ -46,6 +47,7 @@ it('does not change validated_at when a resubmission keeps the level at acquired
 });
 
 it('clears validated_at when a skill regresses from acquired to in_progress', function () {
+    $this->skill = Skill::factory()->create(['structure_id' => $this->structure->id]);
     $this->service->record($this->student, [$this->skill->id => SkillLevel::Acquired->value]);
     $this->service->record($this->student, [$this->skill->id => SkillLevel::InProgress->value]);
 
@@ -55,6 +57,7 @@ it('clears validated_at when a skill regresses from acquired to in_progress', fu
 });
 
 it('clears validated_at when a skill regresses from acquired to not_started', function () {
+    $this->skill = Skill::factory()->create(['structure_id' => $this->structure->id]);
     $this->service->record($this->student, [$this->skill->id => SkillLevel::Acquired->value]);
     $this->service->record($this->student, [$this->skill->id => SkillLevel::NotStarted->value]);
 
@@ -63,6 +66,7 @@ it('clears validated_at when a skill regresses from acquired to not_started', fu
 });
 
 it('leaves validated_at null for a skill that has never been acquired', function () {
+    $this->skill = Skill::factory()->create(['structure_id' => $this->structure->id]);
     $this->service->record($this->student, [$this->skill->id => SkillLevel::InProgress->value]);
 
     $progress = SkillProgress::query()->where('student_id', $this->student->id)->sole();
@@ -70,6 +74,7 @@ it('leaves validated_at null for a skill that has never been acquired', function
 });
 
 it('self-heals a null validated_at on an already-acquired row', function () {
+    $this->skill = Skill::factory()->create(['structure_id' => $this->structure->id]);
     Carbon::setTestNow('2026-07-21 10:00:00');
 
     SkillProgress::factory()->create([
@@ -86,4 +91,28 @@ it('self-heals a null validated_at on an already-acquired row', function () {
     expect($progress->validated_at->toDateString())->toBe('2026-07-21');
 
     Carbon::setTestNow();
+});
+
+it('summarizes acquired skills as a count and percentage', function () {
+    $skillA = Skill::factory()->create(['structure_id' => $this->structure->id]);
+    $skillB = Skill::factory()->create(['structure_id' => $this->structure->id]);
+    Skill::factory()->create(['structure_id' => $this->structure->id]);
+    Skill::factory()->create(['structure_id' => $this->structure->id]);
+
+    $this->service->record($this->student, [
+        $skillA->id => SkillLevel::Acquired->value,
+        $skillB->id => SkillLevel::InProgress->value,
+    ]);
+
+    $summary = $this->service->acquiredSummary($this->student);
+
+    expect($summary['acquired'])->toBe(1);
+    expect($summary['total'])->toBe(4);
+    expect($summary['percent'])->toBe(25);
+});
+
+it('summarizes zero skills as a zero percent, not a division error', function () {
+    $summary = $this->service->acquiredSummary($this->student);
+
+    expect($summary)->toBe(['acquired' => 0, 'total' => 0, 'percent' => 0]);
 });

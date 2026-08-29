@@ -17,6 +17,7 @@ use App\Domain\Reports\Http\Controllers\ReportsController;
 use App\Domain\Scheduling\Http\Controllers\AgendaController;
 use App\Domain\Scheduling\Http\Controllers\LessonSessionController;
 use App\Domain\Scheduling\Http\Controllers\StudentPlanningController;
+use App\Domain\Scheduling\Http\Controllers\StudentRouteSheetController;
 use App\Domain\Settings\Http\Controllers\SettingController;
 use App\Domain\Store\Http\Controllers\OrderController;
 use App\Domain\Store\Http\Controllers\ProductController;
@@ -303,6 +304,7 @@ Route::middleware(['auth', 'role:moniteur'])
     ->group(function () {
         Route::view('moniteur/dashboard', 'moniteur.dashboard')->name('dashboard');
         Route::get('moniteur/agenda', AgendaController::class)->name('agenda');
+        Route::get('moniteur/eleves/{student}/feuille-route', [StudentRouteSheetController::class, 'show'])->name('eleves.feuille-route');
     });
 
 Route::middleware(['auth', 'role:eleve'])

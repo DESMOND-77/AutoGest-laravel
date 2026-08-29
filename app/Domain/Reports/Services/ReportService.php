@@ -2,12 +2,15 @@
 
 namespace App\Domain\Reports\Services;
 
+use App\Domain\Finance\Enums\InvoiceStatus;
 use App\Domain\Finance\Enums\LedgerEntryType;
+use App\Domain\Finance\Models\Invoice;
 use App\Domain\Finance\Models\LedgerEntry;
 use App\Domain\Finance\Models\Payment;
 use App\Domain\Fleet\Enums\VehicleStatus;
 use App\Domain\Fleet\Models\Vehicle;
 use App\Domain\Fleet\Services\AlertService;
+use App\Domain\Scheduling\Models\LessonSession;
 use App\Domain\Students\Enums\LifecycleStage;
 use App\Domain\Students\Models\Student;
 use App\Domain\Training\Enums\ExamResult;
@@ -137,5 +140,60 @@ class ReportService
                 $status->label() => (int) ($counts[$status->value] ?? 0),
             ])
             ->all();
+    }
+
+    /**
+     * Every LedgerEntry type contributes to one running cash/bank balance -
+     * Income and BankDeposit are credits, Expense and BankWithdrawal are
+     * debits (see LedgerEntryType::isCredit()).
+     */
+    public function cashBalance(): float
+    {
+        $credits = LedgerEntry::query()
+            ->whereIn('type', [LedgerEntryType::Income->value, LedgerEntryType::BankDeposit->value])
+            ->sum('amount');
+
+        $debits = LedgerEntry::query()
+            ->whereIn('type', [LedgerEntryType::Expense->value, LedgerEntryType::BankWithdrawal->value])
+            ->sum('amount');
+
+        return (float) $credits - (float) $debits;
+    }
+
+    /**
+     * Sum of Invoice::balanceDue() across every unpaid or partially paid
+     * invoice - a single query, no relations loaded, so this stays clear
+     * of the N+1 risk a per-invoice lookup would introduce.
+     */
+    public function outstandingBalance(): float
+    {
+        return (float) Invoice::query()
+            ->whereIn('status', [InvoiceStatus::Unpaid->value, InvoiceStatus::Partial->value])
+            ->get()
+            ->sum(fn (Invoice $invoice) => $invoice->balanceDue());
+    }
+
+    /**
+     * @return Collection<int, LessonSession>
+     */
+    public function todaysSessions(): Collection
+    {
+        return LessonSession::query()
+            ->where('scheduled_date', now()->toDateString())
+            ->with('student', 'instructor')
+            ->orderBy('starts_at')
+            ->get();
+    }
+
+    /**
+     * @return Collection<int, LedgerEntry>
+     */
+    public function recentLedgerEntries(int $limit = 6): Collection
+    {
+        return LedgerEntry::query()
+            ->with('createdBy')
+            ->latest('occurred_on')
+            ->limit($limit)
+            ->get();
     }
 }

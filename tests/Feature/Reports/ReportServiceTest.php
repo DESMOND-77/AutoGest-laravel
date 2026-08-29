@@ -1,5 +1,6 @@
 <?php
 
+use App\Domain\Finance\Enums\InvoiceStatus;
 use App\Domain\Finance\Enums\LedgerEntryType;
 use App\Domain\Finance\Models\Invoice;
 use App\Domain\Finance\Models\LedgerEntry;
@@ -7,11 +8,13 @@ use App\Domain\Finance\Models\Payment;
 use App\Domain\Fleet\Enums\VehicleStatus;
 use App\Domain\Fleet\Models\Vehicle;
 use App\Domain\Reports\Services\ReportService;
+use App\Domain\Scheduling\Models\LessonSession;
 use App\Domain\Students\Enums\LifecycleStage;
 use App\Domain\Students\Models\Student;
 use App\Domain\Tenancy\Models\Structure;
 use App\Domain\Training\Enums\ExamResult;
 use App\Domain\Training\Models\Exam;
+use App\Models\User;
 use App\Support\TenantContext;
 
 beforeEach(function () {
@@ -122,4 +125,85 @@ it('counts vehicles by status including statuses with no vehicles', function () 
     expect($result[VehicleStatus::Active->label()])->toBe(2);
     expect($result[VehicleStatus::Maintenance->label()])->toBe(1);
     expect($result[VehicleStatus::OutOfService->label()])->toBe(0);
+});
+
+it('computes the cash balance as credits minus debits, ignoring other tenants', function () {
+    $otherStructure = Structure::factory()->create();
+
+    LedgerEntry::factory()->create(['structure_id' => $this->structure->id, 'type' => LedgerEntryType::Income, 'amount' => 100000]);
+    LedgerEntry::factory()->create(['structure_id' => $this->structure->id, 'type' => LedgerEntryType::BankDeposit, 'amount' => 20000]);
+    LedgerEntry::factory()->create(['structure_id' => $this->structure->id, 'type' => LedgerEntryType::Expense, 'amount' => 30000]);
+    LedgerEntry::factory()->create(['structure_id' => $this->structure->id, 'type' => LedgerEntryType::BankWithdrawal, 'amount' => 5000]);
+    LedgerEntry::factory()->create(['structure_id' => $otherStructure->id, 'type' => LedgerEntryType::Income, 'amount' => 999999]);
+
+    $balance = app(ReportService::class)->cashBalance();
+
+    expect($balance)->toBe(85000.0);
+});
+
+it('computes the outstanding balance from unpaid and partially paid invoices only', function () {
+    $student = Student::factory()->create(['structure_id' => $this->structure->id]);
+    $otherStructure = Structure::factory()->create();
+
+    Invoice::factory()->create([
+        'structure_id' => $this->structure->id, 'student_id' => $student->id,
+        'status' => InvoiceStatus::Unpaid, 'amount_due' => 200000, 'amount_paid' => 0,
+    ]);
+    Invoice::factory()->create([
+        'structure_id' => $this->structure->id, 'student_id' => $student->id,
+        'status' => InvoiceStatus::Partial, 'amount_due' => 150000, 'amount_paid' => 50000,
+    ]);
+    Invoice::factory()->create([
+        'structure_id' => $this->structure->id, 'student_id' => $student->id,
+        'status' => InvoiceStatus::Paid, 'amount_due' => 100000, 'amount_paid' => 100000,
+    ]);
+    Invoice::factory()->create([
+        'structure_id' => $otherStructure->id, 'status' => InvoiceStatus::Unpaid,
+        'amount_due' => 999999, 'amount_paid' => 0,
+    ]);
+
+    $outstanding = app(ReportService::class)->outstandingBalance();
+
+    expect($outstanding)->toBe(300000.0);
+});
+
+it('lists today\'s sessions ordered by start time, excluding other days and tenants', function () {
+    $student = Student::factory()->create(['structure_id' => $this->structure->id]);
+    $instructor = User::factory()->create(['structure_id' => $this->structure->id]);
+    $otherStructure = Structure::factory()->create();
+
+    $late = LessonSession::factory()->create([
+        'structure_id' => $this->structure->id, 'student_id' => $student->id, 'instructor_id' => $instructor->id,
+        'scheduled_date' => now()->toDateString(), 'starts_at' => '14:00', 'ends_at' => '15:00',
+    ]);
+    $early = LessonSession::factory()->create([
+        'structure_id' => $this->structure->id, 'student_id' => $student->id, 'instructor_id' => $instructor->id,
+        'scheduled_date' => now()->toDateString(), 'starts_at' => '08:00', 'ends_at' => '09:00',
+    ]);
+    LessonSession::factory()->create([
+        'structure_id' => $this->structure->id, 'student_id' => $student->id, 'instructor_id' => $instructor->id,
+        'scheduled_date' => now()->addDay()->toDateString(),
+    ]);
+    LessonSession::factory()->create([
+        'structure_id' => $otherStructure->id, 'scheduled_date' => now()->toDateString(),
+    ]);
+
+    $result = app(ReportService::class)->todaysSessions();
+
+    expect($result)->toHaveCount(2);
+    expect($result->first()->id)->toBe($early->id);
+    expect($result->last()->id)->toBe($late->id);
+});
+
+it('lists the most recent ledger entries, excluding other tenants', function () {
+    $otherStructure = Structure::factory()->create();
+
+    LedgerEntry::factory()->create(['structure_id' => $this->structure->id, 'occurred_on' => now()->subDays(2)]);
+    $latest = LedgerEntry::factory()->create(['structure_id' => $this->structure->id, 'occurred_on' => now()]);
+    LedgerEntry::factory()->create(['structure_id' => $otherStructure->id, 'occurred_on' => now()]);
+
+    $result = app(ReportService::class)->recentLedgerEntries(6);
+
+    expect($result)->toHaveCount(2);
+    expect($result->first()->id)->toBe($latest->id);
 });

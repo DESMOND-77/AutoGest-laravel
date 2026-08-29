@@ -4,6 +4,7 @@ namespace App\Domain\Training\Services;
 
 use App\Domain\Students\Models\Student;
 use App\Domain\Training\Enums\SkillLevel;
+use App\Domain\Training\Models\Skill;
 use App\Domain\Training\Models\SkillProgress;
 use App\Models\User;
 
@@ -48,5 +49,35 @@ class EvaluationService
                 ]
             );
         }
+    }
+
+    /**
+     * The one reusable figure every skill-progress screen needs: how many of
+     * this student's skills are Acquired, out of how many exist. The
+     * evaluation and eleve-progression screens each already compute their own
+     * per-category subtotals inline - this is the plain overall count neither
+     * of them assembles today, extracted here so a third consumer (the
+     * moniteur route sheet) doesn't re-derive the join a fourth time.
+     *
+     * @return array{acquired: int, total: int, percent: int}
+     */
+    public function acquiredSummary(Student $student): array
+    {
+        $total = Skill::query()->count();
+
+        if ($total === 0) {
+            return ['acquired' => 0, 'total' => 0, 'percent' => 0];
+        }
+
+        $acquired = SkillProgress::query()
+            ->where('student_id', $student->id)
+            ->where('level', SkillLevel::Acquired)
+            ->count();
+
+        return [
+            'acquired' => $acquired,
+            'total' => $total,
+            'percent' => (int) round(($acquired / $total) * 100),
+        ];
     }
 }
