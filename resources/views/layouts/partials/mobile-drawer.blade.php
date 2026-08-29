@@ -12,7 +12,7 @@
         x-transition:leave="transition-opacity ease-in duration-150"
         x-transition:leave-start="opacity-100"
         x-transition:leave-end="opacity-0"
-        class="fixed inset-0 bg-black/40"
+        class="fixed inset-0 bg-content/60"
         @click="mobileMenuOpen = false"
     ></div>
 
@@ -28,8 +28,7 @@
         x-data="{ collapsed: false }"
     >
         <div class="flex items-center gap-2 px-4 py-5">
-            <x-application-logo class="h-8 w-8 shrink-0 fill-current text-primary" />
-            <span class="font-semibold text-content">AutoGest</span>
+            <x-brand-logo variant="full" class="h-7 w-auto" />
             <button @click="mobileMenuOpen = false" class="ml-auto p-2 rounded-ui-sm text-content-secondary hover:bg-surface-elevated" aria-label="Fermer le menu">
                 <x-icon name="x-mark" class="w-5 h-5" />
             </button>

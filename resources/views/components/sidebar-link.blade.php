@@ -9,7 +9,7 @@
     href="{{ $href }}"
     @class([
         'group relative flex items-center gap-3 rounded-ui-md px-3 py-2 text-sm transition',
-        'bg-surface shadow-inset font-medium text-primary' => $active,
+        'bg-primary text-primary-content font-medium shadow-soft-sm' => $active,
         'text-content-secondary hover:bg-surface-elevated hover:text-content' => ! $active,
     ])
     :class="collapsed && 'justify-center'"

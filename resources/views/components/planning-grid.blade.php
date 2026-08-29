@@ -31,8 +31,8 @@
                 $dotClasses = [
                     'theoretical' => 'bg-info',
                     'practical' => 'bg-primary',
-                    'code' => 'bg-warning',
-                    'mock_exam' => 'bg-danger',
+                    'code' => 'bg-info',
+                    'mock_exam' => 'bg-warning',
                 ][$case->value];
             @endphp
             <span class="inline-flex items-center gap-1">

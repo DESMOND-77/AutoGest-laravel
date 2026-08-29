@@ -7,9 +7,9 @@
 }
 
 /*
- * Soft Neumorphic design tokens for the authenticated app shell (dashboard,
- * students, scheduling, finance, ...). The landing page keeps its own
- * separate token set (ink/route/signal/cream/paper/slate/line/asphalt in
+ * Official brand design tokens (navy + green) for the authenticated app shell
+ * (dashboard, students, scheduling, finance, ...). The landing page keeps its
+ * own separate token set (ink/route/signal/cream/paper/slate/line/asphalt in
  * tailwind.config.js) - deliberately untouched, per the brief: the landing
  * page is acceptable as-is and this pass is scoped to the authenticated app.
  *
@@ -19,62 +19,87 @@
  * `dark` class toggled on <html> by components/theme-toggle.blade.php.
  */
 :root {
-    --color-background: 232 237 243;
-    --color-surface: 232 237 243;
-    --color-surface-elevated: 240 244 248;
-    --color-surface-inset: 220 226 234;
+    /* Official brand scales (spec §3) — RGB triplets for Tailwind alpha */
+    --brand-navy-950: 6 28 48;
+    --brand-navy-900: 8 37 67;
+    --brand-navy-800: 13 53 87;
+    --brand-navy-700: 22 70 109;
 
-    --color-content: 23 32 51;
-    --color-content-secondary: 102 112 133;
-    --color-content-muted: 152 162 179;
+    --brand-green-700: 8 120 92;
+    --brand-green-600: 10 150 111;
+    --brand-green-500: 15 175 129;
+    --brand-green-400: 49 196 155;
+    --brand-green-100: 221 247 239;
 
-    --color-border: 210 217 227;
+    /* Light theme (spec §5) */
+    --color-background: 244 247 250;
+    --color-surface: 255 255 255;
+    --color-surface-elevated: 249 251 252;
+    --color-surface-inset: 231 237 242;
 
-    --color-primary: 79 70 229;
+    --color-content: 23 32 43;
+    --color-content-secondary: 100 116 139;
+    --color-content-muted: 148 163 184;
+
+    --color-border: 220 227 233;
+
+    --color-primary: 8 120 92;            /* brand green 700 (#08785C, AA-contrast fill) — CTA / active */
     --color-primary-content: 255 255 255;
-    --color-success: 22 163 74;
-    --color-warning: 180 90 6;
-    --color-danger: 220 38 38;
-    --color-info: 8 137 178;
+    --color-secondary: 8 37 67;           /* brand navy — nav / secondary btn */
+    --color-secondary-content: 255 255 255;
 
-    --radius-sm: 0.625rem;
-    --radius-md: 0.875rem;
-    --radius-lg: 1.25rem;
-    --radius-xl: 1.75rem;
+    /* Semantic — deliberately NOT the brand green (spec §4) */
+    --color-success: 21 154 108;          /* #159A6C */
+    --color-warning: 217 139 24;          /* #D98B18 */
+    --color-danger: 214 69 69;            /* #D64545 */
+    --color-info: 35 136 181;             /* #2388B5 */
 
-    --shadow-soft-sm: -4px -4px 8px rgba(255, 255, 255, 0.75), 4px 4px 10px rgba(163, 177, 198, 0.5);
-    --shadow-soft: -6px -6px 14px rgba(255, 255, 255, 0.8), 8px 8px 18px rgba(163, 177, 198, 0.55);
-    --shadow-soft-hover: -8px -8px 18px rgba(255, 255, 255, 0.85), 10px 10px 22px rgba(163, 177, 198, 0.6);
-    --shadow-inset: inset -3px -3px 7px rgba(255, 255, 255, 0.7), inset 3px 3px 7px rgba(163, 177, 198, 0.45);
+    /* Radius scale (spec §9) */
+    --radius-xs: 0.375rem;   /* 6px  */
+    --radius-sm: 0.625rem;   /* 10px */
+    --radius-md: 0.875rem;   /* 14px */
+    --radius-lg: 1.125rem;   /* 18px */
+    --radius-xl: 1.5rem;     /* 24px */
+    --radius-pill: 9999px;
+
+    /* Soft neumorphism — lighter than before (spec §7, §8) */
+    --shadow-soft-sm: -2px -2px 6px rgba(255, 255, 255, 0.9), 3px 3px 8px rgba(15, 35, 60, 0.10);
+    --shadow-soft: -4px -4px 10px rgba(255, 255, 255, 0.85), 6px 6px 14px rgba(15, 35, 60, 0.12);
+    --shadow-soft-hover: -5px -5px 12px rgba(255, 255, 255, 0.9), 8px 8px 18px rgba(15, 35, 60, 0.14);
+    --shadow-inset: inset 2px 2px 5px rgba(15, 35, 60, 0.10), inset -2px -2px 5px rgba(255, 255, 255, 0.8);
     --shadow-inset-focus:
-        inset -2px -2px 5px rgba(255, 255, 255, 0.6), inset 2px 2px 5px rgba(163, 177, 198, 0.4),
-        0 0 0 3px rgba(79, 70, 229, 0.35);
+        inset 1px 1px 3px rgba(15, 35, 60, 0.08),
+        0 0 0 3px rgba(15, 175, 129, 0.35);
 }
 
 :root.dark {
-    --color-background: 21 26 33;
-    --color-surface: 27 34 43;
-    --color-surface-elevated: 34 42 53;
-    --color-surface-inset: 17 21 27;
+    /* Dark theme = navy environment + green accent (spec §6) */
+    --color-background: 6 21 34;          /* #061522 */
+    --color-surface: 8 37 67;             /* #082543 */
+    --color-surface-elevated: 13 48 77;  /* #0D304D */
+    --color-surface-inset: 4 16 28;      /* #04101C */
 
-    --color-content: 236 240 245;
-    --color-content-secondary: 170 180 195;
-    --color-content-muted: 116 128 145;
+    --color-content: 241 245 249;
+    --color-content-secondary: 168 182 197;
+    --color-content-muted: 113 134 154;
 
-    --color-border: 47 56 68;
+    --color-border: 24 58 85;            /* #183A55 */
 
-    --color-primary: 108 111 246;
+    --color-primary: 8 120 92;
     --color-primary-content: 255 255 255;
-    --color-success: 45 191 108;
-    --color-warning: 217 143 32;
-    --color-danger: 240 94 94;
-    --color-info: 45 178 209;
+    --color-secondary: 226 232 240;      /* light — navy outline is invisible on navy */
+    --color-secondary-content: 8 37 67;
 
-    --shadow-soft-sm: -4px -4px 8px rgba(255, 255, 255, 0.025), 4px 4px 10px rgba(0, 0, 0, 0.5);
-    --shadow-soft: -6px -6px 14px rgba(255, 255, 255, 0.03), 8px 8px 18px rgba(0, 0, 0, 0.55);
-    --shadow-soft-hover: -8px -8px 18px rgba(255, 255, 255, 0.035), 10px 10px 22px rgba(0, 0, 0, 0.6);
-    --shadow-inset: inset -3px -3px 7px rgba(255, 255, 255, 0.02), inset 3px 3px 7px rgba(0, 0, 0, 0.5);
+    --color-success: 45 191 130;
+    --color-warning: 224 160 45;
+    --color-danger: 240 105 105;
+    --color-info: 66 170 209;
+
+    --shadow-soft-sm: -3px -3px 8px rgba(255, 255, 255, 0.02), 3px 3px 8px rgba(0, 0, 0, 0.45);
+    --shadow-soft: -4px -4px 12px rgba(255, 255, 255, 0.025), 6px 6px 16px rgba(0, 0, 0, 0.5);
+    --shadow-soft-hover: -5px -5px 14px rgba(255, 255, 255, 0.03), 8px 8px 20px rgba(0, 0, 0, 0.55);
+    --shadow-inset: inset 2px 2px 6px rgba(0, 0, 0, 0.5), inset -2px -2px 6px rgba(255, 255, 255, 0.015);
     --shadow-inset-focus:
-        inset -2px -2px 5px rgba(255, 255, 255, 0.015), inset 2px 2px 5px rgba(0, 0, 0, 0.45),
-        0 0 0 3px rgba(108, 111, 246, 0.4);
+        inset 1px 1px 3px rgba(0, 0, 0, 0.4),
+        0 0 0 3px rgba(15, 175, 129, 0.4);
 }

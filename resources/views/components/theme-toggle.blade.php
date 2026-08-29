@@ -20,7 +20,7 @@
     <button
         type="button"
         @click="cycle()"
-        class="p-2 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300"
+        class="p-2 rounded-ui-sm text-content-secondary hover:text-content hover:bg-surface-elevated transition"
         :title="{
             light: 'Thème : clair (cliquer pour passer en sombre)',
             dark: 'Thème : sombre (cliquer pour passer en automatique)',
