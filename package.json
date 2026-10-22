@@ -8,7 +8,8 @@
         "qa:contrast": "python3 frontend-qa/check-contrast.py"
     },
     "dependencies": {
-        "@fontsource-variable/inter": "^5.2.5"
+        "@fontsource-variable/inter": "^5.2.5",
+        "concurrently": "^10.0.6"
     },
     "devDependencies": {
         "@alpinejs/anchor": "^3.14.9",
