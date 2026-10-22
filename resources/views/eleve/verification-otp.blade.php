@@ -1,28 +1,35 @@
-<x-guest-layout>
-    <div class="mb-5 text-center">
-        <p class="text-xs font-semibold text-primary tracking-wide uppercase mb-1">Vérification</p>
-        <h1 class="text-lg font-semibold text-content">Confirmez votre adresse e-mail</h1>
-        <p class="text-sm text-content-secondary mt-1">
-            Saisissez le code à 6 chiffres envoyé à {{ auth()->user()->email }}.
-        </p>
-    </div>
+<x-app-layout :title="'Vérification de l’adresse e-mail'">
+    <div class="mx-auto w-full max-w-md py-6">
+        <div class="material-panel p-6">
+            <span class="grid size-12 place-items-center rounded-full bg-accent-soft text-accent">
+                <x-ui.icon name="mail" class="w-6 h-6" />
+            </span>
+            <h1 class="mt-4 text-xl font-bold tracking-tight text-ink">Vérifiez votre adresse e-mail</h1>
+            <p class="mt-1.5 text-[13.5px] text-ink-2">
+                Nous avons envoyé un code à 6 chiffres à <strong class="font-semibold text-ink">{{ auth()->user()?->email }}</strong>.
+                Saisissez-le ci-dessous pour accéder à votre espace élève.
+            </p>
 
-    @if (session('status'))
-        <x-alert variant="success" class="mb-4">{{ session('status') }}</x-alert>
-    @endif
+            @if ($errors->any())
+                <x-ui.alert tone="danger" class="mt-4">{{ $errors->first() }}</x-ui.alert>
+            @endif
 
-    <form method="POST" action="{{ route('eleve.otp.verify') }}" class="space-y-4">
-        @csrf
-        <div>
-            <x-input-label for="code" value="Code de vérification" />
-            <x-text-input id="code" name="code" inputmode="numeric" maxlength="6" class="block mt-1 w-full text-center tracking-[0.5em]" required autofocus />
-            <x-input-error :messages="$errors->get('code')" class="mt-1" />
+            <form method="POST" action="{{ route('eleve.otp.verify') }}" class="mt-5 space-y-4">
+                @csrf
+                <x-form.field name="code" label="Code de vérification" required>
+                    <x-form.otp name="code" :length="6" />
+                </x-form.field>
+                <x-ui.button type="submit" class="w-full" size="lg">Vérifier mon adresse</x-ui.button>
+            </form>
+
+            <form method="POST" action="{{ route('eleve.otp.resend') }}" class="mt-3">
+                @csrf
+                <x-ui.button type="submit" variant="ghost" class="w-full" icon="refresh-cw">Renvoyer un code</x-ui.button>
+            </form>
+
+            <p class="mt-4 text-[12px] leading-relaxed text-ink-3">
+                Le renvoi est limité à une demande par minute. Si vous ne recevez rien, vérifiez le dossier « indésirables » de votre boîte e-mail.
+            </p>
         </div>
-        <x-primary-button class="w-full justify-center">Vérifier</x-primary-button>
-    </form>
-
-    <form method="POST" action="{{ route('eleve.otp.resend') }}" class="mt-4 text-center">
-        @csrf
-        <button type="submit" class="text-sm text-primary hover:underline">Renvoyer le code</button>
-    </form>
-</x-guest-layout>
+    </div>
+</x-app-layout>

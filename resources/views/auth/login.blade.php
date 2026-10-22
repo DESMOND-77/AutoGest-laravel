@@ -1,49 +1,45 @@
-<x-guest-layout>
-    <h1 class="text-lg font-semibold text-content mb-5">Connexion</h1>
+<x-guest-layout :title="'Connexion'">
+    <div>
+        <p class="text-eyebrow">Espace professionnel</p>
+        <h1 class="mt-1 text-2xl font-bold tracking-tight text-ink">Connexion</h1>
+        <p class="mt-1.5 text-[13.5px] text-ink-2">Accédez au tableau de bord de votre auto-école.</p>
+    </div>
 
-    <!-- Session Status -->
-    <x-auth-session-status class="mb-4" :status="session('status')" />
+    @if (session('status'))
+        <x-ui.alert tone="success" class="mt-4">{{ session('status') }}</x-ui.alert>
+    @endif
 
-    <form method="POST" action="{{ route('login') }}">
+    <form method="POST" action="{{ route('login') }}" class="mt-6 space-y-4">
         @csrf
 
-        <!-- Email Address -->
-        <div>
-            <x-input-label for="email" :value="__('Email')" />
-            <x-text-input id="email" class="block mt-1 w-full" type="email" name="email" :value="old('email')" required autofocus autocomplete="username" />
-            <x-input-error :messages="$errors->get('email')" class="mt-2" />
-        </div>
+        <x-form.field name="email" label="Adresse e-mail" required>
+            <x-form.input name="email" type="email" icon="envelope" :value="old('email')" autocomplete="username" autofocus required />
+        </x-form.field>
 
-        <!-- Password -->
-        <div class="mt-4">
-            <x-input-label for="password" :value="__('Password')" />
+        <x-form.field name="password" label="Mot de passe" required>
+            <x-form.input name="password" type="password" icon="lock" autocomplete="current-password" required />
+        </x-form.field>
 
-            <x-text-input id="password" class="block mt-1 w-full"
-                            type="password"
-                            name="password"
-                            required autocomplete="current-password" />
-
-            <x-input-error :messages="$errors->get('password')" class="mt-2" />
-        </div>
-
-        <!-- Remember Me -->
-        <div class="block mt-4">
-            <label for="remember_me" class="inline-flex items-center">
-                <input id="remember_me" type="checkbox" class="rounded border-0 bg-surface-inset text-primary shadow-inset focus:ring-primary" name="remember">
-                <span class="ms-2 text-sm text-content-secondary">{{ __('Remember me') }}</span>
-            </label>
-        </div>
-
-        <div class="flex items-center justify-end mt-4">
+        <div class="flex flex-wrap items-center justify-between gap-2">
+            <x-form.checkbox name="remember" label="Se souvenir de moi" />
             @if (Route::has('password.request'))
-                <a class="text-sm text-content-secondary hover:text-content rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary" href="{{ route('password.request') }}">
-                    {{ __('Forgot your password?') }}
-                </a>
+                <a href="{{ route('password.request') }}" class="text-[13px] font-medium text-accent hover:underline">Mot de passe oublié ?</a>
             @endif
-
-            <x-primary-button class="ms-3">
-                {{ __('Log in') }}
-            </x-primary-button>
         </div>
+
+        <x-ui.button type="submit" class="w-full" size="lg" icon-right="arrow-right">Se connecter</x-ui.button>
     </form>
+
+    <p class="mt-6 text-center text-[13px] text-ink-2">
+        Pas encore de compte ?
+        <a href="{{ route('register') }}" class="font-semibold text-accent hover:underline">Créer mon auto-école</a>
+    </p>
+
+    <p class="mt-8 rounded-md border border-line p-3 text-[12px] leading-relaxed text-ink-3">
+        <strong class="font-semibold text-ink-2">Élève ?</strong> Utilisez l’adresse e-mail transmise par votre auto-école. Un code de vérification vous sera demandé à la première connexion.
+    </p>
+
+    @if (session('toast'))
+        <script>window.addEventListener('DOMContentLoaded', () => window.Alpine?.store('toasts')?.push(@js(session('toast')), 'info'));</script>
+    @endif
 </x-guest-layout>

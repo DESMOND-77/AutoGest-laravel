@@ -1,40 +1,80 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <meta charset="utf-8">
-    <style>
-        body { font-family: sans-serif; font-size: 12px; }
-        h1 { font-size: 18px; }
-        table { width: 100%; border-collapse: collapse; margin-top: 12px; }
-        th, td { border: 1px solid #ccc; padding: 6px 8px; text-align: left; }
-    </style>
-</head>
-<body>
-    <h1>Rapport Boutique</h1>
-    <p>Généré le {{ now()->format('d/m/Y') }}</p>
+@php
+    $money = fn ($value) => number_format((float) $value, 0, ',', ' ').' FCFA';
+    $generatedAt = now();
+@endphp
 
-    <h2>Chiffre d'affaires</h2>
+<x-pdf-layout
+    title="Rapport boutique"
+    :subtitle="config('app.name', 'Auto-GestBoard').' · rapport d’activité boutique'"
+    reference="Rapport boutique"
+    :issuedAt="$generatedAt->format('d/m/Y à H:i')"
+>
+    <h2>Chiffre d’affaires</h2>
     <table>
-        <tr><th>Aujourd'hui</th><td>{{ number_format($revenueToday, 0, ',', ' ') }} FCFA</td></tr>
-        <tr><th>Cette semaine</th><td>{{ number_format($revenueThisWeek, 0, ',', ' ') }} FCFA</td></tr>
-        <tr><th>Ce mois</th><td>{{ number_format($revenueThisMonth, 0, ',', ' ') }} FCFA</td></tr>
-        <tr><th>Cette année</th><td>{{ number_format($revenueThisYear, 0, ',', ' ') }} FCFA</td></tr>
+        <tr>
+            <td style="width: 25%;"><span class="muted" style="font-size: 9px; text-transform: uppercase;">Aujourd’hui</span><br><strong>{{ $money($revenueToday) }}</strong></td>
+            <td style="width: 25%;"><span class="muted" style="font-size: 9px; text-transform: uppercase;">Cette semaine</span><br><strong>{{ $money($revenueThisWeek) }}</strong></td>
+            <td style="width: 25%;"><span class="muted" style="font-size: 9px; text-transform: uppercase;">Ce mois</span><br><strong>{{ $money($revenueThisMonth) }}</strong></td>
+            <td style="width: 25%;"><span class="muted" style="font-size: 9px; text-transform: uppercase;">Cette année</span><br><strong>{{ $money($revenueThisYear) }}</strong></td>
+        </tr>
     </table>
 
-    <h2>Top produits</h2>
-    <table>
-        <tr><th>Produit</th><th>Quantité</th><th>CA</th></tr>
-        @foreach ($topProducts as $row)
-            <tr><td>{{ $row['name'] }}</td><td>{{ $row['quantity'] }}</td><td>{{ number_format($row['revenue'], 0, ',', ' ') }} FCFA</td></tr>
-        @endforeach
+    <table style="margin-top: 8px;">
+        <tr>
+            <td style="width: 50%;"><span class="muted">Nombre de ventes</span> — <strong>{{ $salesCount }}</strong></td>
+            <td style="width: 50%;"><span class="muted">Solde en attente</span> — <strong>{{ $money($pendingBalance) }}</strong></td>
+        </tr>
     </table>
 
-    <h2>Stocks critiques</h2>
-    <table>
-        <tr><th>Produit</th><th>Stock actuel</th><th>Seuil</th></tr>
-        @foreach ($criticalStock as $product)
-            <tr><td>{{ $product->name }}</td><td>{{ $product->stock_quantity }}</td><td>{{ $product->reorder_threshold }}</td></tr>
-        @endforeach
-    </table>
-</body>
-</html>
+    <h2>Meilleures ventes</h2>
+    @if (count($topProducts))
+        <table>
+            <thead>
+                <tr>
+                    <th style="width: 52%;">Produit</th>
+                    <th class="num" style="width: 16%;">Quantité</th>
+                    <th class="num" style="width: 32%;">Chiffre d’affaires</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach ($topProducts as $row)
+                    <tr>
+                        <td>{{ $row['name'] }}</td>
+                        <td class="num">{{ number_format((int) $row['quantity'], 0, ',', ' ') }}</td>
+                        <td class="num">{{ $money($row['revenue']) }}</td>
+                    </tr>
+                @endforeach
+            </tbody>
+        </table>
+    @else
+        <p class="muted">Aucune vente enregistrée sur la période.</p>
+    @endif
+
+    <h2>Stocks à réapprovisionner</h2>
+    @if (count($criticalStock))
+        <table>
+            <thead>
+                <tr>
+                    <th style="width: 52%;">Produit</th>
+                    <th class="num" style="width: 24%;">Stock</th>
+                    <th class="num" style="width: 24%;">Seuil</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach ($criticalStock as $product)
+                    <tr>
+                        <td>{{ $product->name }}</td>
+                        <td class="num">{{ (int) $product->stock_quantity }}</td>
+                        <td class="num">{{ (int) $product->reorder_threshold }}</td>
+                    </tr>
+                @endforeach
+            </tbody>
+        </table>
+    @else
+        <p class="muted">Aucun produit sous son seuil de réapprovisionnement.</p>
+    @endif
+
+    <p class="footer">
+        Document interne — {{ config('app.name', 'Auto-GestBoard') }}. Les montants sont exprimés en francs CFA (XAF) et arrondis à l’unité.
+    </p>
+</x-pdf-layout>

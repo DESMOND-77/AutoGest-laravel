@@ -1,103 +1,108 @@
-<x-app-layout>
-    <x-slot name="header">Recyclage &amp; Tests</x-slot>
+@php
+    $motifs = collect(\App\Domain\Recyclage\Enums\RecyclageMotif::cases())->mapWithKeys(fn ($m) => [$m->value => $m->label()])->all();
+    $total = $entries->getCollection()->sum(fn ($entry) => (float) $entry->amount);
+@endphp
 
-    <div class="py-6 space-y-5 max-w-4xl mx-auto">
-        @if (session('status'))
-            <x-alert variant="success">{{ session('status') }}</x-alert>
-        @endif
+<x-app-layout :title="'Recyclage'">
+    <x-layout.page-header
+        title="Recyclage et tests"
+        description="Sessions de remise à niveau pour les conducteurs déjà titulaires du permis."
+        :breadcrumbs="[['label' => 'Recyclage']]"
+    >
+        <x-slot:actions>
+            @can('create', \App\Domain\Recyclage\Models\RecyclageEntry::class)
+                <x-ui.button icon="plus" x-on:click="$dispatch('open-dialog', { name: 'new-recyclage' })">Nouvelle inscription</x-ui.button>
+            @endcan
+        </x-slot:actions>
+    </x-layout.page-header>
 
-        <x-card>
-            <div class="text-sm font-semibold text-content mb-3">Nouvelle entrée</div>
-            <form id="recyclage-create-form" method="POST" action="{{ route('recyclage.store') }}" class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+    <div class="space-y-4">
+        <x-data.kpi label="Recettes (page)" :value="number_format((float) $total, 0, ',', ' ').' FCFA'" icon="wallet" :hint="$entries->total().' inscription(s)'" />
+
+        <x-ui.card variant="solid" padding="p-0">
+            @if ($entries->isEmpty())
+                <x-ui.empty-state icon="refresh-cw" title="Aucune inscription" description="Enregistrez les sessions de recyclage et de test pour garder l’historique et les encaissements." class="py-10" />
+            @else
+                <div class="px-1 pb-1">
+                    <x-data.table caption="Inscriptions au recyclage">
+                        <thead>
+                            <tr>
+                                <th scope="col">Participant</th>
+                                <th scope="col">Motif</th>
+                                <th scope="col">Date</th>
+                                <th scope="col">Moniteur</th>
+                                <th scope="col" class="text-right">Montant</th>
+                                <th scope="col"><span class="sr-only">Actions</span></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach ($entries as $entry)
+                                <tr>
+                                    <td data-label="Participant">
+                                        <span class="block text-sm font-medium text-ink">{{ $entry->full_name }}</span>
+                                        <span class="block text-[12px] text-ink-3">{{ $entry->phone ?: '—' }}</span>
+                                    </td>
+                                    <td data-label="Motif"><x-ui.badge tone="neutral">{{ $entry->motif?->label() }}</x-ui.badge></td>
+                                    <td data-label="Date"><x-ui.date :value="$entry->session_date" /></td>
+                                    <td data-label="Moniteur">{{ $entry->instructor?->name ?? '—' }}</td>
+                                    <td data-label="Montant" class="num"><x-ui.money :amount="$entry->amount" /></td>
+                                    <td data-label="">
+                                        <div class="flex justify-end">
+                                            @can('delete', $entry)
+                                                <x-ui.button size="sm" variant="ghost" class="text-danger" icon="trash-2"
+                                                    x-on:click="$dispatch('open-confirm', { name: 'delete-recyclage-{{ $entry->id }}' })">Supprimer</x-ui.button>
+                                                <x-ui.confirm
+                                                    name="delete-recyclage-{{ $entry->id }}"
+                                                    title="Supprimer cette inscription ?"
+                                                    :consequence="'L’inscription de '.$entry->full_name.' sera retirée de l’historique. Cette action est définitive.'"
+                                                    confirm-label="Supprimer"
+                                                    :action="route('recyclage.destroy', $entry)"
+                                                />
+                                            @endcan
+                                        </div>
+                                    </td>
+                                </tr>
+                            @endforeach
+                        </tbody>
+                    </x-data.table>
+                </div>
+                <x-ui.pagination :paginator="$entries" label="Pagination du recyclage" />
+            @endif
+        </x-ui.card>
+    </div>
+
+    @can('create', \App\Domain\Recyclage\Models\RecyclageEntry::class)
+        <x-ui.dialog name="new-recyclage" title="Nouvelle inscription au recyclage">
+            <x-form.errors />
+            <form method="POST" action="{{ route('recyclage.store') }}" class="space-y-4">
                 @csrf
-                <div>
-                    <x-input-label for="full_name" value="Nom complet" />
-                    <x-text-input id="full_name" name="full_name" class="block mt-1 w-full" required />
-                    <x-input-error :messages="$errors->get('full_name')" class="mt-1" />
+                <x-form.field name="full_name" label="Nom du participant" required>
+                    <x-form.input name="full_name" required />
+                </x-form.field>
+                <div class="grid gap-4 sm:grid-cols-2">
+                    <x-form.field name="motif" label="Motif" required>
+                        <x-form.select name="motif" :options="$motifs" :selected="'recyclage'" />
+                    </x-form.field>
+                    <x-form.field name="phone" label="Téléphone" optional>
+                        <x-form.input name="phone" type="tel" inputmode="tel" icon="phone" />
+                    </x-form.field>
                 </div>
-                <div>
-                    <x-input-label for="motif" value="Motif" />
-                    <select id="motif" name="motif" class="mt-1 w-full rounded-ui-md border-0 bg-surface-inset text-content shadow-inset focus:shadow-inset-focus focus:ring-0 text-sm">
-                        @foreach (\App\Domain\Recyclage\Enums\RecyclageMotif::cases() as $case)
-                            <option value="{{ $case->value }}">{{ $case->label() }}</option>
-                        @endforeach
-                    </select>
-                    <x-input-error :messages="$errors->get('motif')" class="mt-1" />
+                <div class="grid gap-4 sm:grid-cols-3">
+                    <x-form.field name="session_date" label="Date de session" required>
+                        <x-form.input name="session_date" type="date" :value="now()->format('Y-m-d')" required />
+                    </x-form.field>
+                    <x-form.field name="instructor_id" label="Moniteur" optional>
+                        <x-form.select name="instructor_id" :options="$instructors->pluck('name', 'id')->all()" placeholder="Non affecté" />
+                    </x-form.field>
+                    <x-form.field name="amount" label="Montant (FCFA)" required>
+                        <x-form.input name="amount" type="number" min="0" step="1" inputmode="numeric" required />
+                    </x-form.field>
                 </div>
-                <div>
-                    <x-input-label for="phone" value="Téléphone" />
-                    <x-text-input id="phone" name="phone" class="block mt-1 w-full" />
-                    <x-input-error :messages="$errors->get('phone')" class="mt-1" />
-                </div>
-                <div>
-                    <x-input-label for="instructor_id" value="Moniteur" />
-                    <select id="instructor_id" name="instructor_id" class="mt-1 w-full rounded-ui-md border-0 bg-surface-inset text-content shadow-inset focus:shadow-inset-focus focus:ring-0 text-sm">
-                        <option value="">-</option>
-                        @foreach ($instructors as $instructor)
-                            <option value="{{ $instructor->id }}">{{ $instructor->name }}</option>
-                        @endforeach
-                    </select>
-                    <x-input-error :messages="$errors->get('instructor_id')" class="mt-1" />
-                </div>
-                <div>
-                    <x-input-label for="session_date" value="Date" />
-                    <x-text-input id="session_date" type="date" name="session_date" class="block mt-1 w-full" required />
-                    <x-input-error :messages="$errors->get('session_date')" class="mt-1" />
-                </div>
-                <div>
-                    <x-input-label for="amount" value="Montant" />
-                    <x-text-input id="amount" type="number" step="0.01" name="amount" class="block mt-1 w-full" required />
-                    <x-input-error :messages="$errors->get('amount')" class="mt-1" />
-                </div>
-                <div class="sm:col-span-2 flex justify-end">
-                    <x-primary-button>Enregistrer</x-primary-button>
+                <div class="flex justify-end gap-2">
+                    <x-ui.button variant="ghost" type="button" x-on:click="$dispatch('close-dialog', { name: 'new-recyclage' })">Annuler</x-ui.button>
+                    <x-ui.button type="submit">Enregistrer</x-ui.button>
                 </div>
             </form>
-        </x-card>
-
-        <x-card :padded="false">
-            <div class="overflow-x-auto">
-                <table class="w-full text-sm text-left">
-                    <thead class="text-content-muted">
-                        <tr>
-                            <th class="px-5 py-3 font-medium">Date</th>
-                            <th class="px-5 py-3 font-medium">Nom</th>
-                            <th class="px-5 py-3 font-medium">Motif</th>
-                            <th class="px-5 py-3 font-medium">Moniteur</th>
-                            <th class="px-5 py-3 font-medium">Montant</th>
-                            <th class="px-5 py-3 font-medium"></th>
-                        </tr>
-                    </thead>
-                    <tbody class="divide-y divide-border/60">
-                        @forelse ($entries as $entry)
-                            <tr class="hover:bg-surface-elevated/60 transition">
-                                <td class="px-5 py-3 text-content-secondary">{{ $entry->session_date->format('d/m/Y') }}</td>
-                                <td class="px-5 py-3 text-content-secondary">{{ $entry->full_name }}</td>
-                                <td class="px-5 py-3 text-content-secondary">{{ $entry->motif->label() }}</td>
-                                <td class="px-5 py-3 text-content-secondary">{{ $entry->instructor?->name ?? '-' }}</td>
-                                <td class="px-5 py-3 font-medium text-content">{{ number_format($entry->amount, 0, ',', ' ') }} FCFA</td>
-                                <td class="px-5 py-3 text-right">
-                                    <form method="POST" action="{{ route('recyclage.destroy', $entry) }}" onsubmit="return confirm('Supprimer cette entrée ? L\'écriture correspondante dans le journal comptable ne sera pas annulée.');">
-                                        @csrf
-                                        @method('DELETE')
-                                        <button type="submit" class="text-danger text-sm font-medium">Supprimer</button>
-                                    </form>
-                                </td>
-                            </tr>
-                        @empty
-                            <x-empty-table-row
-                                colspan="6"
-                                title="Aucune entrée de recyclage."
-                                message="Les entrées enregistrées apparaîtront ici."
-                                action="#recyclage-create-form"
-                                action-label="Ajouter une entrée"
-                            />
-                        @endforelse
-                    </tbody>
-                </table>
-            </div>
-        </x-card>
-
-        {{ $entries->links() }}
-    </div>
+        </x-ui.dialog>
+    @endcan
 </x-app-layout>

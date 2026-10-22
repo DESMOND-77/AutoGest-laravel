@@ -1,59 +1,58 @@
-<x-guest-layout>
-    <h1 class="text-lg font-semibold text-content mb-2">
-        Inscrire mon auto-école
-    </h1>
+<x-guest-layout :title="'Créer mon auto-école'">
+    <div>
+        <p class="text-eyebrow">Inscription</p>
+        <h1 class="mt-1 text-2xl font-bold tracking-tight text-ink">Créer mon auto-école</h1>
+        <p class="mt-1.5 text-[13.5px] text-ink-2">
+            Votre espace est isolé des autres établissements. Il sera activé après validation par l’administrateur de la plateforme.
+        </p>
+    </div>
 
-    <p class="text-sm text-content-secondary mb-6">
-        Créez le compte de votre établissement. Il sera activé après validation
-        par l'administrateur de la plateforme.
-    </p>
+    <x-form.errors class="mt-4" />
 
-    <form method="POST" action="{{ route('register') }}">
+    <form method="POST" action="{{ route('register') }}" class="mt-6 space-y-6">
         @csrf
 
-        <div>
-            <x-input-label for="school_name" value="Nom de l'auto-école" />
-            <x-text-input id="school_name" class="block mt-1 w-full" type="text" name="school_name" :value="old('school_name')" required autofocus />
-            <x-input-error :messages="$errors->get('school_name')" class="mt-2" />
-        </div>
+        <x-form.section title="L’auto-école" description="Ces informations apparaissent sur vos factures et documents.">
+            <div class="space-y-4">
+                <x-form.field name="school_name" label="Nom de l’auto-école" required>
+                    <x-form.input name="school_name" icon="building-office" :value="old('school_name')" placeholder="Auto-école de l’Estuaire" autocomplete="organization" required autofocus />
+                </x-form.field>
+                <x-form.field name="school_phone" label="Téléphone de l’établissement" optional>
+                    <x-form.input name="school_phone" type="tel" inputmode="tel" icon="phone" :value="old('school_phone')" placeholder="+241 …" autocomplete="tel" />
+                </x-form.field>
+            </div>
+        </x-form.section>
 
-        <div class="mt-4">
-            <x-input-label for="school_phone" value="Téléphone de l'établissement" />
-            <x-text-input id="school_phone" class="block mt-1 w-full" type="text" name="school_phone" :value="old('school_phone')" />
-            <x-input-error :messages="$errors->get('school_phone')" class="mt-2" />
-        </div>
+        <x-form.section title="Votre compte administrateur" description="Ce compte gérera les élèves, les moniteurs et les finances.">
+            <div class="space-y-4">
+                <x-form.field name="admin_name" label="Nom complet" required>
+                    <x-form.input name="admin_name" icon="user" :value="old('admin_name')" autocomplete="name" required />
+                </x-form.field>
+                <x-form.field name="admin_email" label="Adresse e-mail" required hint="Servira d’identifiant de connexion.">
+                    <x-form.input name="admin_email" type="email" icon="envelope" :value="old('admin_email')" autocomplete="email" required />
+                </x-form.field>
+                <div class="grid gap-4 sm:grid-cols-2">
+                    <x-form.field name="password" label="Mot de passe" required>
+                        <x-form.input name="password" type="password" icon="lock" autocomplete="new-password" required />
+                    </x-form.field>
+                    <x-form.field name="password_confirmation" label="Confirmer le mot de passe" required>
+                        <x-form.input name="password_confirmation" type="password" icon="lock" autocomplete="new-password" required />
+                    </x-form.field>
+                </div>
+            </div>
+        </x-form.section>
 
-        <div class="mt-4">
-            <x-input-label for="admin_name" value="Nom de l'administrateur" />
-            <x-text-input id="admin_name" class="block mt-1 w-full" type="text" name="admin_name" :value="old('admin_name')" required />
-            <x-input-error :messages="$errors->get('admin_name')" class="mt-2" />
-        </div>
-
-        <div class="mt-4">
-            <x-input-label for="admin_email" value="E-mail de l'administrateur" />
-            <x-text-input id="admin_email" class="block mt-1 w-full" type="email" name="admin_email" :value="old('admin_email')" required />
-            <x-input-error :messages="$errors->get('admin_email')" class="mt-2" />
-        </div>
-
-        <div class="mt-4">
-            <x-input-label for="password" value="Mot de passe" />
-            <x-text-input id="password" class="block mt-1 w-full" type="password" name="password" required />
-            <x-input-error :messages="$errors->get('password')" class="mt-2" />
-        </div>
-
-        <div class="mt-4">
-            <x-input-label for="password_confirmation" value="Confirmer le mot de passe" />
-            <x-text-input id="password_confirmation" class="block mt-1 w-full" type="password" name="password_confirmation" required />
-        </div>
-
-        <div class="flex items-center justify-end mt-6">
-            <a class="text-sm text-content-secondary hover:text-content" href="{{ route('login') }}">
-                Déjà inscrit ?
-            </a>
-
-            <x-primary-button class="ms-3">
-                Inscrire mon auto-école
-            </x-primary-button>
+        <div class="space-y-3">
+            <x-ui.button type="submit" size="lg" class="w-full" icon-right="arrow-right">Créer mon établissement</x-ui.button>
+            <p class="text-center text-[12px] leading-relaxed text-ink-3">
+                En créant un compte, vous acceptez que vos données soient traitées pour la gestion de votre auto-école.
+                Aucun paiement n’est demandé à cette étape.
+            </p>
         </div>
     </form>
+
+    <p class="mt-6 text-center text-[13px] text-ink-2">
+        Déjà inscrit ?
+        <a href="{{ route('login') }}" class="font-semibold text-accent hover:underline">Se connecter</a>
+    </p>
 </x-guest-layout>

@@ -1,153 +1,129 @@
-<x-app-layout>
-    <x-slot name="header">Élèves</x-slot>
+@php
+    $activeFilters = array_filter($filters ?? [], fn ($value) => $value !== null && $value !== '');
+    $chips = [];
+    $labels = [
+        'search' => 'Recherche', 'stage' => 'Étape', 'license_category' => 'Permis',
+        'course_type' => 'Formule', 'instructor_id' => 'Moniteur',
+        'registered_from' => 'Inscrit depuis', 'registered_to' => 'Inscrit jusqu’au',
+    ];
+    foreach ($activeFilters as $key => $value) {
+        $display = $value;
+        if ($key === 'stage') {
+            $display = \App\Domain\Students\Enums\LifecycleStage::tryFrom((string) $value)?->label() ?? $value;
+        } elseif ($key === 'license_category') {
+            $display = 'Permis '.$value;
+        } elseif ($key === 'course_type') {
+            $display = \App\Domain\Students\Enums\CourseType::tryFrom((string) $value)?->label() ?? $value;
+        } elseif ($key === 'instructor_id') {
+            $display = collect($instructors)->firstWhere('id', (int) $value)?->name ?? $value;
+        }
+        $chips[] = [
+            'label' => $labels[$key] ?? $key,
+            'value' => $display,
+            'url' => route('students.index', array_merge(request()->except(['page']), [$key => null])),
+        ];
+    }
+    $clearUrl = route('students.index');
+    $views = [
+        ['label' => 'Tous', 'href' => route('students.index'), 'count' => $students->total(), 'key' => 'all', 'active' => ! isset($filters['stage'])],
+        ['label' => 'Prospects', 'href' => route('students.index', ['stage' => 'prospect']), 'key' => 'prospect', 'active' => ($filters['stage'] ?? null) === 'prospect'],
+        ['label' => 'En formation', 'href' => route('students.index', ['stage' => 'practical_course']), 'key' => 'practical', 'active' => ($filters['stage'] ?? null) === 'practical_course'],
+        ['label' => 'Anciens élèves', 'href' => route('students.index', ['stage' => 'former_student']), 'key' => 'former', 'active' => ($filters['stage'] ?? null) === 'former_student'],
+    ];
+@endphp
 
-    <div class="py-6 space-y-5 max-w-7xl mx-auto">
-        <div class="flex items-center justify-between">
-            <div>
-                <h1 class="text-xl font-semibold text-content">Élèves</h1>
-                <p class="text-sm text-content-secondary">{{ $students->total() }} élève(s) au total</p>
-            </div>
+<x-app-layout :title="'Élèves'">
+    <x-layout.page-header
+        title="Élèves"
+        :description="$students->total().' élève(s) dans votre établissement. Filtrez par étape, permis ou moniteur.'"
+    >
+        <x-slot:actions>
+            <x-ui.button :href="route('dossiers.index')" variant="secondary" icon="clipboard-check">Dossiers à valider</x-ui.button>
             @can('create', \App\Domain\Students\Models\Student::class)
-                <a href="{{ route('students.create') }}" class="inline-flex items-center gap-2 rounded-ui-md bg-primary px-4 py-2 text-sm font-medium text-primary-content shadow-soft-sm hover:shadow-soft-hover transition">
-                    <x-icon name="plus" class="w-4 h-4" /> Nouvel élève
-                </a>
+                <x-ui.button :href="route('students.create')" icon="user-plus">Nouvel élève</x-ui.button>
             @endcan
-        </div>
+        </x-slot:actions>
+    </x-layout.page-header>
 
-        @if (session('status'))
-            <x-alert variant="success">{{ session('status') }}</x-alert>
-        @endif
+    <div class="space-y-4">
+        <x-data.filter-bar
+            :action="route('students.index')"
+            :search="$filters['search'] ?? null"
+            placeholder="Nom, téléphone, e-mail…"
+            :chips="$chips"
+            :clear-url="count($chips) ? $clearUrl : null"
+            :views="$views"
+            :result-count="$students->total().' résultat(s)'"
+        >
+            <x-form.select name="stage" :selected="$filters['stage'] ?? null" placeholder="Toutes les étapes"
+                :options="collect($stages)->mapWithKeys(fn ($s) => [$s->value => $s->label()])->all()" class="w-auto min-w-44" />
+            <x-form.select name="instructor_id" :selected="$filters['instructor_id'] ?? null" placeholder="Tous les moniteurs"
+                :options="collect($instructors)->pluck('name', 'id')->all()" class="w-auto min-w-40" />
+            <x-form.select name="license_category" :selected="$filters['license_category'] ?? null" placeholder="Tous les permis"
+                :options="collect($licenseCategories)->mapWithKeys(fn ($c) => [$c->value => 'Permis '.$c->value])->all()" class="w-auto min-w-36" />
+        </x-data.filter-bar>
 
-        <x-card>
-            <form method="GET" action="{{ route('students.index') }}" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-                <div class="lg:col-span-2">
-                    <x-input-label for="search" value="Recherche" />
-                    <div class="relative mt-1">
-                        <x-icon name="search" class="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-content-muted" />
-                        <input type="text" name="search" id="search" value="{{ $filters['search'] ?? '' }}" placeholder="Nom, téléphone, e-mail..."
-                            class="w-full pl-9 rounded-ui-md border-0 bg-surface-inset text-content shadow-inset focus:shadow-inset-focus focus:ring-0 text-sm">
-                    </div>
-                </div>
-
-                <div>
-                    <x-input-label for="stage" value="Statut" />
-                    <select name="stage" id="stage" class="mt-1 w-full rounded-ui-md border-0 bg-surface-inset text-content shadow-inset focus:shadow-inset-focus focus:ring-0 text-sm">
-                        <option value="">Tous</option>
-                        @foreach ($stages as $stage)
-                            <option value="{{ $stage->value }}" @selected(($filters['stage'] ?? null) === $stage->value)>{{ $stage->label() }}</option>
-                        @endforeach
-                    </select>
-                </div>
-
-                <div>
-                    <x-input-label for="license_category" value="Type de permis" />
-                    <select name="license_category" id="license_category" class="mt-1 w-full rounded-ui-md border-0 bg-surface-inset text-content shadow-inset focus:shadow-inset-focus focus:ring-0 text-sm">
-                        <option value="">Tous</option>
-                        @foreach ($licenseCategories as $category)
-                            <option value="{{ $category->value }}" @selected(($filters['license_category'] ?? null) === $category->value)>{{ $category->value }}</option>
-                        @endforeach
-                    </select>
-                </div>
-
-                <div>
-                    <x-input-label for="course_type" value="Formation" />
-                    <select name="course_type" id="course_type" class="mt-1 w-full rounded-ui-md border-0 bg-surface-inset text-content shadow-inset focus:shadow-inset-focus focus:ring-0 text-sm">
-                        <option value="">Toutes</option>
-                        @foreach ($courseTypes as $type)
-                            <option value="{{ $type->value }}" @selected(($filters['course_type'] ?? null) === $type->value)>{{ $type->label() }}</option>
-                        @endforeach
-                    </select>
-                </div>
-
-                <div>
-                    <x-input-label for="instructor_id" value="Moniteur" />
-                    <select name="instructor_id" id="instructor_id" class="mt-1 w-full rounded-ui-md border-0 bg-surface-inset text-content shadow-inset focus:shadow-inset-focus focus:ring-0 text-sm">
-                        <option value="">Tous</option>
-                        @foreach ($instructors as $instructor)
-                            <option value="{{ $instructor->id }}" @selected((string) ($filters['instructor_id'] ?? '') === (string) $instructor->id)>{{ $instructor->name }}</option>
-                        @endforeach
-                    </select>
-                </div>
-
-                <div>
-                    <x-input-label for="registered_from" value="Inscrit depuis le" />
-                    <input type="date" name="registered_from" id="registered_from" value="{{ $filters['registered_from'] ?? '' }}"
-                        class="mt-1 w-full rounded-ui-md border-0 bg-surface-inset text-content shadow-inset focus:shadow-inset-focus focus:ring-0 text-sm">
-                </div>
-
-                <div>
-                    <x-input-label for="registered_to" value="Jusqu'au" />
-                    <input type="date" name="registered_to" id="registered_to" value="{{ $filters['registered_to'] ?? '' }}"
-                        class="mt-1 w-full rounded-ui-md border-0 bg-surface-inset text-content shadow-inset focus:shadow-inset-focus focus:ring-0 text-sm">
-                </div>
-
-                <div class="flex items-end gap-2">
-                    <button type="submit" class="rounded-ui-md bg-primary px-4 py-2 text-sm font-medium text-primary-content shadow-soft-sm hover:shadow-soft-hover transition">
-                        Filtrer
-                    </button>
-                    @if (array_filter($filters))
-                        <a href="{{ route('students.index') }}" class="rounded-ui-md bg-surface-inset px-4 py-2 text-sm font-medium text-content-secondary hover:text-content transition">
-                            Réinitialiser
-                        </a>
-                    @endif
-                </div>
-            </form>
-        </x-card>
-
-        <x-card :padded="false">
-            <div class="overflow-x-auto">
-                <table class="w-full text-sm text-left">
-                    <thead class="text-content-muted">
+        @if ($students->isEmpty())
+            @if (count($chips))
+                <x-ui.card variant="solid">
+                    <x-ui.empty-state icon="search" title="Aucun élève ne correspond à ces filtres"
+                        description="Élargissez la recherche ou retirez un filtre pour retrouver vos élèves.">
+                        <x-slot:actions>
+                            <x-ui.button :href="$clearUrl" variant="secondary" icon="x">Tout effacer</x-ui.button>
+                        </x-slot:actions>
+                    </x-ui.empty-state>
+                </x-ui.card>
+            @else
+                <x-ui.card variant="solid">
+                    <x-ui.empty-state icon="graduation-cap" title="Aucun élève enregistré"
+                        description="Créez le premier élève pour suivre son dossier, son planning et ses paiements.">
+                        <x-slot:actions>
+                            @can('create', \App\Domain\Students\Models\Student::class)
+                                <x-ui.button :href="route('students.create')" icon="user-plus">Nouvel élève</x-ui.button>
+                            @endcan
+                        </x-slot:actions>
+                    </x-ui.empty-state>
+                </x-ui.card>
+            @endif
+        @else
+            <x-data.table caption="Liste des élèves">
+                <thead>
+                    <tr>
+                        <th scope="col">Élève</th>
+                        <th scope="col">Étape</th>
+                        <th scope="col">Permis</th>
+                        <th scope="col">Moniteur</th>
+                        <th scope="col">Inscription</th>
+                        <th scope="col"><span class="sr-only">Actions</span></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach ($students as $student)
                         <tr>
-                            <th class="px-5 py-3 font-medium">Élève</th>
-                            <th class="px-5 py-3 font-medium">Catégorie</th>
-                            <th class="px-5 py-3 font-medium">Étape</th>
-                            <th class="px-5 py-3 font-medium">Dossier</th>
-                            <th class="px-5 py-3 font-medium">Moniteur</th>
-                            @if (auth()->user()->hasRole('moniteur'))
-                                <th class="px-5 py-3 font-medium"></th>
-                            @endif
+                            <td data-label="Élève">
+                                <div class="flex items-center gap-2.5">
+                                    <x-ui.avatar :name="$student->fullName()" size="sm" />
+                                    <div class="min-w-0">
+                                        <a href="{{ route('students.show', $student) }}" class="block truncate text-sm font-medium text-ink hover:text-accent">{{ $student->fullName() }}</a>
+                                        <span class="block truncate text-[12px] text-ink-3"><x-ui.phone :value="$student->phone" :link="false" /></span>
+                                    </div>
+                                </div>
+                            </td>
+                            <td data-label="Étape"><x-ui.status :value="$student->lifecycle_stage" /></td>
+                            <td data-label="Permis">{{ $student->license_category?->value ?? '—' }}</td>
+                            <td data-label="Moniteur">{{ $student->instructor?->name ?? '—' }}</td>
+                            <td data-label="Inscription"><x-ui.date :value="$student->registered_at" /></td>
+                            <td data-label="">
+                                <div class="flex justify-end">
+                                    <x-ui.button :href="route('students.show', $student)" variant="ghost" size="sm" icon-right="chevron-right">Fiche</x-ui.button>
+                                </div>
+                            </td>
                         </tr>
-                    </thead>
-                    <tbody class="divide-y divide-border/60">
-                        @forelse ($students as $student)
-                            <tr class="hover:bg-surface-elevated/60 transition">
-                                <td class="px-5 py-3">
-                                    <a href="{{ route('students.show', $student) }}" class="flex items-center gap-3 group">
-                                        <span class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary text-xs font-semibold">
-                                            {{ mb_substr($student->first_name, 0, 1) }}{{ mb_substr($student->last_name, 0, 1) }}
-                                        </span>
-                                        <span class="font-medium text-content group-hover:text-primary transition">{{ $student->fullName() }}</span>
-                                    </a>
-                                </td>
-                                <td class="px-5 py-3 text-content-secondary">{{ $student->license_category->value }}</td>
-                                <td class="px-5 py-3"><x-badge variant="info">{{ $student->lifecycle_stage->label() }}</x-badge></td>
-                                <td class="px-5 py-3 text-content-secondary">{{ $student->dossier_status->label() }}</td>
-                                <td class="px-5 py-3 text-content-secondary">{{ $student->instructor?->name ?? '-' }}</td>
-                                @if (auth()->user()->hasRole('moniteur'))
-                                    @if ($student->instructor_id === auth()->id())
-                                        <td class="px-5 py-3 text-right">
-                                            <a href="{{ route('moniteur.eleves.feuille-route', $student) }}" class="text-xs text-primary hover:underline">Feuille de route</a>
-                                        </td>
-                                    @else
-                                        <td class="px-5 py-3"></td>
-                                    @endif
-                                @endif
-                            </tr>
-                        @empty
-                            <x-empty-table-row
-                                colspan="{{ auth()->user()->hasRole('moniteur') ? 6 : 5 }}"
-                                title="Aucun élève trouvé."
-                                message="Commencez par inscrire votre premier élève."
-                                :action="route('students.create')"
-                                action-label="Ajouter un élève"
-                            />
-                        @endforelse
-                    </tbody>
-                </table>
-            </div>
-        </x-card>
+                    @endforeach
+                </tbody>
+            </x-data.table>
 
-        {{ $students->links() }}
+            <x-ui.pagination :paginator="$students" label="Pagination des élèves" />
+        @endif
     </div>
 </x-app-layout>

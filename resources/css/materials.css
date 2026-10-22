@@ -1,0 +1,78 @@
+/* =========================================================================
+   MATÉRIAUX — canevas, panneau, verre, verre overlay, plein.
+   Règles : jamais de verre sur du verre, jamais de flou sur un élément répété,
+   repli solide obligatoire (§4.1, P1 à P6).
+   ========================================================================= */
+@layer components {
+  /* ===== Canevas statique (une seule couche fixe, aucune animation) ===== */
+  .app-canvas {
+    position: fixed; inset: 0; z-index: -1; contain: strict;
+    background:
+      radial-gradient(60rem 38rem at 8% -8%, var(--canvas-a), transparent 62%),
+      radial-gradient(52rem 34rem at 100% 2%, var(--canvas-b), transparent 60%),
+      radial-gradient(64rem 40rem at 55% 112%, var(--canvas-c), transparent 62%),
+      var(--canvas-base);
+  }
+  :root[data-perf="lite"] .app-canvas { background: var(--canvas-base); }
+
+  /* ===== Panneau : translucide, SANS flou ===== */
+  .material-panel {
+    background: var(--surface-panel);
+    border: 1px solid var(--line-subtle);
+    box-shadow: var(--glass-edge), var(--elev-1);
+    border-radius: var(--r-lg);
+  }
+  /* ===== Verre : châssis (sidebar, topbar, dock) ===== */
+  .material-glass, .material-overlay {
+    background: var(--surface-glass);
+    border: 1px solid var(--line-subtle);
+    box-shadow: var(--glass-edge), var(--elev-2);
+    -webkit-backdrop-filter: blur(var(--blur-glass)) saturate(var(--glass-saturate));
+    backdrop-filter: blur(var(--blur-glass)) saturate(var(--glass-saturate));
+  }
+  .material-overlay {
+    background: var(--surface-overlay);
+    box-shadow: var(--glass-edge), var(--elev-3);
+  }
+  /* ===== Plein : tables, formulaires, graphiques, planning, menus, popovers ===== */
+  .material-solid {
+    background: var(--surface-solid);
+    border: 1px solid var(--line-subtle);
+    box-shadow: var(--elev-1);
+    border-radius: var(--r-lg);
+  }
+
+  @supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+    .material-glass, .material-overlay { background: var(--surface-glass-fallback); }
+  }
+  @media (prefers-reduced-transparency: reduce) {
+    .material-glass, .material-overlay {
+      -webkit-backdrop-filter: none; backdrop-filter: none;
+      background: var(--surface-glass-fallback);
+    }
+    .material-panel { background: var(--surface-solid); }
+  }
+  @media (prefers-contrast: more) {
+    .material-glass, .material-overlay {
+      -webkit-backdrop-filter: none; backdrop-filter: none;
+      background: var(--surface-solid);
+    }
+    .material-panel { background: var(--surface-solid); }
+    :root { --line-subtle: var(--line-control); }
+  }
+  :root[data-perf="lite"] .material-glass,
+  :root[data-perf="lite"] .material-overlay {
+    -webkit-backdrop-filter: none; backdrop-filter: none;
+    background: var(--surface-glass-fallback);
+  }
+  @media (max-width: 767px) { :root { --blur-glass: 8px; } }
+
+  /* ===== Focus (double anneau, jamais masqué) ===== */
+  .focus-ring:focus-visible, .focus-ring:focus {
+    outline: none;
+    box-shadow: var(--focus-ring);
+  }
+  @media (forced-colors: active) {
+    .material-panel, .material-glass, .material-overlay, .material-solid { border: 1px solid CanvasText; }
+  }
+}

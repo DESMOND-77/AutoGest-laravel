@@ -1,77 +1,69 @@
-<x-app-layout>
-    <x-slot name="header">Feuille de route - {{ $student->fullName() }}</x-slot>
+<x-app-layout :title="'Feuille de route — '.$student->fullName()">
+    <x-layout.page-header
+        :title="'Feuille de route'"
+        :description="$student->fullName().' · '.($student->license_category?->value ? 'permis '.$student->license_category->value : '').($student->course_type?->label() ? ' · '.$student->course_type->label() : '')"
+        :breadcrumbs="[['label' => 'Mon agenda', 'href' => route('moniteur.agenda')], ['label' => $student->fullName()]]"
+    >
+        <x-slot:actions>
+            <x-ui.status :value="$student->lifecycle_stage" />
+            <x-ui.button :href="route('training.evaluation.show', $student)" variant="secondary" icon="target">Évaluer les compétences</x-ui.button>
+        </x-slot:actions>
+    </x-layout.page-header>
 
-    <div class="py-6 max-w-3xl mx-auto space-y-5">
-        <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
-            <x-card>
-                <p class="text-content-muted text-xs">Séances totales</p>
-                <p class="text-2xl font-semibold text-content mt-1">{{ $summary['total'] }}</p>
-            </x-card>
-            <x-card>
-                <p class="text-content-muted text-xs">Présences</p>
-                <p class="text-2xl font-semibold text-success mt-1">{{ $summary['present'] }}</p>
-            </x-card>
-            <x-card>
-                <p class="text-content-muted text-xs">Absences</p>
-                <p class="text-2xl font-semibold text-danger mt-1">{{ $summary['absent'] }}</p>
-            </x-card>
-            <x-card>
-                <p class="text-content-muted text-xs">Heures de conduite</p>
-                <p class="text-2xl font-semibold text-content mt-1">{{ $summary['practicalHoursCompleted'] }}h</p>
-            </x-card>
+    <div class="mx-auto max-w-3xl space-y-4">
+        <div class="grid grid-cols-2 gap-3 sm:grid-cols-4">
+            <x-data.kpi label="Séances" :value="$summary['total']" icon="calendar" hint="Avec vous" />
+            <x-data.kpi label="Présences" :value="$summary['present']" icon="circle-check" />
+            <x-data.kpi label="Absences" :value="$summary['absent']" icon="circle-x" />
+            <x-data.kpi label="Heures de conduite" :value="$summary['practicalHoursCompleted'].' h'" icon="car" />
         </div>
-        <p class="text-xs text-content-muted -mt-2">Séances effectuées avec vous.</p>
 
-        <x-card>
-            <div class="flex items-center justify-between mb-2">
-                <div class="text-sm font-semibold text-content">Compétences</div>
-                <a href="{{ route('training.evaluation.show', $student) }}" class="text-xs text-primary hover:underline">
-                    Voir l'évaluation détaillée
-                </a>
+        <x-ui.card title="Compétences acquises" :description="$skillSummary['acquired'].' sur '.$skillSummary['total'].' compétences validées'">
+            <div class="space-y-2">
+                <div class="flex items-center justify-between text-[13px]">
+                    <span class="text-ink-2">Progression globale</span>
+                    <span class="font-semibold text-ink">{{ $skillSummary['percent'] }} %</span>
+                </div>
+                <x-ui.progress :value="$skillSummary['percent']" label="Compétences acquises" />
+                @if ($skillSummary['total'] === 0)
+                    <p class="text-[12.5px] text-ink-3">Aucune compétence n’est encore configurée dans votre établissement.</p>
+                @endif
             </div>
-            <div class="flex items-center justify-between text-sm">
-                <span class="text-content-secondary">{{ $skillSummary['acquired'] }}/{{ $skillSummary['total'] }} acquises</span>
-                <span class="text-content font-medium">{{ $skillSummary['percent'] }}%</span>
-            </div>
-            <div class="bg-surface-inset rounded-full h-2 overflow-hidden mt-2">
-                <div class="bg-primary h-2 rounded-full" style="width: {{ max(2, $skillSummary['percent']) }}%"></div>
-            </div>
-        </x-card>
+        </x-ui.card>
 
-        <x-card :padded="false">
-            <div class="px-4 py-3 border-b border-border/60 text-sm font-semibold text-content">Historique des séances</div>
-            <div class="overflow-x-auto">
-                <table class="w-full text-sm text-left">
-                    <thead class="text-content-muted">
-                        <tr>
-                            <th class="px-4 py-2 font-medium">Date</th>
-                            <th class="px-4 py-2 font-medium">Type</th>
-                            <th class="px-4 py-2 font-medium">Horaire</th>
-                            <th class="px-4 py-2 font-medium">Lieu</th>
-                            <th class="px-4 py-2 font-medium">Présence</th>
-                            <th class="px-4 py-2 font-medium">Note</th>
-                        </tr>
-                    </thead>
-                    <tbody class="divide-y divide-border/60">
-                        @forelse ($summary['sessions'] as $session)
+        <x-ui.card title="Historique des séances" :description="$summary['sessions']->count().' séance(s) enregistrée(s) avec vous'" variant="solid" padding="p-0">
+            @if ($summary['sessions']->isEmpty())
+                <x-ui.empty-state icon="calendar" title="Aucune séance" description="Les séances planifiées avec cet élève apparaîtront ici." class="py-8" />
+            @else
+                <div class="px-1 pb-1">
+                    <x-data.table caption="Historique des séances">
+                        <thead>
                             <tr>
-                                <td class="px-4 py-2.5">{{ $session->scheduled_date->format('d/m/Y') }}</td>
-                                <td class="px-4 py-2.5 text-content-secondary">{{ $session->type->label() }}</td>
-                                <td class="px-4 py-2.5 text-content-secondary">{{ $session->starts_at }}–{{ $session->ends_at }}</td>
-                                <td class="px-4 py-2.5 text-content-secondary">{{ $session->location ?? '-' }}</td>
-                                <td class="px-4 py-2.5">
-                                    <x-badge :variant="$session->presence->value === 'present' ? 'success' : ($session->presence->value === 'absent' ? 'danger' : 'neutral')">
-                                        {{ $session->presence->label() }}
-                                    </x-badge>
-                                </td>
-                                <td class="px-4 py-2.5 text-content-secondary">{{ $session->notes ?? '-' }}</td>
+                                <th scope="col">Date</th>
+                                <th scope="col">Type</th>
+                                <th scope="col">Horaire</th>
+                                <th scope="col">Lieu</th>
+                                <th scope="col">Présence</th>
                             </tr>
-                        @empty
-                            <tr><td colspan="6" class="px-4 py-6 text-center text-content-muted">Aucune séance pour le moment.</td></tr>
-                        @endforelse
-                    </tbody>
-                </table>
-            </div>
-        </x-card>
+                        </thead>
+                        <tbody>
+                            @foreach ($summary['sessions'] as $session)
+                                <tr>
+                                    <td data-label="Date"><x-ui.date :value="$session->scheduled_date" /></td>
+                                    <td data-label="Type">{{ $session->type?->label() }}</td>
+                                    <td data-label="Horaire" class="num">{{ substr($session->starts_at, 0, 5) }}–{{ substr($session->ends_at, 0, 5) }}</td>
+                                    <td data-label="Lieu">{{ $session->location ?: '—' }}</td>
+                                    <td data-label="Présence"><x-ui.status :value="$session->presence" /></td>
+                                </tr>
+                            @endforeach
+                        </tbody>
+                    </x-data.table>
+                </div>
+            @endif
+        </x-ui.card>
+
+        <x-ui.alert tone="info">
+            Seules les séances marquées « présent » comptent dans les heures de conduite. Le statut d’une séance passée se corrige depuis votre agenda.
+        </x-ui.alert>
     </div>
 </x-app-layout>

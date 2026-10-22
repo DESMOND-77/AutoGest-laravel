@@ -1,110 +1,163 @@
-<x-app-layout>
-    <x-slot name="header">Facture - {{ $invoice->student?->fullName() ?? 'Client comptoir' }}</x-slot>
+@php
+    $student = $invoice->student;
+    $paid = (float) $invoice->amount_paid;
+    $due = (float) $invoice->amount_due;
+    $balance = $invoice->balanceDue();
+    $percent = $due > 0 ? min(100, round($paid / $due * 100)) : 0;
+    $activePayments = $invoice->payments->whereNull('cancelled_at');
+    $methods = collect(\App\Domain\Finance\Enums\PaymentMethod::cases())->mapWithKeys(fn ($m) => [$m->value => $m->label()])->all();
+@endphp
 
-    <div class="py-6 space-y-5 max-w-3xl mx-auto">
-        @if (session('status'))
-            <x-alert variant="success">{{ session('status') }}</x-alert>
-        @endif
-        @error('payment')
-            <x-alert variant="danger">{{ $message }}</x-alert>
-        @enderror
+<x-app-layout :title="$invoice->label ?: 'Facture #'.$invoice->id">
+    <x-layout.page-header
+        :title="$invoice->label ?: 'Facture #'.$invoice->id"
+        :description="($student?->fullName() ?? 'Hors élève').' · émise le '.($invoice->issued_at?->format('d/m/Y') ?? '—')"
+        :breadcrumbs="[
+            ['label' => 'Factures', 'href' => route('finance.invoices.index')],
+            ['label' => $student?->fullName() ?? 'Hors élève', 'href' => $student ? route('students.show', $student) : null],
+            ['label' => $invoice->label ?: 'Facture #'.$invoice->id],
+        ]"
+    >
+        <x-slot:actions>
+            <x-ui.status :value="$invoice->status" />
+            <x-ui.button variant="secondary" icon="printer" x-on:click="window.print()">Imprimer</x-ui.button>
+            @if ($student)
+                <x-ui.button :href="route('students.show', $student)" variant="ghost" icon="graduation-cap">Fiche élève</x-ui.button>
+            @endif
+        </x-slot:actions>
+    </x-layout.page-header>
 
-        <x-card>
-            <div class="flex items-center justify-between mb-4">
-                <div>
-                    <h1 class="text-lg font-semibold text-content">{{ $invoice->label }}</h1>
-                    <p class="text-sm text-content-secondary">Émise le {{ $invoice->issued_at->format('d/m/Y') }}</p>
+    <div class="grid gap-4 lg:grid-cols-3">
+        <div class="space-y-4 lg:col-span-2">
+            <x-ui.card title="Encaissement" variant="solid">
+                <div class="space-y-3">
+                    <div class="flex flex-wrap items-end justify-between gap-2">
+                        <p class="text-2xl font-bold text-ink"><x-ui.money :amount="$paid" /> <span class="text-sm font-medium text-ink-3">/</span> <span class="text-base font-medium text-ink-2"><x-ui.money :amount="$due" /></span></p>
+                        <p class="text-[13px] text-ink-2">{{ $percent }} % encaissé</p>
+                    </div>
+                    <x-ui.progress :value="$percent" label="Progression de l’encaissement" />
+                    @if ($balance > 0)
+                        <p class="flex items-center gap-1.5 text-[13px] font-medium text-danger">
+                            <x-ui.icon name="circle-alert" class="w-4 h-4" />
+                            Reste à encaisser : <x-ui.money :amount="$balance" />
+                        </p>
+                    @else
+                        <p class="flex items-center gap-1.5 text-[13px] font-medium text-success">
+                            <x-ui.icon name="circle-check" class="w-4 h-4" />
+                            Facture soldée.
+                        </p>
+                    @endif
                 </div>
-                <x-badge :variant="$invoice->status->value === 'paid' ? 'success' : ($invoice->status->value === 'unpaid' ? 'danger' : 'warning')">
-                    {{ $invoice->status->label() }}
-                </x-badge>
-            </div>
+            </x-ui.card>
 
-            <div class="grid grid-cols-3 gap-4 text-sm pt-4 border-t border-border/60">
-                <div>
-                    <p class="text-content-muted">Montant dû</p>
-                    <p class="text-content font-semibold mt-1">{{ number_format($invoice->amount_due, 0, ',', ' ') }} FCFA</p>
-                </div>
-                <div>
-                    <p class="text-content-muted">Réglé</p>
-                    <p class="text-success font-semibold mt-1">{{ number_format($invoice->amount_paid, 0, ',', ' ') }} FCFA</p>
-                </div>
-                <div>
-                    <p class="text-content-muted">Solde restant</p>
-                    <p @class(['font-semibold mt-1', 'text-danger' => $invoice->balanceDue() > 0, 'text-content' => $invoice->balanceDue() <= 0])>
-                        {{ number_format($invoice->balanceDue(), 0, ',', ' ') }} FCFA
-                    </p>
-                </div>
-            </div>
-        </x-card>
-
-        <x-card>
-            <div class="text-sm font-semibold text-content mb-3">Paiements</div>
-            <div class="overflow-x-auto mb-4">
-                <table class="w-full text-sm text-left">
-                    <thead class="text-content-muted">
-                        <tr>
-                            <th class="py-2 font-medium">Date</th>
-                            <th class="py-2 font-medium">Montant</th>
-                            <th class="py-2 font-medium">Moyen</th>
-                            <th class="py-2 font-medium">Enregistré par</th>
-                            <th class="py-2 font-medium">Statut</th>
-                            <th class="py-2"></th>
-                        </tr>
-                    </thead>
-                    <tbody class="divide-y divide-border/60">
-                        @forelse ($invoice->payments as $payment)
-                            <tr class="{{ $payment->isCancelled() ? 'text-content-muted line-through' : '' }}">
-                                <td class="py-2.5">{{ $payment->paid_at->format('d/m/Y') }}</td>
-                                <td class="py-2.5 {{ $payment->isCancelled() ? '' : 'text-content font-medium' }}">{{ number_format($payment->amount, 0, ',', ' ') }} FCFA</td>
-                                <td class="py-2.5 text-content-secondary">{{ $payment->method->label() }}</td>
-                                <td class="py-2.5 text-content-secondary">{{ $payment->recordedBy?->name ?? '-' }}</td>
-                                <td class="py-2.5">
-                                    <x-badge :variant="$payment->isCancelled() ? 'neutral' : 'success'">
-                                        {{ $payment->isCancelled() ? 'Annulé' : 'Actif' }}
-                                    </x-badge>
-                                </td>
-                                <td class="py-2.5 text-right">
-                                    @can('cancel', $payment)
-                                        @if (! $payment->isCancelled())
-                                            <form method="POST" action="{{ route('finance.payments.cancel', $payment) }}" class="inline" onsubmit="return confirm('Annuler ce paiement ?');">
-                                                @csrf
-                                                <button type="submit" class="text-danger hover:underline text-xs">Annuler</button>
-                                            </form>
-                                        @endif
-                                    @endcan
-                                </td>
-                            </tr>
-                        @empty
-                            <tr><td colspan="6" class="py-6 text-center text-content-muted">Aucun paiement.</td></tr>
-                        @endforelse
-                    </tbody>
-                </table>
-            </div>
-
-            @can('recordPayment', $invoice)
-                @if ($invoice->balanceDue() > 0)
-                    <form method="POST" action="{{ route('finance.invoices.payments.store', $invoice) }}" class="grid grid-cols-1 sm:grid-cols-3 gap-3 items-end pt-3 border-t border-border/60">
-                        @csrf
-                        <div>
-                            <x-input-label for="amount" value="Montant" />
-                            <x-text-input id="amount" type="number" step="0.01" name="amount" class="block mt-1 w-full" required />
-                        </div>
-                        <div>
-                            <x-input-label for="method" value="Moyen" />
-                            <select id="method" name="method" class="mt-1 w-full rounded-ui-md border-0 bg-surface-inset text-content shadow-inset focus:shadow-inset-focus focus:ring-0 text-sm">
-                                @foreach (\App\Domain\Finance\Enums\PaymentMethod::cases() as $case)
-                                    <option value="{{ $case->value }}">{{ $case->label() }}</option>
-                                @endforeach
-                            </select>
-                        </div>
-                        <x-primary-button>Enregistrer</x-primary-button>
-                    </form>
-                    @error('amount') <p class="text-danger text-sm mt-2">{{ $message }}</p> @enderror
+            <x-ui.card title="Paiements" :description="$activePayments->count().' paiement(s) enregistré(s)'" variant="solid" padding="p-0">
+                @if ($invoice->payments->isEmpty())
+                    <x-ui.empty-state icon="wallet" title="Aucun paiement" description="Enregistrez le premier encaissement avec le formulaire ci-contre." class="py-8" />
                 @else
-                    <p class="text-sm text-content-muted pt-3 border-t border-border/60">Facture soldée.</p>
+                    <ul class="divide-y divide-line">
+                        @foreach ($invoice->payments->sortByDesc('paid_at') as $payment)
+                            <li class="flex flex-wrap items-center justify-between gap-2 px-5 py-3 max-sm:px-4">
+                                <div class="min-w-0">
+                                    <p class="text-sm font-semibold text-ink {{ $payment->cancelled_at ? 'line-through opacity-60' : '' }}"><x-ui.money :amount="$payment->amount" /></p>
+                                    <p class="text-[12px] text-ink-3">
+                                        {{ $payment->method?->label() }} · <x-ui.date :value="$payment->paid_at" /> · saisi par {{ $payment->recordedBy?->name ?? '—' }}
+                                    </p>
+                                    @if ($payment->cancelled_at)
+                                        <p class="text-[12px] font-medium text-danger">Annulé le {{ $payment->cancelled_at->format('d/m/Y') }}{{ $payment->cancellation_reason ? ' — '.$payment->cancellation_reason : '' }}</p>
+                                    @endif
+                                </div>
+                                @if (! $payment->cancelled_at)
+                                    @can('cancel', $payment)
+                                        <x-ui.button size="sm" variant="ghost" class="text-danger" icon="ban"
+                                            x-on:click="$dispatch('open-dialog', { name: 'cancel-payment-{{ $payment->id }}' })">Annuler</x-ui.button>
+                                        <x-ui.dialog name="cancel-payment-{{ $payment->id }}" title="Annuler ce paiement" description="Le montant sera retiré de la facture et du journal de caisse. L’opération est conservée dans l’historique.">
+                                            <form method="POST" action="{{ route('finance.payments.cancel', $payment) }}" class="space-y-4">
+                                                @csrf
+                                                <x-form.field name="reason" label="Motif" optional hint="Par exemple : erreur de montant ou de moyen de paiement.">
+                                                    <x-form.input name="reason" placeholder="Erreur de saisie" />
+                                                </x-form.field>
+                                                <div class="flex justify-end gap-2">
+                                                    <x-ui.button variant="ghost" type="button" x-on:click="$dispatch('close-dialog', { name: 'cancel-payment-{{ $payment->id }}' })">Garder le paiement</x-ui.button>
+                                                    <x-ui.button variant="danger" type="submit">Annuler le paiement</x-ui.button>
+                                                </div>
+                                            </form>
+                                        </x-ui.dialog>
+                                    @endcan
+                                @endif
+                            </li>
+                        @endforeach
+                    </ul>
+                @endif
+            </x-ui.card>
+        </div>
+
+        <aside class="space-y-4">
+            @can('recordPayment', $invoice)
+                @if ($balance > 0)
+                    <x-ui.card title="Enregistrer un paiement" variant="panel">
+                        <x-form.errors class="mb-3" />
+                        <form method="POST" action="{{ route('finance.invoices.payments.store', $invoice) }}" class="space-y-3">
+                            @csrf
+                            <x-form.field name="amount" label="Montant (FCFA)" required :hint="'Maximum : '.number_format($balance, 0, ',', ' ').' FCFA'">
+                                <x-form.input name="amount" type="number" min="1" step="1" inputmode="numeric" :value="old('amount', (int) $balance)" required />
+                            </x-form.field>
+                            <x-form.field name="method" label="Moyen de paiement" required>
+                                <x-form.select name="method" :options="$methods" :selected="old('method', 'cash')" />
+                            </x-form.field>
+                            <x-form.field name="paid_at" label="Date du paiement" optional>
+                                <x-form.input name="paid_at" type="date" :value="old('paid_at', now()->format('Y-m-d'))" />
+                            </x-form.field>
+                            <x-ui.button type="submit" icon="wallet" class="w-full">Encaisser</x-ui.button>
+                        </form>
+                    </x-ui.card>
                 @endif
             @endcan
-        </x-card>
+
+            <x-ui.card title="Détails" variant="solid">
+                <x-data.description-list :columns="1" :items="[
+                    ['label' => 'Élève', 'value' => $student?->fullName() ?? 'Hors élève'],
+                    ['label' => 'Formule', 'value' => $invoice->trainingPackage?->name ?? '—'],
+                    ['label' => 'Montant dû', 'value' => number_format($due, 0, ',', ' ').' FCFA'],
+                    ['label' => 'Encaissé', 'value' => number_format($paid, 0, ',', ' ').' FCFA'],
+                    ['label' => 'Solde', 'value' => number_format((float) $balance, 0, ',', ' ').' FCFA'],
+                    ['label' => 'Émise le', 'value' => $invoice->issued_at?->format('d/m/Y') ?? '—'],
+                ]" />
+            </x-ui.card>
+        </aside>
     </div>
+
+    {{-- Version imprimable (reçus) --}}
+    <section class="print-only" aria-hidden="true">
+        <h1 style="font-size:20px;margin:0 0 4px">{{ config('app.name') }} — Reçu de facture</h1>
+        <p style="margin:0 0 16px">{{ $invoice->label ?: 'Facture #'.$invoice->id }} · {{ $invoice->issued_at?->format('d/m/Y') }}</p>
+        <p style="margin:0 0 4px"><strong>Élève :</strong> {{ $student?->fullName() ?? 'Hors élève' }}</p>
+        <p style="margin:0 0 16px"><strong>Statut :</strong> {{ $invoice->status?->label() }}</p>
+        <table style="width:100%;border-collapse:collapse;font-size:12px">
+            <thead>
+                <tr>
+                    <th style="text-align:left;border-bottom:1px solid #000;padding:6px 4px">Date</th>
+                    <th style="text-align:left;border-bottom:1px solid #000;padding:6px 4px">Moyen</th>
+                    <th style="text-align:right;border-bottom:1px solid #000;padding:6px 4px">Montant (FCFA)</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach ($activePayments->sortBy('paid_at') as $payment)
+                    <tr>
+                        <td style="padding:6px 4px;border-bottom:1px solid #ccc">{{ $payment->paid_at?->format('d/m/Y') }}</td>
+                        <td style="padding:6px 4px;border-bottom:1px solid #ccc">{{ $payment->method?->label() }}</td>
+                        <td style="padding:6px 4px;border-bottom:1px solid #ccc;text-align:right">{{ number_format((float) $payment->amount, 0, ',', ' ') }}</td>
+                    </tr>
+                @endforeach
+                <tr>
+                    <td colspan="2" style="padding:8px 4px;font-weight:bold">Total encaissé</td>
+                    <td style="padding:8px 4px;text-align:right;font-weight:bold">{{ number_format($paid, 0, ',', ' ') }}</td>
+                </tr>
+                <tr>
+                    <td colspan="2" style="padding:4px">Solde restant</td>
+                    <td style="padding:4px;text-align:right">{{ number_format((float) $balance, 0, ',', ' ') }}</td>
+                </tr>
+            </tbody>
+        </table>
+        <p style="margin-top:20px;font-size:10px">Document généré le {{ now()->format('d/m/Y H:i') }}.</p>
+    </section>
 </x-app-layout>

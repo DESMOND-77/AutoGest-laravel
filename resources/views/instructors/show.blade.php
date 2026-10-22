@@ -1,53 +1,97 @@
-<x-app-layout>
-    <x-slot name="header">{{ $instructor->user->name }}</x-slot>
+@php
+    $days = [1 => 'Lundi', 2 => 'Mardi', 3 => 'Mercredi', 4 => 'Jeudi', 5 => 'Vendredi', 6 => 'Samedi', 0 => 'Dimanche'];
+    $byDay = $instructor->availabilities->groupBy('day_of_week');
+@endphp
 
-    <div class="py-6 space-y-5 max-w-3xl mx-auto">
-        @if (session('status'))
-            <x-alert variant="success">{{ session('status') }}</x-alert>
-        @endif
+<x-app-layout :title="$instructor->user?->name ?? 'Moniteur'">
+    <x-layout.page-header
+        :title="$instructor->user?->name ?? 'Moniteur'"
+        :description="($instructor->license_number ? 'Permis '.$instructor->license_number : 'Moniteur').' · embauché le '.($instructor->hire_date?->format('d/m/Y') ?? '—')"
+        :breadcrumbs="[['label' => 'Moniteurs', 'href' => route('instructors.index')], ['label' => $instructor->user?->name ?? 'Moniteur']]"
+    >
+        <x-slot:actions>
+            <x-ui.status :value="$instructor->status" />
+            <x-ui.button :href="route('scheduling.index', ['instructor_id' => $instructor->user_id])" variant="secondary" icon="calendar">Voir son planning</x-ui.button>
+        </x-slot:actions>
+    </x-layout.page-header>
 
-        <x-card>
-            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 text-sm">
-                <div><span class="text-content-muted">Statut</span><p class="text-content font-medium mt-0.5">{{ $instructor->status->label() }}</p></div>
-                <div><span class="text-content-muted">N° agrément</span><p class="text-content font-medium mt-0.5">{{ $instructor->license_number ?? '-' }}</p></div>
-                <div><span class="text-content-muted">Embauche</span><p class="text-content font-medium mt-0.5">{{ optional($instructor->hire_date)->format('d/m/Y') ?? '-' }}</p></div>
-            </div>
-        </x-card>
+    <div class="grid gap-4 lg:grid-cols-3">
+        <div class="space-y-4 lg:col-span-2">
+            <x-ui.card title="Disponibilités hebdomadaires" description="Créneaux pendant lesquels le moniteur peut être planifié." variant="solid" padding="p-0">
+                <div class="divide-y divide-line">
+                    @foreach ($days as $dayNumber => $dayLabel)
+                        @php $slots = collect($byDay[$dayNumber] ?? [])->sortBy('starts_at'); @endphp
+                        <div class="flex flex-wrap items-center gap-2 px-5 py-3 max-sm:px-4">
+                            <span class="w-24 shrink-0 text-[13px] font-medium text-ink">{{ $dayLabel }}</span>
+                            @if ($slots->isEmpty())
+                                <span class="text-[12.5px] text-ink-3">Aucun créneau</span>
+                            @else
+                                <div class="flex flex-wrap gap-1.5">
+                                    @foreach ($slots as $slot)
+                                        <span class="inline-flex items-center gap-1 rounded-pill bg-accent-soft px-2.5 py-0.5 text-[12px] font-medium text-accent">
+                                            {{ substr($slot->starts_at, 0, 5) }}–{{ substr($slot->ends_at, 0, 5) }}
+                                            @can('update', $instructor)
+                                                <form method="POST" action="{{ route('instructors.availabilities.destroy', [$instructor, $slot]) }}" class="inline">
+                                                    @csrf
+                                                    @method('DELETE')
+                                                    <button type="submit" class="rounded-full p-0.5 hover:text-danger focus-visible:outline-none focus-visible:shadow-[var(--focus-ring)]" aria-label="Supprimer ce créneau">
+                                                        <x-ui.icon name="x" class="w-3 h-3" />
+                                                    </button>
+                                                </form>
+                                            @endcan
+                                        </span>
+                                    @endforeach
+                                </div>
+                            @endif
+                        </div>
+                    @endforeach
+                </div>
+            </x-ui.card>
 
-        @can('update', $instructor)
-            <x-card>
-                <div class="text-sm font-semibold text-content mb-3">Ajouter une disponibilité</div>
-                <form method="POST" action="{{ route('instructors.availabilities.store', $instructor) }}" class="grid grid-cols-1 sm:grid-cols-4 gap-3 items-end">
-                    @csrf
-                    <div>
-                        <x-input-label for="day_of_week" value="Jour (0=dim…6=sam)" />
-                        <x-text-input id="day_of_week" type="number" min="0" max="6" name="day_of_week" class="block mt-1 w-full" required />
-                    </div>
-                    <x-text-input type="time" name="starts_at" class="block w-full" required />
-                    <x-text-input type="time" name="ends_at" class="block w-full" required />
-                    <x-primary-button>Ajouter</x-primary-button>
-                </form>
-            </x-card>
-        @endcan
+            @can('update', $instructor)
+                <x-ui.card title="Ajouter un créneau" variant="panel">
+                    <form method="POST" action="{{ route('instructors.availabilities.store', $instructor) }}" class="grid gap-3 sm:grid-cols-4 sm:items-end">
+                        @csrf
+                        <x-form.field name="day_of_week" label="Jour" required>
+                            <x-form.select name="day_of_week" :options="$days" :selected="1" />
+                        </x-form.field>
+                        <x-form.field name="starts_at" label="Début" required>
+                            <x-form.input name="starts_at" type="time" value="08:00" step="1800" required />
+                        </x-form.field>
+                        <x-form.field name="ends_at" label="Fin" required>
+                            <x-form.input name="ends_at" type="time" value="12:00" step="1800" required />
+                        </x-form.field>
+                        <x-ui.button type="submit" icon="plus">Ajouter</x-ui.button>
+                    </form>
+                    <p class="mt-2 text-[12px] text-ink-3">Les disponibilités servent de repère : le serveur refuse deux séances qui se chevauchent pour un même moniteur.</p>
+                </x-ui.card>
+            @endcan
+        </div>
 
-        <x-card>
-            <div class="text-sm font-semibold text-content mb-2">Disponibilités</div>
-            <ul class="text-sm divide-y divide-border/60">
-                @forelse ($instructor->availabilities as $availability)
-                    <li class="py-2.5 flex justify-between items-center">
-                        <span class="text-content">Jour {{ $availability->day_of_week }} - {{ $availability->starts_at }} à {{ $availability->ends_at }}</span>
-                        @can('update', $instructor)
-                            <form method="POST" action="{{ route('instructors.availabilities.destroy', [$instructor, $availability]) }}">
-                                @csrf
-                                @method('DELETE')
-                                <button type="submit" class="text-xs text-danger hover:underline">Retirer</button>
-                            </form>
-                        @endcan
-                    </li>
-                @empty
-                    <li class="py-2.5 text-content-muted">Aucune disponibilité renseignée.</li>
-                @endforelse
-            </ul>
-        </x-card>
+        <aside class="space-y-4">
+            <x-ui.card title="Contact" variant="panel">
+                <x-data.description-list :columns="1" :items="[
+                    ['label' => 'E-mail', 'value' => $instructor->user?->email ?? '—'],
+                    ['label' => 'Compte actif', 'value' => $instructor->user?->is_active ? 'Oui' : 'Non'],
+                    ['label' => 'Spécialités', 'value' => ! empty($instructor->specialties) ? implode(', ', $instructor->specialties) : '—'],
+                ]" />
+            </x-ui.card>
+
+            @can('update', $instructor)
+                <x-ui.card title="Modifier la fiche" variant="solid">
+                    <form method="POST" action="{{ route('instructors.update', $instructor) }}" class="space-y-3">
+                        @csrf
+                        @method('PATCH')
+                        <x-form.field name="license_number" label="Numéro de permis" optional>
+                            <x-form.input name="license_number" :value="$instructor->license_number" />
+                        </x-form.field>
+                        <x-form.field name="hire_date" label="Date d’embauche" optional>
+                            <x-form.input name="hire_date" type="date" :value="$instructor->hire_date?->format('Y-m-d')" />
+                        </x-form.field>
+                        <x-ui.button type="submit" size="sm" variant="secondary">Enregistrer</x-ui.button>
+                    </form>
+                </x-ui.card>
+            @endcan
+        </aside>
     </div>
 </x-app-layout>

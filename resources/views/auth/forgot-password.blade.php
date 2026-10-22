@@ -1,27 +1,25 @@
-<x-guest-layout>
-    <h1 class="text-lg font-semibold text-content mb-3">Mot de passe oublié</h1>
-
-    <div class="mb-4 text-sm text-content-secondary">
-        {{ __('Forgot your password? No problem. Just let us know your email address and we will email you a password reset link that will allow you to choose a new one.') }}
+<x-guest-layout :title="'Mot de passe oublié'">
+    <div>
+        <p class="text-eyebrow">Accès au compte</p>
+        <h1 class="mt-1 text-2xl font-bold tracking-tight text-ink">Mot de passe oublié</h1>
+        <p class="mt-1.5 text-[13.5px] text-ink-2">
+            Indiquez l’adresse e-mail de votre compte : nous vous envoyons un lien pour choisir un nouveau mot de passe.
+        </p>
     </div>
 
-    <!-- Session Status -->
-    <x-auth-session-status class="mb-4" :status="session('status')" />
+    @if (session('status'))
+        <x-ui.alert tone="success" class="mt-4">{{ session('status') }}</x-ui.alert>
+    @endif
 
-    <form method="POST" action="{{ route('password.email') }}">
+    <form method="POST" action="{{ route('password.email') }}" class="mt-6 space-y-4">
         @csrf
-
-        <!-- Email Address -->
-        <div>
-            <x-input-label for="email" :value="__('Email')" />
-            <x-text-input id="email" class="block mt-1 w-full" type="email" name="email" :value="old('email')" required autofocus />
-            <x-input-error :messages="$errors->get('email')" class="mt-2" />
-        </div>
-
-        <div class="flex items-center justify-end mt-4">
-            <x-primary-button>
-                {{ __('Email Password Reset Link') }}
-            </x-primary-button>
-        </div>
+        <x-form.field name="email" label="Adresse e-mail" required>
+            <x-form.input name="email" type="email" icon="envelope" :value="old('email')" autocomplete="username" autofocus required />
+        </x-form.field>
+        <x-ui.button type="submit" class="w-full" size="lg">Envoyer le lien de réinitialisation</x-ui.button>
     </form>
+
+    <p class="mt-6 text-center text-[13px] text-ink-2">
+        <a href="{{ route('login') }}" class="font-medium text-accent hover:underline">Retour à la connexion</a>
+    </p>
 </x-guest-layout>
