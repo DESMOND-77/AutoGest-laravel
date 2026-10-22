@@ -9,7 +9,7 @@ use Illuminate\Http\Request;
 
 /**
  * The legacy api/notifications.php marked every notification as read as a
- * side effect of the GET request that loads the dropdown — meaning simply
+ * side effect of the GET request that loads the dropdown - meaning simply
  * opening the bell discarded which ones were actually new. Reading and
  * marking-as-read are two separate, correctly-verbed endpoints here.
  */

@@ -6,7 +6,6 @@ use App\Domain\Finance\Enums\PaymentMethod;
 use App\Domain\Finance\Services\InvoicingService;
 use App\Domain\Finance\Services\PaymentService;
 use App\Domain\Students\Enums\CourseType;
-use App\Domain\Students\Enums\DossierStatus;
 use App\Domain\Students\Enums\LicenseCategory;
 use App\Domain\Students\Enums\LifecycleStage;
 use App\Domain\Students\Models\Student;
@@ -18,7 +17,7 @@ use Illuminate\Console\Command;
  * Ports the legacy setup/import.php script's `inscription.csv` import onto
  * the new relational schema. Where the legacy script wrote one flat
  * `paiements` row per student, this creates an Invoice (what's owed) and,
- * if anything was already received, a Payment against it — the Phase 2
+ * if anything was already received, a Payment against it - the Phase 2
  * invoice/payment split the design doc calls for. Deliberately does not
  * import the weekly schedule CSVs (etp*, ett*, Recyclage*) or the Code
  * Rousseau book-sales CSV, matching the legacy script's own documented
@@ -125,10 +124,23 @@ class ImportLegacyStudents extends Command
                 'phone' => $phone ?: null,
                 'course_type' => $this->mapCourseType($cours),
                 'license_category' => $this->mapLicenseCategory($categorie),
-                'lifecycle_stage' => LifecycleStage::Enrollment,
-                'dossier_status' => $remaining > 0 ? DossierStatus::Incomplete : DossierStatus::Complete,
                 'registered_at' => $registeredAt,
             ]);
+
+            // lifecycle_stage is a guarded column (see
+            // Student::setLifecycleStage) - imported students start
+            // further along than a fresh registration, so the database
+            // default ('prospect') doesn't apply here and must be set
+            // explicitly, bypassing the transition guard since this is an
+            // initial import value, not a transition. dossier_status is
+            // left at the model's default (Incomplete, set in
+            // Student::booted()'s creating() hook) since imported students
+            // have no uploaded documents yet - it is purely computed by
+            // DossierStatusService from document state, not from payment
+            // state.
+            $student->setLifecycleStage(LifecycleStage::Enrollment);
+            $student->save();
+
             $this->stats['students_added']++;
 
             $total = $received + $remaining;

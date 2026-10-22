@@ -2,7 +2,6 @@
 
 namespace App\Domain\Store\Http\Controllers;
 
-use App\Domain\Store\Models\Product;
 use App\Domain\Store\Models\Supplier;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\RedirectResponse;
@@ -12,7 +11,7 @@ class SupplierController extends Controller
 {
     public function store(Request $request): RedirectResponse
     {
-        $this->authorize('create', Product::class);
+        $this->authorize('create', Supplier::class);
 
         $data = $request->validate([
             'name' => ['required', 'string', 'max:150'],

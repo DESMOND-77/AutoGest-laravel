@@ -6,6 +6,7 @@ use App\Domain\Students\Enums\CourseType;
 use App\Domain\Students\Enums\LicenseCategory;
 use App\Domain\Students\Models\Student;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 use Illuminate\Validation\Rules\Enum;
 
 class StoreStudentRequest extends FormRequest
@@ -24,12 +25,27 @@ class StoreStudentRequest extends FormRequest
             'birth_place' => ['nullable', 'string', 'max:150'],
             'phone' => ['nullable', 'string', 'max:30'],
             'phone_secondary' => ['nullable', 'string', 'max:30'],
-            'email' => ['nullable', 'email', 'max:150'],
+            'email' => [
+                'required',
+                'email',
+                'max:150',
+                Rule::unique('users')->where('structure_id', $this->user()->structure_id),
+            ],
             'address' => ['nullable', 'string'],
             'neph' => ['nullable', 'string', 'max:50'],
             'license_category' => ['required', new Enum(LicenseCategory::class)],
             'course_type' => ['required', new Enum(CourseType::class)],
-            'instructor_id' => ['nullable', 'exists:users,id'],
+            'instructor_id' => [
+                'nullable',
+                Rule::exists('users', 'id')->where('structure_id', $this->user()->structure_id),
+            ],
+        ];
+    }
+
+    public function messages(): array
+    {
+        return [
+            'email.unique' => 'Un compte existe déjà avec cet e-mail pour votre auto-école.',
         ];
     }
 }

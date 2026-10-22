@@ -23,6 +23,8 @@ beforeEach(function () {
 });
 
 it('rejects scheduling a session that overlaps an existing one for the same instructor', function () {
+    $vehicle = Vehicle::factory()->create(['structure_id' => $this->structure->id]);
+
     LessonSession::factory()->create([
         'structure_id' => $this->structure->id,
         'student_id' => $this->student->id,
@@ -35,11 +37,38 @@ it('rejects scheduling a session that overlaps an existing one for the same inst
     $this->actingAs($this->admin)->post(route('scheduling.store'), [
         'student_id' => $this->student->id,
         'instructor_id' => $this->instructor->id,
+        'vehicle_id' => $vehicle->id,
         'type' => 'practical',
         'scheduled_date' => '2026-08-10',
         'starts_at' => '08:30',
         'ends_at' => '09:30',
     ])->assertSessionHasErrors('starts_at');
+
+    expect(LessonSession::query()->count())->toBe(1);
+});
+
+it('requires a vehicle for a practical session', function () {
+    $this->actingAs($this->admin)->post(route('scheduling.store'), [
+        'student_id' => $this->student->id,
+        'instructor_id' => $this->instructor->id,
+        'type' => 'practical',
+        'scheduled_date' => '2026-08-10',
+        'starts_at' => '08:30',
+        'ends_at' => '09:30',
+    ])->assertSessionHasErrors('vehicle_id');
+
+    expect(LessonSession::query()->count())->toBe(0);
+});
+
+it('does not require a vehicle for a theoretical session', function () {
+    $this->actingAs($this->admin)->post(route('scheduling.store'), [
+        'student_id' => $this->student->id,
+        'instructor_id' => $this->instructor->id,
+        'type' => 'theoretical',
+        'scheduled_date' => '2026-08-10',
+        'starts_at' => '08:30',
+        'ends_at' => '09:30',
+    ])->assertSessionDoesntHaveErrors('vehicle_id');
 
     expect(LessonSession::query()->count())->toBe(1);
 });

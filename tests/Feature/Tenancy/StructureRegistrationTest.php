@@ -1,9 +1,11 @@
 <?php
 
+use App\Domain\Notifications\Notifications\NewStructureRegisteredNotification;
 use App\Domain\Tenancy\Enums\StructureStatus;
 use App\Domain\Tenancy\Models\Structure;
 use App\Models\User;
 use Database\Seeders\RoleSeeder;
+use Illuminate\Support\Facades\Notification;
 
 beforeEach(fn () => $this->seed(RoleSeeder::class));
 
@@ -45,4 +47,83 @@ it('allows two different schools to register admins with the same email', functi
     ])->assertRedirect(route('login'));
 
     expect(User::where('email', 'shared@example.com')->count())->toBe(2);
+});
+
+it('emails every super-admin when a new structure registers', function () {
+    Notification::fake();
+
+    $superadmin = User::factory()->create();
+    $superadmin->assignRole('superadmin');
+
+    $this->post('/register', [
+        'school_name' => 'Auto-École Notif',
+        'admin_name' => 'Notif Admin',
+        'admin_email' => 'notif-admin@example.com',
+        'password' => 'password123',
+        'password_confirmation' => 'password123',
+    ])->assertRedirect(route('login'));
+
+    Notification::assertSentTo(
+        $superadmin,
+        NewStructureRegisteredNotification::class,
+        fn ($notification) => $notification->structureName === 'Auto-École Notif'
+    );
+});
+
+it('notifies every super-admin, never the newly created school\'s own admin', function () {
+    Notification::fake();
+
+    $superadminA = User::factory()->create();
+    $superadminA->assignRole('superadmin');
+    $superadminB = User::factory()->create();
+    $superadminB->assignRole('superadmin');
+
+    $this->post('/register', [
+        'school_name' => 'Auto-École Multi',
+        'admin_name' => 'Multi Admin',
+        'admin_email' => 'multi-admin@example.com',
+        'password' => 'password123',
+        'password_confirmation' => 'password123',
+    ]);
+
+    $newAdmin = User::where('email', 'multi-admin@example.com')->firstOrFail();
+
+    Notification::assertSentTo($superadminA, NewStructureRegisteredNotification::class);
+    Notification::assertSentTo($superadminB, NewStructureRegisteredNotification::class);
+    Notification::assertNotSentTo($newAdmin, NewStructureRegisteredNotification::class);
+});
+
+it('does not error when no super-admin account exists yet', function () {
+    Notification::fake();
+
+    $response = $this->post('/register', [
+        'school_name' => 'Auto-École Solo',
+        'admin_name' => 'Solo Admin',
+        'admin_email' => 'solo-admin@example.com',
+        'password' => 'password123',
+        'password_confirmation' => 'password123',
+    ]);
+
+    $response->assertRedirect(route('login'));
+    expect(Structure::where('name', 'Auto-École Solo')->exists())->toBeTrue();
+});
+
+it('rate limits repeated registration attempts', function () {
+    for ($i = 0; $i < 6; $i++) {
+        $this->post('/register', [
+            'school_name' => "École $i",
+            'admin_name' => "Admin $i",
+            'admin_email' => "admin{$i}@example.com",
+            'password' => 'password123',
+            'password_confirmation' => 'password123',
+        ]);
+    }
+
+    $this->post('/register', [
+        'school_name' => 'École trop',
+        'admin_name' => 'Admin trop',
+        'admin_email' => 'trop@example.com',
+        'password' => 'password123',
+        'password_confirmation' => 'password123',
+    ])->assertStatus(429);
 });

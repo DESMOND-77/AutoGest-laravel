@@ -9,7 +9,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 /**
- * One row per tenant — a singleton config record, not a list. Resolve it via
+ * One row per tenant - a singleton config record, not a list. Resolve it via
  * SettingController::forTenant() (find-or-create), never Setting::create()
  * directly, so a school never ends up with two rows.
  */

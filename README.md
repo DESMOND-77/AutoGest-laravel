@@ -6,7 +6,7 @@
 <h1 align="center">Auto-GestBoard</h1>
 
 <p align="center">
-  Plateforme SaaS multi-tenant de gestion d'auto-écoles — élèves, moniteurs, planning, facturation, flotte et examens, dans une seule application.
+  Plateforme SaaS multi-tenant de gestion d'auto-écoles - élèves, moniteurs, planning, facturation, flotte et examens, dans une seule application.
 </p>
 
 <p align="center">
@@ -51,17 +51,17 @@
 
 Auto-GestBoard couvre l'intégralité du cycle de vie d'une auto-école, pour quatre profils d'utilisateurs distincts :
 
-- 🏫 **Multi-établissement (SaaS)** — chaque auto-école est un tenant isolé, avec ses propres élèves, moniteurs, véhicules, factures et plannings.
-- 👤 **Quatre espaces dédiés** — Super-Admin (plateforme), Admin/Gérant, Moniteur, Élève, chacun avec sa propre interface.
-- 🎓 **Cycle de vie de l'élève en 15 étapes** — de `Prospect` à `Ancien élève`, avec transitions pilotées par événements (génération de documents, notifications, facturation).
-- 📅 **Planning interactif** — détection automatique des conflits d'horaires, à la fois pour le moniteur **et** pour le véhicule.
-- 💳 **Facturation complète** — forfaits, factures, paiements partiels ou soldés, journal comptable (caisse/banque).
-- 🚗 **Gestion de flotte** — entretiens, consommation de carburant, alertes unifiées d'expiration (contrôle technique / assurance à 30 jours).
-- 📝 **Formation & examens** — suivi des compétences, résultats d'examens (code et conduite), entraînement au code théorique avec notation strictement calculée côté serveur.
-- 🛒 **Boutique intégrée** — catalogue, fournisseurs, commandes (livres de code, accessoires).
-- 📈 **Rapports & tableau de bord** — chiffre d'affaires, taux de réussite, alertes flotte, exports CSV.
+- 🏫 **Multi-établissement (SaaS)** - chaque auto-école est un tenant isolé, avec ses propres élèves, moniteurs, véhicules, factures et plannings.
+- 👤 **Quatre espaces dédiés** - Super-Admin (plateforme), Admin/Gérant, Moniteur, Élève, chacun avec sa propre interface.
+- 🎓 **Cycle de vie de l'élève en 15 étapes** - de `Prospect` à `Ancien élève`, avec transitions pilotées par événements (génération de documents, notifications, facturation).
+- 📅 **Planning interactif** - détection automatique des conflits d'horaires, à la fois pour le moniteur **et** pour le véhicule.
+- 💳 **Facturation complète** - forfaits, factures, paiements partiels ou soldés, journal comptable (caisse/banque).
+- 🚗 **Gestion de flotte** - entretiens, consommation de carburant, alertes unifiées d'expiration (contrôle technique / assurance à 30 jours).
+- 📝 **Formation & examens** - suivi des compétences, résultats d'examens (code et conduite), entraînement au code théorique avec notation strictement calculée côté serveur.
+- 🛒 **Boutique intégrée** - catalogue, fournisseurs, commandes (livres de code, accessoires).
+- 📈 **Rapports & tableau de bord** - chiffre d'affaires, taux de réussite, alertes flotte, exports CSV.
 - 🔔 **Notifications événementielles**, 📁 **gestion documentaire versionnée**, 🕵️ **journal d'audit** des actions sensibles.
-- 🔒 **Isolation multi-tenant structurelle** — appliquée au niveau du framework, pas par convention (voir [Architecture](#architecture)).
+- 🔒 **Isolation multi-tenant structurelle** - appliquée au niveau du framework, pas par convention (voir [Architecture](#architecture)).
 
 ## Architecture
 
@@ -129,7 +129,7 @@ npm run build
 
 ## Configuration
 
-La configuration se fait exclusivement via le fichier `.env` (jamais de valeur sensible codée en dur — l'ancienne version du projet avait cet écueil, corrigé dans cette version). Copiez `.env.example` vers `.env` puis ajustez les valeurs à votre environnement.
+La configuration se fait exclusivement via le fichier `.env` (jamais de valeur sensible codée en dur - l'ancienne version du projet avait cet écueil, corrigé dans cette version). Copiez `.env.example` vers `.env` puis ajustez les valeurs à votre environnement.
 
 ## Variables d'environnement
 
@@ -143,7 +143,7 @@ La configuration se fait exclusivement via le fichier `.env` (jamais de valeur s
 | `DB_CONNECTION` | Pilote de base de données | `mysql` |
 | `DB_HOST` / `DB_PORT` | Hôte / port MySQL | `127.0.0.1` / `3306` |
 | `DB_DATABASE` | Nom de la base | `autoecole_jh_laravel` |
-| `DB_USERNAME` / `DB_PASSWORD` | Identifiants MySQL | — |
+| `DB_USERNAME` / `DB_PASSWORD` | Identifiants MySQL | - |
 | `SESSION_DRIVER` | Pilote de session | `redis` |
 | `CACHE_STORE` | Pilote de cache | `redis` |
 | `QUEUE_CONNECTION` | Pilote de file d'attente | `redis` |
@@ -161,9 +161,9 @@ composer run dev
 
 Cette commande unique démarre en parallèle le serveur PHP, le worker de file d'attente, les logs en direct (`php artisan pail`) et Vite en mode watch.
 
-Comptes de démonstration après `php artisan db:seed` (mot de passe : voir vos seeders/factories locaux — **à ne jamais réutiliser en production**) :
+Comptes de démonstration après `php artisan db:seed` (mot de passe : voir vos seeders/factories locaux - **à ne jamais réutiliser en production**) :
 
-> **TODO : Compléter avec les informations spécifiques au projet** — lister ici les comptes de démonstration une fois un `DatabaseSeeder` de démonstration complet ajouté (élève, moniteur, admin, super-admin).
+> **TODO : Compléter avec les informations spécifiques au projet** - lister ici les comptes de démonstration une fois un `DatabaseSeeder` de démonstration complet ajouté (élève, moniteur, admin, super-admin).
 
 ## Lancement en production
 
@@ -220,7 +220,7 @@ Voir [docs/api.md](docs/api.md) pour l'ensemble des endpoints JSON disponibles (
 
 ## Captures d'écran
 
-> **TODO : Compléter avec les informations spécifiques au projet** — ajouter des captures d'écran du tableau de bord Admin, du planning interactif et de l'espace Élève dans `docs/assets/screenshots/` et les référencer ici, par exemple :
+> **TODO : Compléter avec les informations spécifiques au projet** - ajouter des captures d'écran du tableau de bord Admin, du planning interactif et de l'espace Élève dans `docs/assets/screenshots/` et les référencer ici, par exemple :
 >
 > ```markdown
 > ![Tableau de bord Admin](docs/assets/screenshots/dashboard-admin.png)
@@ -232,7 +232,7 @@ Voir [docs/api.md](docs/api.md) pour l'ensemble des endpoints JSON disponibles (
 ```
 AutoGest/
 ├── app/
-│   ├── Domain/              Domaines métier (DDD modulaire) — voir docs/architecture.md
+│   ├── Domain/              Domaines métier (DDD modulaire) - voir docs/architecture.md
 │   │   ├── Students/ Instructors/ Training/ Scheduling/
 │   │   ├── Finance/ Store/ Fleet/ CRM/
 │   │   ├── Documents/ Notifications/ Audit/
@@ -271,13 +271,13 @@ AutoGest/
 
 ## Roadmap
 
-- [x] Phase 0 — Socle Laravel, authentification, tenance, tests d'architecture
-- [x] Phase 1 — Élèves, cycle de vie, authentification
-- [x] Phase 2 — Facturation (factures / paiements / journal)
-- [x] Phase 3 — Planning et formation (conflits moniteur + véhicule, examens)
-- [x] Phase 4 — Flotte et boutique
-- [x] Phase 5 — CRM, notifications, documents, audit
-- [x] Phase 6 — Domaine Instructeurs, paramètres par établissement, entraînement au code
+- [x] Phase 0 - Socle Laravel, authentification, tenance, tests d'architecture
+- [x] Phase 1 - Élèves, cycle de vie, authentification
+- [x] Phase 2 - Facturation (factures / paiements / journal)
+- [x] Phase 3 - Planning et formation (conflits moniteur + véhicule, examens)
+- [x] Phase 4 - Flotte et boutique
+- [x] Phase 5 - CRM, notifications, documents, audit
+- [x] Phase 6 - Domaine Instructeurs, paramètres par établissement, entraînement au code
 - [ ] Interface front-end interactive pour le quiz de code (au-delà de l'API JSON actuelle)
 - [ ] Import automatisé des grilles de planning historiques (`etp*.csv`, `ett*.csv`)
 - [ ] Notifications SMS / paiement en ligne (Airtel Money, Moov Money)
@@ -330,7 +330,7 @@ Ce projet est distribué sous licence [MIT](LICENSE).
 
 ## Auteurs
 
-- **[DESMOND-77](https://github.com/DESMOND-77)** — création et développement
+- **[DESMOND-77](https://github.com/DESMOND-77)** - création et développement
 
 Voir aussi la liste des [contributeurs](https://github.com/DESMOND-77/AutoGest/graphs/contributors).
 

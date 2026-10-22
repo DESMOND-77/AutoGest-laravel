@@ -31,7 +31,7 @@ it('does not award a point for a wrong option', function () {
 });
 
 it('cannot be tricked into a higher score by anything other than which option id was chosen', function () {
-    // The service only ever receives [question_id => option_id] — there is no
+    // The service only ever receives [question_id => option_id] - there is no
     // parameter through which a caller could pass a fabricated "is_correct"
     // flag, so submitting the wrong option id can never score a point no
     // matter what else is (not) passed in.

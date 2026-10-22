@@ -72,5 +72,5 @@ it('blocks a moniteur from another tenant entirely', function () {
 
     $this->actingAs($foreignMoniteur)
         ->get(route('training.evaluation.show', $this->student))
-        ->assertForbidden();
+        ->assertNotFound();
 });

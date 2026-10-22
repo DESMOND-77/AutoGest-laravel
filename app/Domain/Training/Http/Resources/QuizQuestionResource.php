@@ -12,7 +12,7 @@ use Illuminate\Http\Resources\Json\JsonResource;
 class QuizQuestionResource extends JsonResource
 {
     /**
-     * Explicit field whitelist — options never carry `is_correct`, so a
+     * Explicit field whitelist - options never carry `is_correct`, so a
      * client can never learn the answer before submitting.
      */
     public function toArray(Request $request): array

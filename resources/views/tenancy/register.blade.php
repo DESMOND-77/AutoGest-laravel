@@ -1,9 +1,9 @@
 <x-guest-layout>
-    <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">
+    <h1 class="text-lg font-semibold text-content mb-2">
         Inscrire mon auto-école
-    </h2>
+    </h1>
 
-    <p class="text-sm text-gray-600 dark:text-gray-400 mb-6">
+    <p class="text-sm text-content-secondary mb-6">
         Créez le compte de votre établissement. Il sera activé après validation
         par l'administrateur de la plateforme.
     </p>
@@ -46,8 +46,8 @@
             <x-text-input id="password_confirmation" class="block mt-1 w-full" type="password" name="password_confirmation" required />
         </div>
 
-        <div class="flex items-center justify-end mt-4">
-            <a class="underline text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100" href="{{ route('login') }}">
+        <div class="flex items-center justify-end mt-6">
+            <a class="text-sm text-content-secondary hover:text-content" href="{{ route('login') }}">
                 Déjà inscrit ?
             </a>
 

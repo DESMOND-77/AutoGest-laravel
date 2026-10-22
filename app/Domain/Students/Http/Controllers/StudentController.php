@@ -3,6 +3,8 @@
 namespace App\Domain\Students\Http\Controllers;
 
 use App\Domain\Audit\Services\AuditService;
+use App\Domain\Students\Enums\CourseType;
+use App\Domain\Students\Enums\LicenseCategory;
 use App\Domain\Students\Enums\LifecycleStage;
 use App\Domain\Students\Http\Requests\StoreStudentRequest;
 use App\Domain\Students\Http\Requests\UpdateStudentRequest;
@@ -10,12 +12,16 @@ use App\Domain\Students\Models\Student;
 use App\Domain\Students\Repositories\StudentRepositoryInterface;
 use App\Domain\Students\Services\EnrollmentService;
 use App\Domain\Students\Services\LifecycleService;
+use App\Domain\Users\Services\UserManagementService;
 use App\Http\Controllers\Controller;
 use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\View\View;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class StudentController extends Controller
 {
@@ -24,14 +30,24 @@ class StudentController extends Controller
         private readonly EnrollmentService $enrollment,
         private readonly LifecycleService $lifecycle,
         private readonly AuditService $audit,
+        private readonly UserManagementService $users,
     ) {}
 
-    public function index(): View
+    public function index(Request $request): View
     {
         $this->authorize('viewAny', Student::class);
 
+        $filters = $request->only([
+            'search', 'stage', 'license_category', 'course_type', 'instructor_id', 'registered_from', 'registered_to',
+        ]);
+
         return view('students.index', [
-            'students' => $this->students->paginate(),
+            'students' => $this->students->paginate($filters),
+            'filters' => $filters,
+            'stages' => LifecycleStage::cases(),
+            'licenseCategories' => LicenseCategory::cases(),
+            'courseTypes' => CourseType::cases(),
+            'instructors' => $this->instructors(),
         ]);
     }
 
@@ -47,10 +63,21 @@ class StudentController extends Controller
 
     public function store(StoreStudentRequest $request): RedirectResponse
     {
-        $student = $this->enrollment->register($request->validated());
+        $student = DB::transaction(function () use ($request) {
+            $student = $this->enrollment->register($request->validated());
+
+            $this->users->createAccount([
+                'name' => $student->fullName(),
+                'email' => $student->email,
+                'role' => 'eleve',
+                'student_id' => $student->id,
+            ], Auth::user());
+
+            return $student;
+        });
 
         return redirect()->route('students.show', $student)
-            ->with('status', 'Élève créé.');
+            ->with('status', 'Élève créé. Un lien de définition de mot de passe lui a été envoyé.');
     }
 
     public function show(Student $student): View
@@ -87,6 +114,10 @@ class StudentController extends Controller
 
         $this->audit->log('student.deleted', $student, $student->only(['first_name', 'last_name']), [], Auth::user());
 
+        if ($student->user_id) {
+            $this->users->deactivate(User::query()->findOrFail($student->user_id), Auth::user());
+        }
+
         $this->students->delete($student);
 
         return redirect()->route('students.index')
@@ -107,8 +138,42 @@ class StudentController extends Controller
             ->with('status', 'Étape mise à jour.');
     }
 
+    public function downloadDossier(Student $student): StreamedResponse
+    {
+        $this->authorize('update', $student);
+
+        abort_unless($student->documents_zip_path, 404);
+
+        return Storage::disk('local')->download(
+            $student->documents_zip_path,
+            "dossier-{$student->fullName()}.zip"
+        );
+    }
+
+    public function createAccount(Student $student): RedirectResponse
+    {
+        $this->authorize('update', $student);
+
+        if ($student->user_id) {
+            return back()->withErrors(['account' => 'Cet élève a déjà un compte.']);
+        }
+
+        if (! $student->email) {
+            return back()->withErrors(['account' => 'Renseignez d\'abord une adresse e-mail pour cet élève.']);
+        }
+
+        $this->users->createAccount([
+            'name' => $student->fullName(),
+            'email' => $student->email,
+            'role' => 'eleve',
+            'student_id' => $student->id,
+        ], Auth::user());
+
+        return back()->with('status', 'Compte créé. Un lien de définition de mot de passe a été envoyé.');
+    }
+
     private function instructors()
     {
-        return User::role('moniteur')->orderBy('name')->get();
+        return User::role('moniteur')->active()->orderBy('name')->get();
     }
 }

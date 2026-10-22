@@ -42,3 +42,21 @@ it('logs a student deletion and scopes the audit view to the acting admin\'s ten
     $this->actingAs($adminA)->get(route('audit.index'))->assertOk()->assertSee('student.deleted');
     $this->actingAs($adminB)->get(route('audit.index'))->assertOk()->assertDontSee('student.deleted');
 });
+
+it('logs a student lifecycle stage change', function () {
+    $structure = Structure::factory()->create(['status' => StructureStatus::Active]);
+    $admin = User::factory()->create(['structure_id' => $structure->id]);
+    $admin->assignRole('admin');
+
+    $student = Student::factory()->create(['structure_id' => $structure->id]);
+
+    $this->actingAs($admin)
+        ->patch(route('students.stage', $student), ['stage' => 'pre_enrollment'])
+        ->assertRedirect();
+
+    $log = AuditLog::query()->where('action', 'student.stage_changed')->sole();
+    expect($log->auditable_id)->toBe($student->id);
+    expect($log->user_id)->toBe($admin->id);
+    expect($log->old_values)->toBe(['lifecycle_stage' => 'prospect']);
+    expect($log->new_values)->toBe(['lifecycle_stage' => 'pre_enrollment']);
+});

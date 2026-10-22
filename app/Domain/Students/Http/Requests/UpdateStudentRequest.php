@@ -5,6 +5,7 @@ namespace App\Domain\Students\Http\Requests;
 use App\Domain\Students\Enums\CourseType;
 use App\Domain\Students\Enums\LicenseCategory;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 use Illuminate\Validation\Rules\Enum;
 
 class UpdateStudentRequest extends FormRequest
@@ -28,7 +29,10 @@ class UpdateStudentRequest extends FormRequest
             'neph' => ['nullable', 'string', 'max:50'],
             'license_category' => ['required', new Enum(LicenseCategory::class)],
             'course_type' => ['required', new Enum(CourseType::class)],
-            'instructor_id' => ['nullable', 'exists:users,id'],
+            'instructor_id' => [
+                'nullable',
+                Rule::exists('users', 'id')->where('structure_id', $this->user()->structure_id),
+            ],
         ];
     }
 }

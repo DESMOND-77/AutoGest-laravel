@@ -2,9 +2,15 @@
 
 namespace App\Domain\Reports\Services;
 
+use App\Domain\Finance\Enums\InvoiceStatus;
 use App\Domain\Finance\Enums\LedgerEntryType;
+use App\Domain\Finance\Models\Invoice;
 use App\Domain\Finance\Models\LedgerEntry;
+use App\Domain\Finance\Models\Payment;
+use App\Domain\Fleet\Enums\VehicleStatus;
+use App\Domain\Fleet\Models\Vehicle;
 use App\Domain\Fleet\Services\AlertService;
+use App\Domain\Scheduling\Models\LessonSession;
 use App\Domain\Students\Enums\LifecycleStage;
 use App\Domain\Students\Models\Student;
 use App\Domain\Training\Enums\ExamResult;
@@ -12,7 +18,7 @@ use App\Domain\Training\Models\Exam;
 use Illuminate\Support\Collection;
 
 /**
- * Read-only aggregation across Finance, Training, Fleet and Students —
+ * Read-only aggregation across Finance, Training, Fleet and Students -
  * the one place the admin dashboard's numbers come from, replacing the
  * legacy pattern of the same "recettes du mois" / "CT sous 30 jours" query
  * being written slightly differently in dashboard.php and again in each
@@ -90,5 +96,104 @@ class ReportService
     public function fleetAlertCount(): int
     {
         return $this->fleetAlerts->count();
+    }
+
+    /**
+     * @return Collection<int, Payment>
+     */
+    public function recentPayments(int $limit = 5): Collection
+    {
+        return Payment::query()
+            ->whereNull('cancelled_at')
+            ->with('invoice.student')
+            ->latest('paid_at')
+            ->limit($limit)
+            ->get();
+    }
+
+    /**
+     * @return Collection<int, Exam>
+     */
+    public function upcomingExams(int $limit = 5): Collection
+    {
+        return Exam::query()
+            ->where('result', ExamResult::Pending)
+            ->where('exam_date', '>=', now()->toDateString())
+            ->with('student')
+            ->orderBy('exam_date')
+            ->limit($limit)
+            ->get();
+    }
+
+    /**
+     * @return array<string, int> keyed by VehicleStatus label
+     */
+    public function vehicleStatusCounts(): array
+    {
+        $counts = Vehicle::query()
+            ->selectRaw('status, count(*) as total')
+            ->groupBy('status')
+            ->pluck('total', 'status');
+
+        return collect(VehicleStatus::cases())
+            ->mapWithKeys(fn (VehicleStatus $status) => [
+                $status->label() => (int) ($counts[$status->value] ?? 0),
+            ])
+            ->all();
+    }
+
+    /**
+     * Every LedgerEntry type contributes to one running cash/bank balance -
+     * Income and BankDeposit are credits, Expense and BankWithdrawal are
+     * debits (see LedgerEntryType::isCredit()).
+     */
+    public function cashBalance(): float
+    {
+        $credits = LedgerEntry::query()
+            ->whereIn('type', [LedgerEntryType::Income->value, LedgerEntryType::BankDeposit->value])
+            ->sum('amount');
+
+        $debits = LedgerEntry::query()
+            ->whereIn('type', [LedgerEntryType::Expense->value, LedgerEntryType::BankWithdrawal->value])
+            ->sum('amount');
+
+        return (float) $credits - (float) $debits;
+    }
+
+    /**
+     * Sum of Invoice::balanceDue() across every unpaid or partially paid
+     * invoice - a single query, no relations loaded, so this stays clear
+     * of the N+1 risk a per-invoice lookup would introduce.
+     */
+    public function outstandingBalance(): float
+    {
+        return (float) Invoice::query()
+            ->whereIn('status', [InvoiceStatus::Unpaid->value, InvoiceStatus::Partial->value])
+            ->get()
+            ->sum(fn (Invoice $invoice) => $invoice->balanceDue());
+    }
+
+    /**
+     * @return Collection<int, LessonSession>
+     */
+    public function todaysSessions(): Collection
+    {
+        return LessonSession::query()
+            ->where('scheduled_date', now()->toDateString())
+            ->with('student', 'instructor')
+            ->orderBy('starts_at')
+            ->get();
+    }
+
+    /**
+     * @return Collection<int, LedgerEntry>
+     */
+    public function recentLedgerEntries(int $limit = 6): Collection
+    {
+        return LedgerEntry::query()
+            ->with('createdBy')
+            ->latest('occurred_on')
+            ->limit($limit)
+            ->get();
     }
 }

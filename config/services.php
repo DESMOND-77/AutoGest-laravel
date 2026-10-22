@@ -35,4 +35,25 @@ return [
         ],
     ],
 
+    // No Gabonese SMS provider is wired up yet - see SmsGateway's docblock.
+    // 'log' (the only driver today) writes to the log instead of sending.
+    'sms' => [
+        'driver' => env('SMS_DRIVER', 'log'),
+    ],
+
+    'student_registration' => [
+        // How long a freshly generated public registration link stays
+        // usable before it needs to be regenerated. See
+        // docs/features/student-public-registration.md.
+        'link_ttl_days' => env('STUDENT_REGISTRATION_LINK_TTL_DAYS', 90),
+    ],
+
+    'email_otp' => [
+        // How long a freshly generated OTP code stays valid, and how many
+        // wrong guesses are allowed before it must be reissued. See
+        // docs/features/student-public-registration.md.
+        'expiry_minutes' => env('EMAIL_OTP_EXPIRY_MINUTES', 10),
+        'max_attempts' => env('EMAIL_OTP_MAX_ATTEMPTS', 5),
+    ],
+
 ];

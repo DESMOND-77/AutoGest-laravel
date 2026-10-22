@@ -1,5 +1,7 @@
 <x-guest-layout>
-    <div class="mb-4 text-sm text-gray-600 dark:text-gray-400">
+    <h1 class="text-lg font-semibold text-content mb-3">Confirmer le mot de passe</h1>
+
+    <div class="mb-4 text-sm text-content-secondary">
         {{ __('This is a secure area of the application. Please confirm your password before continuing.') }}
     </div>
 

@@ -1,69 +1,81 @@
 <x-app-layout>
-    <x-slot name="header">
-        <h2 class="font-semibold text-xl text-gray-800 dark:text-gray-200 leading-tight">
-            Moniteurs
-        </h2>
-    </x-slot>
+    <x-slot name="header">Moniteurs</x-slot>
 
-    <div class="py-12">
-        <div class="max-w-4xl mx-auto sm:px-6 lg:px-8 space-y-6">
+    <div class="py-6 space-y-5 max-w-4xl mx-auto">
+        @if (session('status'))
+            <x-alert variant="success">{{ session('status') }}</x-alert>
+        @endif
 
-            @if (session('status'))
-                <div class="bg-green-100 text-green-800 text-sm rounded-md p-3">{{ session('status') }}</div>
-            @endif
+        @if ($errors->any())
+            <x-alert variant="danger">{{ $errors->first() }}</x-alert>
+        @endif
 
-            @can('create', \App\Domain\Instructors\Models\Instructor::class)
-                <div class="bg-white dark:bg-gray-800 shadow-sm rounded-lg p-6">
-                    <div class="text-sm font-medium text-gray-900 dark:text-gray-100 mb-3">Nouveau moniteur</div>
-                    <form method="POST" action="{{ route('instructors.store') }}" class="grid grid-cols-4 gap-3 items-end">
-                        @csrf
-                        <div>
-                            <x-input-label for="user_id" value="Utilisateur (id)" />
-                            <x-text-input id="user_id" type="number" name="user_id" class="block mt-1 w-full" required />
-                        </div>
-                        <div>
-                            <x-input-label for="license_number" value="N° agrément" />
-                            <x-text-input id="license_number" name="license_number" class="block mt-1 w-full" />
-                        </div>
-                        <div>
-                            <x-input-label for="hire_date" value="Date d'embauche" />
-                            <x-text-input id="hire_date" type="date" name="hire_date" class="block mt-1 w-full" />
-                        </div>
-                        <div>
-                            <x-primary-button>Ajouter</x-primary-button>
-                        </div>
-                    </form>
-                </div>
-            @endcan
+        @can('create', \App\Domain\Instructors\Models\Instructor::class)
+            <x-card>
+                <div class="text-sm font-semibold text-content mb-3">Nouveau moniteur</div>
+                <form id="instructors-create-form" method="POST" action="{{ route('instructors.store') }}" class="grid grid-cols-1 sm:grid-cols-4 gap-3 items-end">
+                    @csrf
+                    <div>
+                        <x-input-label for="name" value="Nom complet" />
+                        <x-text-input id="name" name="name" class="block mt-1 w-full" required />
+                    </div>
+                    <div>
+                        <x-input-label for="email" value="E-mail" />
+                        <x-text-input id="email" type="email" name="email" class="block mt-1 w-full" required />
+                    </div>
+                    <div>
+                        <x-input-label for="license_number" value="N° agrément" />
+                        <x-text-input id="license_number" name="license_number" class="block mt-1 w-full" />
+                    </div>
+                    <div>
+                        <x-input-label for="hire_date" value="Date d'embauche" />
+                        <x-text-input id="hire_date" type="date" name="hire_date" class="block mt-1 w-full" />
+                    </div>
+                    <div>
+                        <x-primary-button>Ajouter</x-primary-button>
+                    </div>
+                </form>
+                <p class="text-xs text-content-muted mt-3">
+                    Le nouveau compte moniteur reçoit un e-mail avec un lien pour définir son mot de passe.
+                </p>
+            </x-card>
+        @endcan
 
-            <div class="bg-white dark:bg-gray-800 shadow-sm sm:rounded-lg overflow-hidden">
+        <x-card :padded="false">
+            <div class="overflow-x-auto">
                 <table class="w-full text-sm text-left">
-                    <thead class="bg-gray-50 dark:bg-gray-700 text-gray-600 dark:text-gray-300">
+                    <thead class="text-content-muted">
                         <tr>
-                            <th class="px-4 py-3">Nom</th>
-                            <th class="px-4 py-3">N° agrément</th>
-                            <th class="px-4 py-3">Statut</th>
-                            <th class="px-4 py-3">Embauche</th>
+                            <th class="px-5 py-3 font-medium">Nom</th>
+                            <th class="px-5 py-3 font-medium">N° agrément</th>
+                            <th class="px-5 py-3 font-medium">Statut</th>
+                            <th class="px-5 py-3 font-medium">Embauche</th>
                         </tr>
                     </thead>
-                    <tbody class="divide-y divide-gray-100 dark:divide-gray-700">
+                    <tbody class="divide-y divide-border/60">
                         @forelse ($instructors as $instructor)
-                            <tr>
-                                <td class="px-4 py-3">
-                                    <a href="{{ route('instructors.show', $instructor) }}" class="font-medium text-indigo-600 dark:text-indigo-400">
+                            <tr class="hover:bg-surface-elevated/60 transition">
+                                <td class="px-5 py-3">
+                                    <a href="{{ route('instructors.show', $instructor) }}" class="font-medium text-content hover:text-primary transition">
                                         {{ $instructor->user->name }}
                                     </a>
                                 </td>
-                                <td class="px-4 py-3">{{ $instructor->license_number ?? '—' }}</td>
-                                <td class="px-4 py-3">{{ $instructor->status->label() }}</td>
-                                <td class="px-4 py-3">{{ optional($instructor->hire_date)->format('d/m/Y') ?? '—' }}</td>
+                                <td class="px-5 py-3 text-content-secondary">{{ $instructor->license_number ?? '-' }}</td>
+                                <td class="px-5 py-3"><x-badge variant="info">{{ $instructor->status->label() }}</x-badge></td>
+                                <td class="px-5 py-3 text-content-secondary">{{ optional($instructor->hire_date)->format('d/m/Y') ?? '-' }}</td>
                             </tr>
                         @empty
-                            <tr><td colspan="4" class="px-4 py-6 text-center text-gray-500">Aucun moniteur.</td></tr>
+                            <x-empty-table-row
+                                colspan="4"
+                                title="Aucun moniteur enregistré."
+                                message="Ajoutez votre premier moniteur pour pouvoir lui assigner des séances."
+                                :action="Auth::user()->can('create', \App\Domain\Instructors\Models\Instructor::class) ? '#instructors-create-form' : null"
+                                action-label="Ajouter un moniteur"
+                            />
                         @endforelse
                     </tbody>
                 </table>
             </div>
-        </div>
+        </x-card>
     </div>
 </x-app-layout>

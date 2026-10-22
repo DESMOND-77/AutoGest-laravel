@@ -5,7 +5,7 @@ Ce document complète [CONTRIBUTING.md](../CONTRIBUTING.md) avec des conventions
 ## Ajouter une fonctionnalité dans un domaine existant
 
 1. Identifiez le domaine concerné sous `app/Domain/<Domaine>/`.
-2. Repérez un fichier voisin similaire (Model, Service, Controller, Policy) et reproduisez exactement sa structure — la cohérence entre fichiers d'un même domaine est une convention forte de ce projet.
+2. Repérez un fichier voisin similaire (Model, Service, Controller, Policy) et reproduisez exactement sa structure - la cohérence entre fichiers d'un même domaine est une convention forte de ce projet.
 3. Toute règle métier va dans un `Service`, jamais dans un `Controller` ni une vue Blade.
 4. Toute autorisation passe par une `Policy` vérifiant systématiquement :
    - l'appartenance au tenant (`$model->structure_id === $user->structure_id`) ;
@@ -31,7 +31,7 @@ Puis :
 
 1. Enregistrez les bindings de repository et les `Gate::policy(...)` dans `app/Providers/AppServiceProvider.php`.
 2. Déclarez les routes dans `routes/web.php`, groupées par préfixe et middleware de rôle.
-3. **Ajoutez une règle dans `tests/Architecture/DomainBoundariesTest.php`** définissant les dépendances autorisées et interdites du nouveau domaine — c'est ce test qui empêche la réapparition d'un couplage non désiré entre domaines.
+3. **Ajoutez une règle dans `tests/Architecture/DomainBoundariesTest.php`** définissant les dépendances autorisées et interdites du nouveau domaine - c'est ce test qui empêche la réapparition d'un couplage non désiré entre domaines.
 
 ## Style de code PHP
 
@@ -91,5 +91,5 @@ Ce projet est configuré avec [Laravel Boost](https://github.com/laravel/boost) 
 ## Débogage
 
 - Logs applicatifs : `storage/logs/laravel.log`, ou en direct via `php artisan pail`.
-- `php artisan tinker` pour explorer l'état de l'application en console (ne pas l'utiliser pour valider une fonctionnalité — préférez un test Pest).
+- `php artisan tinker` pour explorer l'état de l'application en console (ne pas l'utiliser pour valider une fonctionnalité - préférez un test Pest).
 - `php artisan route:list` pour inspecter les routes enregistrées, filtrable par méthode, nom ou chemin.

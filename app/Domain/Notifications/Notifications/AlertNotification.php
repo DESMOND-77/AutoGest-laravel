@@ -6,7 +6,7 @@ use Illuminate\Bus\Queueable;
 use Illuminate\Notifications\Notification;
 
 /**
- * The Notifications domain only depends on Core (see the domain diagram) —
+ * The Notifications domain only depends on Core (see the domain diagram) -
  * it knows nothing about students, payments or vehicles. Turning a domain
  * event into a human-readable title/message/link is the job of the bridging
  * listeners in app/Listeners (same pattern as RecordVehicleExpenseInLedger

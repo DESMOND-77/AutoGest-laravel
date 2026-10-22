@@ -3,28 +3,42 @@
 use App\Domain\Audit\Http\Controllers\AuditLogController;
 use App\Domain\CRM\Http\Controllers\LeadController;
 use App\Domain\Documents\Http\Controllers\DocumentController;
+use App\Domain\Documents\Http\Controllers\DocumentReviewController;
 use App\Domain\Finance\Http\Controllers\InvoiceController;
 use App\Domain\Finance\Http\Controllers\LedgerController;
 use App\Domain\Finance\Http\Controllers\PaymentController;
+use App\Domain\Finance\Http\Controllers\StudentPaymentsController;
 use App\Domain\Finance\Http\Controllers\TrainingPackageController;
 use App\Domain\Fleet\Http\Controllers\VehicleController;
 use App\Domain\Instructors\Http\Controllers\InstructorAvailabilityController;
 use App\Domain\Instructors\Http\Controllers\InstructorController;
 use App\Domain\Notifications\Http\Controllers\NotificationController;
+use App\Domain\Recyclage\Http\Controllers\RecyclageController;
 use App\Domain\Reports\Http\Controllers\ReportsController;
 use App\Domain\Scheduling\Http\Controllers\AgendaController;
 use App\Domain\Scheduling\Http\Controllers\LessonSessionController;
 use App\Domain\Scheduling\Http\Controllers\StudentPlanningController;
+use App\Domain\Scheduling\Http\Controllers\StudentRouteSheetController;
 use App\Domain\Settings\Http\Controllers\SettingController;
 use App\Domain\Store\Http\Controllers\OrderController;
 use App\Domain\Store\Http\Controllers\ProductController;
+use App\Domain\Store\Http\Controllers\PurchaseOrderController;
+use App\Domain\Store\Http\Controllers\StoreController;
+use App\Domain\Store\Http\Controllers\StoreReportController;
 use App\Domain\Store\Http\Controllers\SupplierController;
+use App\Domain\Students\Http\Controllers\EmailOtpController;
+use App\Domain\Students\Http\Controllers\PublicStudentRegistrationController;
+use App\Domain\Students\Http\Controllers\RequiredDocumentTypeController;
 use App\Domain\Students\Http\Controllers\StudentController;
+use App\Domain\Students\Http\Controllers\StudentDossierController;
+use App\Domain\Students\Http\Controllers\StudentRegistrationLinkController;
 use App\Domain\Tenancy\Http\Controllers\StructureManagementController;
 use App\Domain\Training\Http\Controllers\EvaluationController;
 use App\Domain\Training\Http\Controllers\ExamController;
 use App\Domain\Training\Http\Controllers\QuizController;
 use App\Domain\Training\Http\Controllers\SkillController;
+use App\Domain\Training\Http\Controllers\StudentProgressionController;
+use App\Domain\Users\Http\Controllers\UserManagementController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
@@ -71,7 +85,12 @@ Route::middleware(['auth', 'role:admin'])
 Route::middleware(['auth', 'role:admin|moniteur'])->group(function () {
     Route::resource('students', StudentController::class);
     Route::patch('students/{student}/stage', [StudentController::class, 'advanceStage'])->name('students.stage');
+    Route::post('students/{student}/account', [StudentController::class, 'createAccount'])->name('students.create-account');
 });
+
+Route::middleware(['auth', 'role:admin'])
+    ->get('students/{student}/dossier/download', [StudentController::class, 'downloadDossier'])
+    ->name('students.dossier-download');
 
 Route::middleware(['auth', 'role:admin'])
     ->prefix('finance')
@@ -82,6 +101,7 @@ Route::middleware(['auth', 'role:admin'])
         Route::post('students/{student}/invoices', [InvoiceController::class, 'store'])->name('invoices.store');
         Route::get('invoices/{invoice}', [InvoiceController::class, 'show'])->name('invoices.show');
         Route::post('invoices/{invoice}/payments', [PaymentController::class, 'store'])->name('invoices.payments.store');
+        Route::post('payments/{payment}/cancel', [PaymentController::class, 'cancel'])->name('payments.cancel');
 
         Route::get('packages', [TrainingPackageController::class, 'index'])->name('packages.index');
         Route::post('packages', [TrainingPackageController::class, 'store'])->name('packages.store');
@@ -97,7 +117,10 @@ Route::middleware(['auth', 'role:admin'])
     ->name('scheduling.')
     ->group(function () {
         Route::get('/', [LessonSessionController::class, 'index'])->name('index');
+        Route::get('export.csv', [LessonSessionController::class, 'exportCsv'])->name('export.csv');
         Route::post('/', [LessonSessionController::class, 'store'])->name('store');
+        Route::patch('{session}', [LessonSessionController::class, 'update'])->name('update');
+        Route::post('{session}/duplicate', [LessonSessionController::class, 'duplicate'])->name('duplicate');
         Route::delete('{session}', [LessonSessionController::class, 'destroy'])->name('destroy');
     });
 
@@ -126,13 +149,15 @@ Route::middleware(['auth', 'role:admin|moniteur'])
         Route::post('students/{student}/evaluation', [EvaluationController::class, 'store'])->name('evaluation.store');
     });
 
-Route::middleware(['auth', 'role:eleve'])
+Route::middleware(['auth', 'role:eleve', 'otp.verified'])
     ->prefix('quiz')
     ->name('quiz.')
     ->group(function () {
+        Route::get('play', [QuizController::class, 'play'])->name('play');
         Route::get('/', [QuizController::class, 'index'])->name('index');
         Route::post('/', [QuizController::class, 'store'])->name('store');
         Route::get('results', [QuizController::class, 'results'])->name('results');
+        Route::get('attempts/{attempt}', [QuizController::class, 'showAttempt'])->name('attempts.show');
     });
 
 Route::middleware(['auth', 'role:admin|moniteur'])
@@ -155,6 +180,15 @@ Route::middleware(['auth', 'role:admin'])
     ->group(function () {
         Route::post('/', [VehicleController::class, 'store'])->name('store');
         Route::delete('{vehicle}', [VehicleController::class, 'destroy'])->name('destroy');
+    });
+
+Route::middleware(['auth', 'role:admin'])
+    ->prefix('recyclage')
+    ->name('recyclage.')
+    ->group(function () {
+        Route::get('/', [RecyclageController::class, 'index'])->name('index');
+        Route::post('/', [RecyclageController::class, 'store'])->name('store');
+        Route::delete('{entry}', [RecyclageController::class, 'destroy'])->name('destroy');
     });
 
 Route::middleware(['auth', 'role:admin|moniteur'])
@@ -182,12 +216,58 @@ Route::middleware(['auth', 'role:admin'])
     ->group(function () {
         Route::get('/', [SettingController::class, 'show'])->name('show');
         Route::patch('/', [SettingController::class, 'update'])->name('update');
+
+        Route::prefix('student-registration')
+            ->name('student-registration.')
+            ->group(function () {
+                Route::get('/', [StudentRegistrationLinkController::class, 'show'])->name('show');
+                Route::post('generate', [StudentRegistrationLinkController::class, 'generate'])->name('generate');
+                Route::post('regenerate', [StudentRegistrationLinkController::class, 'regenerate'])->name('regenerate');
+                Route::post('revoke', [StudentRegistrationLinkController::class, 'revoke'])->name('revoke');
+            });
+
+        Route::prefix('documents-requis')
+            ->name('document-types.')
+            ->group(function () {
+                Route::get('/', [RequiredDocumentTypeController::class, 'index'])->name('index');
+                Route::post('/', [RequiredDocumentTypeController::class, 'store'])->name('store');
+                Route::patch('{requiredDocumentType}', [RequiredDocumentTypeController::class, 'update'])->name('update');
+            });
+
+        Route::prefix('users')
+            ->name('users.')
+            ->group(function () {
+                Route::get('/', [UserManagementController::class, 'index'])->name('index');
+                Route::post('/', [UserManagementController::class, 'store'])->name('store');
+                Route::post('{user}/reset-password', [UserManagementController::class, 'sendPasswordReset'])->name('reset-password');
+                Route::post('{user}/deactivate', [UserManagementController::class, 'deactivate'])->name('deactivate');
+                Route::post('{user}/reactivate', [UserManagementController::class, 'reactivate'])->name('reactivate');
+            });
+    });
+
+// Public, unauthenticated: a prospective student opens the link an
+// auto-école generated above. The tenant comes from the token alone - see
+// PublicStudentRegistrationController's docblock - so this group carries no
+// 'auth' *or* 'guest' middleware, only per-IP throttling against token
+// brute-forcing and submission spam (§33-34 of the spec).
+Route::prefix('register/student')
+    ->name('public-registration.')
+    ->group(function () {
+        Route::get('/', [PublicStudentRegistrationController::class, 'show'])
+            ->middleware('throttle:public-registration-lookup')
+            ->name('show');
+
+        Route::post('/', [PublicStudentRegistrationController::class, 'store'])
+            ->middleware('throttle:public-registration-submit')
+            ->name('store');
     });
 
 Route::middleware(['auth', 'role:admin'])
     ->prefix('store')
     ->name('store.')
     ->group(function () {
+        Route::get('/', [StoreController::class, 'index'])->name('index');
+
         Route::get('products', [ProductController::class, 'index'])->name('products.index');
         Route::post('products', [ProductController::class, 'store'])->name('products.store');
         Route::delete('products/{product}', [ProductController::class, 'destroy'])->name('products.destroy');
@@ -196,6 +276,15 @@ Route::middleware(['auth', 'role:admin'])
 
         Route::get('orders', [OrderController::class, 'index'])->name('orders.index');
         Route::post('orders', [OrderController::class, 'store'])->name('orders.store');
+        Route::post('orders/{order}/cancel', [OrderController::class, 'cancel'])->name('orders.cancel');
+
+        Route::get('purchase-orders', [PurchaseOrderController::class, 'index'])->name('purchase-orders.index');
+        Route::post('purchase-orders', [PurchaseOrderController::class, 'store'])->name('purchase-orders.store');
+        Route::post('purchase-orders/{purchaseOrder}/receive', [PurchaseOrderController::class, 'receive'])->name('purchase-orders.receive');
+
+        Route::get('reports', [StoreReportController::class, 'show'])->name('reports.show');
+        Route::get('reports/top-products.csv', [StoreReportController::class, 'exportTopProductsCsv'])->name('reports.top-products.csv');
+        Route::get('reports/pdf', [StoreReportController::class, 'exportPdf'])->name('reports.pdf');
     });
 
 Route::middleware(['auth', 'role:admin'])
@@ -216,11 +305,19 @@ Route::middleware('auth')->group(function () {
 Route::middleware(['auth', 'role:admin'])->group(function () {
     Route::post('students/{student}/documents', [DocumentController::class, 'storeForStudent'])->name('students.documents.store');
     Route::post('fleet/{vehicle}/documents', [DocumentController::class, 'storeForVehicle'])->name('fleet.documents.store');
+    Route::get('dossiers', [DocumentReviewController::class, 'index'])->name('dossiers.index');
+    Route::post('documents/{document}/approve', [DocumentReviewController::class, 'approve'])->name('documents.approve');
+    Route::post('documents/{document}/reject', [DocumentReviewController::class, 'reject'])->name('documents.reject');
 });
 
 Route::middleware('auth')
     ->get('documents/{document}/download', [DocumentController::class, 'download'])
     ->name('documents.download');
+
+Route::middleware('auth')->group(function () {
+    Route::get('documents/{document}', [DocumentController::class, 'show'])->name('documents.show');
+    Route::get('documents/{document}/stream', [DocumentController::class, 'stream'])->name('documents.stream');
+});
 
 Route::middleware(['auth', 'role:admin|superadmin'])
     ->get('audit', [AuditLogController::class, 'index'])
@@ -231,13 +328,30 @@ Route::middleware(['auth', 'role:moniteur'])
     ->group(function () {
         Route::view('moniteur/dashboard', 'moniteur.dashboard')->name('dashboard');
         Route::get('moniteur/agenda', AgendaController::class)->name('agenda');
+        Route::get('moniteur/eleves/{student}/feuille-route', [StudentRouteSheetController::class, 'show'])->name('eleves.feuille-route');
     });
 
 Route::middleware(['auth', 'role:eleve'])
+    ->prefix('eleve')
+    ->name('eleve.')
+    ->group(function () {
+        Route::get('verification-otp', [EmailOtpController::class, 'show'])->name('otp.show');
+        Route::post('verification-otp', [EmailOtpController::class, 'verify'])->name('otp.verify');
+        Route::post('verification-otp/resend', [EmailOtpController::class, 'resend'])
+            ->middleware('throttle:1,1')
+            ->name('otp.resend');
+    });
+
+Route::middleware(['auth', 'role:eleve', 'otp.verified'])
     ->name('eleve.')
     ->group(function () {
         Route::view('eleve/dashboard', 'eleve.dashboard')->name('dashboard');
         Route::get('eleve/planning', StudentPlanningController::class)->name('planning');
+        Route::get('eleve/progression', StudentProgressionController::class)->name('progression');
+        Route::get('eleve/paiements', StudentPaymentsController::class)->name('paiements');
+        Route::get('eleve/dossier', [StudentDossierController::class, 'show'])->name('dossier.show');
+        Route::post('eleve/dossier/submit', [StudentDossierController::class, 'submit'])->name('dossier.submit');
+        Route::post('eleve/dossier/{requiredDocumentType}', [StudentDossierController::class, 'upload'])->name('dossier.upload');
     });
 
 require __DIR__.'/auth.php';

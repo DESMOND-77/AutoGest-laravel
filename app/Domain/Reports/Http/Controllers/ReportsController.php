@@ -3,8 +3,8 @@
 namespace App\Domain\Reports\Http\Controllers;
 
 use App\Domain\Reports\Services\ReportService;
-use App\Domain\Reports\Support\CsvExporter;
 use App\Http\Controllers\Controller;
+use App\Support\CsvExporter;
 use Illuminate\View\View;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
@@ -21,6 +21,13 @@ class ReportsController extends Controller
             'examStats' => $this->reports->examResultsSummary(),
             'studentsByStage' => $this->reports->studentsByStage(),
             'fleetAlertCount' => $this->reports->fleetAlertCount(),
+            'recentPayments' => $this->reports->recentPayments(),
+            'upcomingExams' => $this->reports->upcomingExams(),
+            'vehicleStatusCounts' => $this->reports->vehicleStatusCounts(),
+            'cashBalance' => $this->reports->cashBalance(),
+            'outstandingBalance' => $this->reports->outstandingBalance(),
+            'todaysSessions' => $this->reports->todaysSessions(),
+            'recentLedgerEntries' => $this->reports->recentLedgerEntries(),
         ]);
     }
 

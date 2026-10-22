@@ -2,11 +2,11 @@
 
 ## Moteur
 
-MySQL 8.x, encodage `utf8mb4` / collation `utf8mb4_unicode_ci`. Toutes les requêtes passent par Eloquent ou le Query Builder Laravel (requêtes préparées systématiques — aucun SQL brut concaténé avec une entrée utilisateur).
+MySQL 8.x, encodage `utf8mb4` / collation `utf8mb4_unicode_ci`. Toutes les requêtes passent par Eloquent ou le Query Builder Laravel (requêtes préparées systématiques - aucun SQL brut concaténé avec une entrée utilisateur).
 
 ## Principe de tenance
 
-Chaque table métier porte une colonne `structure_id` (clé étrangère vers `structures`), toujours en première position après `id()`. Le filtrage par tenant est appliqué automatiquement par le trait `App\Support\BelongsToTenant` sur les modèles concernés — voir [docs/architecture.md](architecture.md#multi-tenance).
+Chaque table métier porte une colonne `structure_id` (clé étrangère vers `structures`), toujours en première position après `id()`. Le filtrage par tenant est appliqué automatiquement par le trait `App\Support\BelongsToTenant` sur les modèles concernés - voir [docs/architecture.md](architecture.md#multi-tenance).
 
 Les tables sans lien direct avec une structure (ex. `quiz_options`, scopée via `quiz_questions`) sont volontairement rattachées à leur parent plutôt que de dupliquer la colonne, conformément à une décision explicite documentée dans le modèle concerné.
 
@@ -78,4 +78,4 @@ php artisan migrate
 php artisan migrate:fresh --seed
 ```
 
-> **TODO : Compléter avec les informations spécifiques au projet** — schéma de sauvegarde/restauration et politique de rétention des données personnelles (élèves, documents) à documenter avant tout déploiement en production, notamment au regard des obligations de protection des données applicables.
+> **TODO : Compléter avec les informations spécifiques au projet** - schéma de sauvegarde/restauration et politique de rétention des données personnelles (élèves, documents) à documenter avant tout déploiement en production, notamment au regard des obligations de protection des données applicables.

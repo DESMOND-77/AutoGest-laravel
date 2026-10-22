@@ -7,7 +7,7 @@
 - Redis 6.x+ (cache, sessions, files d'attente)
 - Un serveur web (Nginx recommandé) ou une plateforme PaaS compatible Laravel
 - Un worker de file d'attente supervisé (Supervisor, systemd, ou équivalent managé)
-- Un accès HTTPS (certificat TLS valide) — obligatoire, l'application gère des données personnelles d'élèves
+- Un accès HTTPS (certificat TLS valide) - obligatoire, l'application gère des données personnelles d'élèves
 
 ## Variables d'environnement de production
 
@@ -35,7 +35,7 @@ MAIL_HOST=<hôte-smtp>
 MAIL_FROM_ADDRESS="no-reply@votre-domaine.tld"
 ```
 
-> **Important** : `APP_DEBUG=false` est obligatoire en production — un mode debug actif expose la configuration, les identifiants de connexion et la structure interne de l'application.
+> **Important** : `APP_DEBUG=false` est obligatoire en production - un mode debug actif expose la configuration, les identifiants de connexion et la structure interne de l'application.
 
 ## Procédure de déploiement
 
@@ -89,7 +89,7 @@ En production, supervisez ce processus (Supervisor, systemd, ou le mécanisme de
 
 ## Sauvegardes
 
-> **TODO : Compléter avec les informations spécifiques au projet** — stratégie de sauvegarde de la base de données (fréquence, rétention, test de restauration) et des fichiers uploadés (`storage/app/`) à définir selon l'hébergeur choisi.
+> **TODO : Compléter avec les informations spécifiques au projet** - stratégie de sauvegarde de la base de données (fréquence, rétention, test de restauration) et des fichiers uploadés (`storage/app/`) à définir selon l'hébergeur choisi.
 
 ## Checklist avant mise en production
 

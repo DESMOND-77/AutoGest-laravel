@@ -8,7 +8,7 @@ Ce choix remplace l'architecture procédurale de l'application historique (`auto
 
 ## Principe directeur
 
-> Une règle métier ne s'écrit qu'une seule fois, dans un `Service` du domaine concerné — jamais dans un Contrôleur, jamais dans une vue Blade, jamais dupliquée entre deux domaines.
+> Une règle métier ne s'écrit qu'une seule fois, dans un `Service` du domaine concerné - jamais dans un Contrôleur, jamais dans une vue Blade, jamais dupliquée entre deux domaines.
 
 ## Domaines métier
 
@@ -35,11 +35,11 @@ Chaque domaine expose, selon ses besoins :
 ```
 app/Domain/<Domaine>/
 ├── Models/          Modèles Eloquent (BelongsToTenant, HasFactory)
-├── Services/         Logique métier — le seul endroit où une règle est écrite
+├── Services/         Logique métier - le seul endroit où une règle est écrite
 ├── Repositories/      Interface + implémentation Eloquent (pour l'agrégat principal)
 ├── Policies/          Autorisation (tenant + relation métier)
 ├── Http/
-│   ├── Controllers/   Fins — orchestrent un appel Service, aucune logique métier
+│   ├── Controllers/   Fins - orchestrent un appel Service, aucune logique métier
 │   ├── Requests/       Validation des entrées
 │   └── Resources/      Sérialisation JSON explicite (whitelist des champs exposés)
 ├── Enums/             États et catégories typés
@@ -108,12 +108,12 @@ Approche *strangler fig* (module par module, sans interruption du système exist
 
 | Phase | Contenu | Statut |
 | ----- | -------- | ------ |
-| 0 — Socle | Squelette Laravel, Breeze, Spatie permission, Tenancy, tests d'architecture | ✅ |
-| 1 — Users / Students / Auth | Cycle de vie élève, contraintes tenant | ✅ |
-| 2 — Finance | Factures / paiements / journal comptable | ✅ |
-| 3 — Scheduling + Training | Conflits de planning, formation, examens | ✅ |
-| 4 — Fleet + Store | Flotte, boutique | ✅ |
-| 5 — CRM + Notifications + Documents + Audit | Modules entièrement nouveaux | ✅ |
-| 6 — Reports + bascule | Tableau de bord BI, export, dépréciation de l'ancien dépôt | 🚧 en cours |
+| 0 - Socle | Squelette Laravel, Breeze, Spatie permission, Tenancy, tests d'architecture | ✅ |
+| 1 - Users / Students / Auth | Cycle de vie élève, contraintes tenant | ✅ |
+| 2 - Finance | Factures / paiements / journal comptable | ✅ |
+| 3 - Scheduling + Training | Conflits de planning, formation, examens | ✅ |
+| 4 - Fleet + Store | Flotte, boutique | ✅ |
+| 5 - CRM + Notifications + Documents + Audit | Modules entièrement nouveaux | ✅ |
+| 6 - Reports + bascule | Tableau de bord BI, export, dépréciation de l'ancien dépôt | 🚧 en cours |
 
 Voir également [docs/development.md](development.md) pour les conventions de développement au sein d'un domaine.

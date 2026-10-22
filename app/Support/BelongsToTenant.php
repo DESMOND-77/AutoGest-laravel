@@ -13,15 +13,14 @@ use Illuminate\Database\Eloquent\Model;
  * structurally impossible instead of dependent on each query remembering to
  * add the filter by hand.
  *
- * Note: implicit route-model binding (SubstituteBindings) runs before
- * ResolveTenant in the middleware stack, so a {student}/{invoice}/... bound
- * straight from the URL is resolved *before* this scope has a tenant to
- * filter on. Cross-tenant access is still blocked — every controller that
- * accepts a bound model explicitly checks the owning Policy — but the
- * response is a 403 from the Policy rather than a 404 from the scope. The
- * scope's own protection is fully active for every query built inside a
- * controller/service (index listings, repositories, etc.), which is most of
- * what it's for.
+ * Note: ResolveTenant is given explicit middleware priority (see
+ * bootstrap/app.php) to run before SubstituteBindings, so this scope is
+ * already active by the time a {student}/{invoice}/... route parameter is
+ * resolved. A URL pointing at another tenant's resource simply doesn't match
+ * any row and 404s before the controller/Policy ever runs. Every controller
+ * still explicitly checks the owning Policy as defense in depth (e.g. same
+ * tenant but wrong role), but cross-tenant access no longer depends on that
+ * check alone.
  */
 trait BelongsToTenant
 {

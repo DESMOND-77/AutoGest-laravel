@@ -8,7 +8,7 @@ use App\Models\User;
 /**
  * Student::class already carries the tenant global scope, so a Student
  * instance reaching this policy already belongs to the current tenant
- * *unless* it was fetched via withoutTenantScope() — which is exactly the
+ * *unless* it was fetched via withoutTenantScope() - which is exactly the
  * kind of unscoped lookup that caused the two IDOR bugs found in the legacy
  * app (admin/eleves.php edit+delete, moniteur/evaluation.php). We still
  * re-check structure_id explicitly here rather than trusting the caller.
@@ -50,7 +50,7 @@ class StudentPolicy
 
     /**
      * Same tenant + ownership rule as view(), reused by the Training domain
-     * to gate skill evaluation — this is the exact check that was missing
+     * to gate skill evaluation - this is the exact check that was missing
      * in the legacy moniteur/evaluation.php (fixs.md #4).
      */
     public function evaluate(User $user, Student $student): bool

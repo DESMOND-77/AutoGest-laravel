@@ -12,7 +12,7 @@ use Illuminate\Support\Carbon;
  * fixed-hour grid: it matched a session into a cell by string-comparing
  * substr($s['heure_debut'],0,5) against "$h:00", which (per fixs.md #2) was
  * broken by an hour-format mismatch, and which structurally could never
- * represent a half-hour session at all — the grid only had whole-hour rows.
+ * represent a half-hour session at all - the grid only had whole-hour rows.
  * This rule instead does a real time-range overlap check, so any start/end
  * time works and there is exactly one implementation of the rule, not one
  * per page that happens to need it.
@@ -31,7 +31,7 @@ class ConflictRule
 
     /**
      * Same overlap check as hasConflict(), scoped to a vehicle instead of an
-     * instructor — a car can't be double-booked any more than a moniteur can.
+     * instructor - a car can't be double-booked any more than a moniteur can.
      */
     public function hasVehicleConflict(
         int $vehicleId,

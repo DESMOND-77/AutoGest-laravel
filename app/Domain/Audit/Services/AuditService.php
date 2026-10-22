@@ -9,7 +9,7 @@ use Illuminate\Support\Facades\Request;
 
 /**
  * Deliberately takes only primitives + a generic Model, never a domain
- * type — Audit depends on nothing but Core, so any other domain can log to
+ * type - Audit depends on nothing but Core, so any other domain can log to
  * it without Audit ever needing to know Students/Finance/Fleet exist.
  */
 class AuditService

@@ -10,7 +10,7 @@ use Symfony\Component\HttpFoundation\Response;
 /**
  * Resolves the tenant for the authenticated user and binds it to
  * TenantContext for the duration of the request. Super-admin users
- * (structure_id = null) simply leave no tenant bound — routes under their
+ * (structure_id = null) simply leave no tenant bound - routes under their
  * area never touch tenant-scoped models.
  */
 class ResolveTenant
