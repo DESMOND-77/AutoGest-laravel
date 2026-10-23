@@ -2,6 +2,7 @@
 
 namespace App\Support\Ui;
 
+use App\Domain\Students\Models\Student;
 use App\Models\User;
 use Illuminate\Support\Facades\Route;
 
@@ -53,7 +54,7 @@ class Navigation
                 ['label' => 'Factures', 'route' => 'finance.invoices.index', 'icon' => 'receipt', 'match' => 'finance.invoices.*'],
                 ['label' => 'Forfaits', 'route' => 'finance.packages.index', 'icon' => 'ticket', 'match' => 'finance.packages.*'],
                 ['label' => 'Journal comptable', 'route' => 'finance.ledger.index', 'icon' => 'landmark', 'match' => 'finance.ledger.*'],
-                ['label' => 'Recyclage', 'route' => 'recyclage.index', 'icon' => 'refresh-cw', 'match' => 'recyclage.*'],
+                ['label' => 'Recyclage & Tests', 'route' => 'recyclage.index', 'icon' => 'refresh-cw', 'match' => 'recyclage.*'],
                 ['label' => 'Produits', 'route' => 'store.products.index', 'icon' => 'package', 'match' => 'store.products.*'],
                 ['label' => 'Commandes', 'route' => 'store.orders.index', 'icon' => 'shopping-bag', 'match' => 'store.orders.*'],
                 ['label' => 'Bons de commande', 'route' => 'store.purchase-orders.index', 'icon' => 'clipboard-list', 'match' => 'store.purchase-orders.*'],
@@ -135,7 +136,7 @@ class Navigation
                 ['label' => 'Nouveau prospect', 'route' => 'crm.leads.index', 'icon' => 'sparkles'],
                 ['label' => 'Nouveau véhicule', 'route' => 'fleet.index', 'icon' => 'car'],
             ],
-            $user->hasRole('moniteur') => $user->can('create', \App\Domain\Students\Models\Student::class)
+            $user->hasRole('moniteur') => $user->can('create', Student::class)
                 ? [['label' => 'Nouvel élève', 'route' => 'students.create', 'icon' => 'user-plus']]
                 : [],
             $user->hasRole('superadmin') => [

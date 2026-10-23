@@ -1,9 +1,9 @@
 @php
     $messages = [
-        'invalid' => ['title' => 'Lien incomplet', 'body' => 'Ce lien d’inscription ne contient pas de jeton. Demandez le lien complet à votre auto-école.'],
-        'expired' => ['title' => 'Lien expiré', 'body' => 'Ce lien d’inscription a expiré. Votre auto-école peut en générer un nouveau en un clic.'],
-        'revoked' => ['title' => 'Lien révoqué', 'body' => 'Ce lien a été désactivé par votre auto-école. Demandez un nouveau lien au secrétariat.'],
-        'exhausted' => ['title' => 'Lien déjà utilisé', 'body' => 'Ce lien a atteint son nombre maximal d’inscriptions. Demandez-en un nouveau.'],
+        'invalid' => ['title' => 'Lien incomplet', 'body' => 'Ce lien d’inscription est invalide : il ne contient pas de jeton. Demandez le lien complet à votre auto-école.'],
+        'expired' => ['title' => 'Lien expiré', 'body' => 'Ce lien d’inscription est invalide : il a expiré. Votre auto-école peut en générer un nouveau en un clic.'],
+        'revoked' => ['title' => 'Lien révoqué', 'body' => 'Ce lien est invalide : il a été désactivé par votre auto-école. Demandez un nouveau lien au secrétariat.'],
+        'exhausted' => ['title' => 'Lien déjà utilisé', 'body' => 'Ce lien est invalide : il a atteint son nombre maximal d’inscriptions. Demandez-en un nouveau.'],
     ];
     $state = $state ?? 'invalid';
 @endphp

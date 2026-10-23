@@ -53,7 +53,7 @@
                             :title="$store.shell.collapsed ? @js($item['label']) : null"
                             class="group flex h-10 items-center gap-2.5 rounded-sm px-2 text-[13.5px] font-medium transition-colors duration-[var(--dur-1)] focus-visible:outline-none focus-visible:shadow-[var(--focus-ring)] {{ $active ? 'bg-accent-soft text-accent' : 'text-ink-2 hover:bg-hover hover:text-ink' }}"
                         >
-                            <x-ui.icon :name="$item['icon'] ?? 'circle'" class="w-[18px] h-[18px] shrink-0 {{ $active ? 'text-accent' : 'text-ink-3 group-hover:text-ink'" }}" />
+                            <x-ui.icon :name="$item['icon'] ?? 'circle'" class="w-[18px] h-[18px] shrink-0 {{ $active ? 'text-accent' : 'text-ink-3 group-hover:text-ink' }}" />
                             <span class="truncate" x-show="!$store.shell.collapsed" x-cloak>{{ $item['label'] }}</span>
                         </a>
                     @endforeach

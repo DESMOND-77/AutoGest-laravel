@@ -9,4 +9,9 @@ enum LicenseCategory: string
     case C = 'C';
     case D = 'D';
     case E = 'E';
+
+    public function label(): string
+    {
+        return 'Permis '.$this->value;
+    }
 }

@@ -142,8 +142,9 @@ it('renders the presence control and cancel action for an admin', function () {
     $this->actingAs($this->admin)
         ->get(route('scheduling.index', ['week' => $this->monday->toDateString()]))
         ->assertOk()
-        ->assertSee(route('scheduling.presence', $session), false)
-        ->assertSee(route('scheduling.destroy', $session), false);
+        ->assertSee('\\u0022id\\u0022:'.$session->id, false)
+        ->assertSee(str_replace('/', '\/', route('scheduling.presence', ['session' => '__ID__'])), false)
+        ->assertSee(str_replace('/', '\/', route('scheduling.destroy', ['session' => '__ID__'])), false);
 });
 
 it('excludes a deactivated moniteur from the instructor picker', function () {

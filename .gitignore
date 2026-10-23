@@ -23,6 +23,7 @@ Homestead.json
 Homestead.yaml
 Thumbs.db
 prompts/
+tests.md
 
 #Ignore vscode AI rules
 .github/instructions/codacy.instructions.md

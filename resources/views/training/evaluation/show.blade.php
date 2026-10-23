@@ -43,7 +43,11 @@
                 @foreach ($skillsByCategory as $category => $skills)
                     <section class="material-solid overflow-hidden">
                         <header class="border-b border-line px-4 py-2.5">
-                            <h2 class="text-[13.5px] font-semibold text-ink">{{ $category ?: 'Sans catégorie' }}</h2>
+                            @php $acquiredInCategory = $skills->filter(fn ($s) => ($progress->get($s->id)?->level?->value ?? 'not_started') === 'acquired')->count(); @endphp
+                            <div class="flex items-center justify-between gap-2">
+                                <h2 class="text-[13.5px] font-semibold text-ink">{{ $category ?: 'Sans catégorie' }}</h2>
+                                <span class="text-[12px] text-ink-3">{{ $acquiredInCategory }}/{{ $skills->count() }} acquises</span>
+                            </div>
                         </header>
                         <ul class="divide-y divide-line">
                             @foreach ($skills as $skill)
@@ -53,6 +57,9 @@
                                         <div class="min-w-0">
                                             <p class="text-[13.5px] font-medium text-ink">{{ $skill->label }}</p>
                                             <p class="text-[11.5px] uppercase tracking-wide text-ink-3">{{ $skill->code }}</p>
+                                            @if ($current === 'acquired' && $progress->get($skill->id)?->validated_at)
+                                                <p class="text-[11.5px] text-ink-3">Validé le {{ $progress->get($skill->id)->validated_at->format('d/m/Y') }}</p>
+                                            @endif
                                         </div>
                                         <x-ui.status :value="$current" compact />
                                     </div>

@@ -47,7 +47,7 @@
                 @endif
                 <div class="flex flex-wrap justify-end gap-2 pt-1">
                     <x-ui.button variant="ghost" type="button" x-on:click="open = false">Annuler</x-ui.button>
-                    <x-ui.button variant="danger" type="submit" x-bind:disabled="typed !== @js($typedConfirmation ?? '')" @if (! $typedConfirmation) x-bind:disabled="false" @endif>
+                    <x-ui.button variant="danger" type="submit" x-bind:disabled="typed !== @js($typedConfirmation ?? '')">
                         {{ $confirmLabel }}
                     </x-ui.button>
                 </div>

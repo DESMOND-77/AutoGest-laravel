@@ -62,6 +62,7 @@ use App\Domain\Training\Policies\QuizAttemptPolicy;
 use App\Domain\Training\Policies\SkillPolicy;
 use App\Domain\Users\Policies\UserPolicy;
 use App\Models\User;
+use App\View\Components\Ui\FormatDate;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Blade;
@@ -124,6 +125,7 @@ class AppServiceProvider extends ServiceProvider
         // dark:hidden/dark:block theme swap). Alias it so the rest of the
         // app can call the flat <x-brand-logo /> tag.
         Blade::component('components.brand.logo', 'brand-logo');
+        Blade::component(FormatDate::class, 'ui.date');
 
         // RecordVehicleExpenseInLedger lives in app/Listeners, where Laravel's
         // event auto-discovery already finds it by its handle(VehicleExpenseRecorded)

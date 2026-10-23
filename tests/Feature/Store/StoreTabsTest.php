@@ -26,11 +26,11 @@ it('renders all four boutique tabs in one screen for an admin', function () {
 it('renders each boutique pane its own content, not just the tab labels', function () {
     $this->actingAs($this->admin)->get(route('store.index'))
         ->assertOk()
-        ->assertSee('Nouvelle vente')
-        ->assertSee('CA ce mois')
-        ->assertSee('Stocks critiques')
-        ->assertSee('Nouveau produit')
-        ->assertSee('Nouvelle commande fournisseur');
+        ->assertSee('Produits actifs')
+        ->assertSee('Valeur du stock')
+        ->assertSee('Stock à réapprovisionner')
+        ->assertSee('Dernières ventes')
+        ->assertSee('Réapprovisionnements');
 });
 
 it('offers a zero-stock product in the sale form (insufficient stock warns, it does not block)', function () {
@@ -38,7 +38,7 @@ it('offers a zero-stock product in the sale form (insufficient stock warns, it d
     Product::factory()->create(['structure_id' => $this->structure->id, 'name' => 'Rupture totale', 'stock_quantity' => 0, 'active' => true]);
     TenantContext::clear();
 
-    $this->actingAs($this->admin)->get(route('store.index'))
+    $this->actingAs($this->admin)->get(route('store.orders.index'))
         ->assertOk()
         ->assertSee('Rupture totale');
 });

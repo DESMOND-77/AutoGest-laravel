@@ -75,7 +75,7 @@
                 </x-ui.card>
             @else
                 <x-ui.card variant="solid">
-                    <x-ui.empty-state icon="graduation-cap" title="Aucun élève enregistré"
+                    <x-ui.empty-state icon="graduation-cap" title="Aucun élève trouvé."
                         description="Créez le premier élève pour suivre son dossier, son planning et ses paiements.">
                         <x-slot:actions>
                             @can('create', \App\Domain\Students\Models\Student::class)
@@ -115,6 +115,9 @@
                             <td data-label="Inscription"><x-ui.date :value="$student->registered_at" /></td>
                             <td data-label="">
                                 <div class="flex justify-end">
+                                    @if (auth()->user()->hasRole('moniteur') && $student->instructor_id === auth()->id())
+                                        <x-ui.button :href="route('moniteur.eleves.feuille-route', $student)" variant="ghost" size="sm" icon="route">Feuille de route</x-ui.button>
+                                    @endif
                                     <x-ui.button :href="route('students.show', $student)" variant="ghost" size="sm" icon-right="chevron-right">Fiche</x-ui.button>
                                 </div>
                             </td>

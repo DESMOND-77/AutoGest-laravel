@@ -26,11 +26,11 @@ class Status extends Component
         public bool $dot = false,
         public bool $compact = false,
     ) {
-        [$this->label, $this->tone, $this->icon] = $this->resolve();
+        [$this->label, $this->tone, $this->icon] = $this->resolveStatus();
     }
 
     /** @return array{0: string, 1: string, 2: string|null} */
-    private function resolve(): array
+    private function resolveStatus(): array
     {
         $key = null;
         $class = $this->enum;

@@ -52,6 +52,10 @@
         </x-slot:actions>
     </x-layout.page-header>
 
+    @if ($sessions->isEmpty())
+        <p class="mb-3 text-[13px] text-ink-3">Aucune séance planifiée cette semaine.</p>
+    @endif
+
     <div
         x-data="{
             view: 'day',

@@ -31,7 +31,7 @@ it('renders the admin dashboard with revenue, exam and fleet stats', function ()
         ->get(route('admin.dashboard'))
         ->assertOk()
         ->assertSee('Recettes des 6 derniers mois')
-        ->assertSee('42 000 FCFA');
+        ->assertSee("42\u{202F}000\u{00A0}FCFA");
 });
 
 it('shows cash balance, outstanding balance, today\'s sessions and recent ledger entries', function () {
@@ -52,8 +52,8 @@ it('shows cash balance, outstanding balance, today\'s sessions and recent ledger
         ->assertOk()
         ->assertSee('Solde caisse')
         ->assertSee('Reste à collecter')
-        ->assertSee('100 000 FCFA')
-        ->assertSee('Séances aujourd\'hui', false)
+        ->assertSee("100\u{202F}000\u{00A0}FCFA")
+        ->assertSee('Séances aujourd’hui')
         ->assertSee($student->fullName())
         ->assertSee('Dernières opérations financières')
         ->assertSee('Recette (caisse)');

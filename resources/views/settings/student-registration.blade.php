@@ -27,6 +27,7 @@
                         <x-ui.button :href="$url" size="sm" variant="secondary" class="mt-2" icon="external-link" target="_blank" rel="noopener">Ouvrir</x-ui.button>
                     </div>
                 @else
+                    <p class="mt-3 break-all rounded-md border border-line bg-[var(--surface-inset)] p-3 text-[13px] text-ink-3">{{ url('register/student') }}?token=••••••••••••••••••••••••</p>
                     <x-ui.alert tone="info" class="mt-3">
                         Pour des raisons de sécurité, le lien complet n’est affiché qu’une seule fois, juste après sa création. Régénérez-le si vous l’avez perdu.
                     </x-ui.alert>

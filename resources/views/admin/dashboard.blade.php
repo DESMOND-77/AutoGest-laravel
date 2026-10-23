@@ -75,13 +75,16 @@
         </x-ui.card>
 
         {{-- KPI : métrique principale en haut à gauche --}}
-        <div class="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        <div class="grid gap-4 sm:grid-cols-2 xl:grid-cols-5">
             <x-data.kpi label="Élèves actifs" :value="$activeStudents" icon="graduation-cap" :href="route('students.index')" hint="Toutes phases confondues" />
             <x-data.kpi label="Séances aujourd’hui" :value="$sessionsToday" icon="calendar-days" :hint="$unmarked.' à pointer'" :href="route('scheduling.index')" />
             <x-data.kpi label="Encaissements du mois" icon="wallet" :delta="$delta !== null ? ($delta >= 0 ? '+'.$delta.' %' : $delta.' %') : null" delta-label="vs mois précédent" :trend="$delta !== null && $delta < 0 ? 'down' : 'up'" :spark="$spark">
                 <x-ui.money :amount="$monthTotal" />
             </x-data.kpi>
-            <x-data.kpi label="Impayés" icon="receipt" :href="route('finance.invoices.index')" hint="Total restant dû">
+            <x-data.kpi label="Solde caisse" icon="landmark" :href="route('finance.ledger.index')" hint="Recettes moins dépenses">
+                <x-ui.money :amount="$cashBalance" />
+            </x-data.kpi>
+            <x-data.kpi label="Reste à collecter" icon="receipt" :href="route('finance.invoices.index')" hint="Total restant dû">
                 <x-ui.money :amount="$outstandingBalance" />
             </x-data.kpi>
         </div>
@@ -103,7 +106,7 @@
             {{-- Encaissements --}}
             <div class="xl:col-span-2">
                 <x-data.chart-card
-                    title="Encaissements des 6 derniers mois"
+                    title="Recettes des 6 derniers mois"
                     description="Somme des recettes enregistrées au journal comptable."
                     :empty="$revenueByMonth->sum('total') <= 0"
                     empty-message="Aucun encaissement sur la période."
@@ -158,7 +161,7 @@
 
             {{-- Activité récente --}}
             <div class="xl:col-span-2">
-                <x-ui.card title="Activité récente" description="Paiements et écritures comptables." variant="solid">
+                <x-ui.card title="Dernières opérations financières" description="Paiements et écritures comptables." variant="solid">
                     @php
                         $activity = $recentPayments->map(fn ($payment) => [
                             'title' => 'Paiement reçu',

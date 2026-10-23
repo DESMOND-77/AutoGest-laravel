@@ -24,7 +24,7 @@
     $balance = $invoices->sum(fn ($invoice) => $invoice->balanceDue());
     $nextStages = $student->lifecycle_stage?->allowedNextStages() ?? [];
     $tabs = [
-        ['label' => 'Résumé', 'href' => '#resume'],
+        ['label' => 'Vue générale', 'href' => '#resume'],
         ['label' => 'Dossier', 'href' => '#dossier'],
         ['label' => 'Planning', 'href' => '#planning'],
         ['label' => 'Finance', 'href' => '#finance'],
@@ -62,7 +62,7 @@
     <div class="grid gap-4 lg:grid-cols-3">
         <div class="space-y-4 lg:col-span-2">
             {{-- Résumé --}}
-            <x-ui.card id="resume" title="Informations" variant="solid">
+            <x-ui.card id="resume" title="Vue générale" variant="solid">
                 <x-data.description-list :items="[
                     ['label' => 'Téléphone', 'value' => $student->phone ?: '—'],
                     ['label' => 'Téléphone secondaire', 'value' => $student->phone_secondary ?: '—'],
@@ -98,6 +98,23 @@
                         @endforeach
                     </ul>
                 @endif
+                @can('create', \App\Domain\Documents\Models\Document::class)
+                    @php
+                        $requiredDocumentTypes = \App\Domain\Students\Models\RequiredDocumentType::query()->active()->ordered()->get();
+                    @endphp
+                    <div class="border-t border-line px-5 py-4">
+                        @if ($requiredDocumentTypes->isEmpty())
+                            <p class="text-[13px] text-ink-2">Aucune pièce requise n'est configurée - voir Paramètres &gt; Pièces requises.</p>
+                        @else
+                            <form method="POST" action="{{ route('students.documents.store', $student) }}" enctype="multipart/form-data" class="grid items-end gap-3 sm:grid-cols-3">
+                                @csrf
+                                <x-form.select name="required_document_type_id" :options="$requiredDocumentTypes->pluck('label', 'id')->all()" />
+                                <x-form.file-drop name="file" label="Pièce à déposer" />
+                                <x-ui.button type="submit" icon="upload">Déposer</x-ui.button>
+                            </form>
+                        @endif
+                    </div>
+                @endcan
                 <div class="border-t border-line px-5 py-3">
                     <a href="{{ route('dossiers.index') }}" class="text-[13px] font-medium text-accent hover:underline">Ouvrir la file de validation</a>
                 </div>
@@ -206,7 +223,7 @@
                 </div>
             </x-ui.card>
 
-            @if ($student->user_id === null && $student->email)
+            @if ($student->user_id === null)
                 @can('update', $student)
                     <x-ui.card title="Compte élève" variant="solid">
                         <p class="text-[13px] text-ink-2">Cet élève n’a pas encore de compte pour consulter son dossier en ligne.</p>

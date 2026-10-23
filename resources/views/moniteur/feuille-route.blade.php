@@ -22,7 +22,7 @@
             <div class="space-y-2">
                 <div class="flex items-center justify-between text-[13px]">
                     <span class="text-ink-2">Progression globale</span>
-                    <span class="font-semibold text-ink">{{ $skillSummary['percent'] }} %</span>
+                    <span class="font-semibold text-ink">{{ $skillSummary['acquired'] }}/{{ $skillSummary['total'] }} · {{ $skillSummary['percent'] }}%</span>
                 </div>
                 <x-ui.progress :value="$skillSummary['percent']" label="Compétences acquises" />
                 @if ($skillSummary['total'] === 0)

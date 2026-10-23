@@ -21,6 +21,7 @@
                         <div class="flex flex-wrap items-start justify-between gap-2">
                             <div class="min-w-0">
                                 <p class="text-[13.5px] font-semibold text-ink">{{ \Illuminate\Support\Str::headline(str_replace('.', ' ', $log->action)) }}</p>
+                                <p class="font-mono text-[11.5px] text-ink-3">{{ $log->action }}</p>
                                 <p class="mt-0.5 text-[12px] text-ink-3">
                                     {{ $log->user?->name ?? 'Système' }}
                                     · <x-ui.date :value="$log->created_at" format="datetime" />
