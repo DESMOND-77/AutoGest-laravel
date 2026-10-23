@@ -55,6 +55,11 @@ Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+
+    // Additif (§1.3) : synchronisation de l'apparence entre appareils.
+    Route::put('/profile/appearance', [ProfileController::class, 'updateAppearance'])
+        ->middleware('throttle:60,1')
+        ->name('profile.appearance');
 });
 
 Route::middleware(['auth', 'role:superadmin'])
@@ -322,6 +327,23 @@ Route::middleware('auth')->group(function () {
 Route::middleware(['auth', 'role:admin|superadmin'])
     ->get('audit', [AuditLogController::class, 'index'])
     ->name('audit.index');
+
+/*
+ | Guide vivant du design system (§6.6) : accessible uniquement en local
+ | et pour un super-administrateur. Aucune donnée métier, aucun écran produit.
+ */
+Route::middleware('auth')->get('design-system', function (\Illuminate\Http\Request $request) {
+    abort_unless(app()->environment('local'), 404);
+    abort_unless($request->user()?->hasRole('superadmin'), 403);
+
+    $sections = ['fondations', 'primitives', 'formulaires', 'donnees', 'domaine', 'overlays', 'etats'];
+    $section = $request->query('section');
+    $section = in_array($section, $sections, true) ? $section : 'primitives';
+
+    return response()
+        ->view('design-system.index', ['section' => $section])
+        ->header('X-Robots-Tag', 'noindex, nofollow');
+})->name('design-system.index');
 
 Route::middleware(['auth', 'role:moniteur'])
     ->name('moniteur.')

@@ -1,60 +1,66 @@
-<x-app-layout>
-    <x-slot name="header">Ma progression</x-slot>
+@php
+    $levels = [
+        'not_started' => ['label' => 'Non commencé', 'tone' => 'bg-[var(--line-control)]'],
+        'in_progress' => ['label' => 'En cours', 'tone' => 'bg-warning-solid'],
+        'acquired' => ['label' => 'Acquis', 'tone' => 'bg-success-solid'],
+    ];
+    $acquired = collect($progress)->filter(fn ($p) => $p->level?->value === 'acquired')->count();
+@endphp
 
-    <div class="py-6 max-w-2xl mx-auto space-y-5">
+<x-app-layout :title="'Ma progression'">
+    <x-layout.page-header
+        title="Ma progression"
+        description="Les compétences validées avec votre moniteur, catégorie par catégorie."
+        :breadcrumbs="[['label' => 'Accueil', 'href' => route('eleve.dashboard')], ['label' => 'Progression']]"
+    />
+
+    <div class="mx-auto max-w-2xl space-y-4">
+        <x-ui.card variant="panel">
+            <div class="flex items-end justify-between gap-3">
+                <div>
+                    <p class="text-[12px] uppercase tracking-wide text-ink-3">Progression globale</p>
+                    <p class="text-3xl font-bold tabular-nums text-ink">{{ $overallPercent }} %</p>
+                </div>
+                <p class="text-[13px] text-ink-2">{{ $acquired }} compétence(s) acquise(s)</p>
+            </div>
+            <x-ui.progress :value="$overallPercent" label="Progression globale" class="mt-3" />
+            <p class="mt-3 text-[12.5px] text-ink-3">
+                « En cours » compte pour moitié dans cette moyenne. Seul votre moniteur peut valider une compétence.
+            </p>
+        </x-ui.card>
+
         @if ($skillsByCategory->isEmpty())
-            <x-card>
-                <p class="text-sm text-content-secondary">Aucune compétence définie pour votre établissement.</p>
-            </x-card>
+            <x-ui.card variant="solid">
+                <x-ui.empty-state icon="target" title="Aucune compétence configurée" description="Votre auto-école n’a pas encore défini de référentiel de compétences." />
+            </x-ui.card>
         @else
-            <x-card>
-                <div class="flex items-center justify-between text-xs text-content-muted mb-1">
-                    <span>Progression globale</span>
-                    <span>{{ $overallPercent }}%</span>
-                </div>
-                <div class="bg-surface-inset rounded-full h-2 overflow-hidden">
-                    <div class="bg-primary h-2 rounded-full" style="width: {{ max(2, $overallPercent) }}%"></div>
-                </div>
-            </x-card>
-
-            @php $levelPercent = ['not_started' => 0, 'in_progress' => 50, 'acquired' => 100]; @endphp
             @foreach ($skillsByCategory as $category => $skills)
-                @php $acquiredCount = $skills->filter(fn ($skill) => ($progress->get($skill->id)?->level?->value ?? 'not_started') === 'acquired')->count(); @endphp
-                <x-card :padded="false">
-                    <div class="px-4 py-3 flex items-center justify-between border-b border-border/60">
-                        <h2 class="text-sm font-semibold text-content">{{ $category ?: 'Sans catégorie' }}</h2>
-                        <span class="text-xs font-medium text-content-secondary">{{ $acquiredCount }}/{{ $skills->count() }} acquises</span>
-                    </div>
-                    <div class="divide-y divide-border/60">
+                <section class="material-solid overflow-hidden">
+                    <header class="border-b border-line px-4 py-2.5">
+                        <h2 class="text-[13.5px] font-semibold capitalize text-ink">{{ $category }}</h2>
+                    </header>
+                    <ul class="divide-y divide-line">
                         @foreach ($skills as $skill)
-                            @php $current = $progress->get($skill->id)?->level?->value ?? 'not_started'; @endphp
-                            <div class="p-4">
-                                <div class="flex items-center justify-between gap-4 mb-2">
-                                    <div class="min-w-0">
-                                        <div class="text-sm font-medium text-content">{{ $skill->label }}</div>
-                                        @if ($current === 'acquired' && $progress->get($skill->id)?->validated_at)
-                                            <div class="text-xs text-success mt-0.5">Validé le {{ $progress->get($skill->id)->validated_at->format('d/m/Y') }}</div>
-                                        @endif
-                                    </div>
-                                    <span @class([
-                                        'text-xs font-semibold px-2 py-0.5 rounded-full shrink-0',
-                                        'bg-surface-inset text-content-muted' => $current === 'not_started',
-                                        'bg-warning/10 text-warning' => $current === 'in_progress',
-                                        'bg-success/10 text-success' => $current === 'acquired',
-                                    ])>{{ \App\Domain\Training\Enums\SkillLevel::from($current)->label() }}</span>
+                            @php
+                                $level = $progress->get($skill->id)?->level?->value ?? 'not_started';
+                                $meta = $levels[$level] ?? $levels['not_started'];
+                                $percent = $level === 'acquired' ? 100 : ($level === 'in_progress' ? 50 : 0);
+                            @endphp
+                            <li class="px-4 py-2.5">
+                                <div class="flex items-center justify-between gap-2">
+                                    <p class="text-[13px] text-ink">{{ $skill->label }}</p>
+                                    <span class="flex items-center gap-1.5 text-[11.5px] text-ink-3">
+                                        <span class="size-2 rounded-full {{ $meta['tone'] }}" aria-hidden="true"></span>
+                                        {{ $meta['label'] }}
+                                    </span>
                                 </div>
-                                <div class="bg-surface-inset rounded-full h-1.5 overflow-hidden">
-                                    <div @class([
-                                        'h-1.5 rounded-full',
-                                        'bg-content-muted' => $current === 'not_started',
-                                        'bg-warning' => $current === 'in_progress',
-                                        'bg-success' => $current === 'acquired',
-                                    ]) style="width: {{ max(2, $levelPercent[$current]) }}%"></div>
+                                <div class="mt-1.5 h-1.5 overflow-hidden rounded-full bg-[var(--surface-inset)]" role="presentation">
+                                    <div class="h-full rounded-full {{ $meta['tone'] }}" style="width: {{ max(3, $percent) }}%"></div>
                                 </div>
-                            </div>
+                            </li>
                         @endforeach
-                    </div>
-                </x-card>
+                    </ul>
+                </section>
             @endforeach
         @endif
     </div>

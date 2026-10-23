@@ -16,6 +16,10 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
+        // `ui_prefs` est écrit par JavaScript (préférences d'apparence) : il ne
+        // doit pas être déchiffré par Laravel, sinon le cookie serait rejeté.
+        $middleware->encryptCookies(except: ['ui_prefs']);
+
         $middleware->appendToGroup('web', ResolveTenant::class);
         $middleware->appendToGroup('web', EnsureUserIsActive::class);
         $middleware->alias([

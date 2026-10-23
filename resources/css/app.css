@@ -1,105 +1,182 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
+@import "./tokens.css";
+@import "./materials.css";
+@import "./print.css";
+@import "@fontsource-variable/inter/wght.css";
 
-[x-cloak] {
-    display: none !important;
+@source "../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php";
+@source "../../storage/framework/views/*.php";
+@source "../**/*.blade.php";
+@source "../**/*.js";
+
+/* Variantes pilotées par les attributs de <html> */
+@custom-variant dark    (&:where([data-mode="dark"], [data-mode="dark"] *));
+@custom-variant lite    (&:where([data-perf="lite"], [data-perf="lite"] *));
+@custom-variant compact (&:where([data-density="compact"], [data-density="compact"] *));
+
+/* `inline` est INDISPENSABLE : sinon la valeur serait figée sur :root. */
+@theme inline {
+  --font-sans: var(--font-ui);
+  --font-mono: var(--font-code);
+
+  --color-canvas: var(--canvas-base);
+  --color-solid: var(--surface-solid);
+  --color-panel: var(--surface-panel);
+  --color-glass: var(--surface-glass);
+  --color-overlay: var(--surface-overlay);
+  --color-inset: var(--surface-inset);
+  --color-hover: var(--surface-hover);
+  --color-line: var(--line-subtle);
+  --color-control: var(--line-control);
+
+  --color-ink: var(--text-1);
+  --color-ink-2: var(--text-2);
+  --color-ink-3: var(--text-3);
+
+  --color-accent: var(--accent);
+  --color-accent-hover: var(--accent-hover);
+  --color-accent-soft: var(--accent-soft);
+  --color-accent-line: var(--accent-line);
+  --color-on-accent: var(--on-accent);
+
+  --color-success: var(--success);  --color-success-soft: var(--success-soft);  --color-success-solid: var(--success-solid);
+  --color-warning: var(--warning);  --color-warning-soft: var(--warning-soft);  --color-warning-solid: var(--warning-solid);
+  --color-danger:  var(--danger);   --color-danger-soft:  var(--danger-soft);   --color-danger-solid:  var(--danger-solid);
+  --color-info:    var(--info);     --color-info-soft:    var(--info-soft);     --color-info-solid:    var(--info-solid);
+  --color-on-solid: var(--on-solid);
+
+  --color-chart-1: var(--chart-1); --color-chart-2: var(--chart-2); --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4); --color-chart-5: var(--chart-5); --color-chart-6: var(--chart-6);
+
+  --radius-xs: var(--r-xs);  --radius-sm: var(--r-sm);  --radius-md: var(--r-md);
+  --radius-lg: var(--r-lg);  --radius-xl: var(--r-xl);  --radius-pill: var(--r-pill);
+
+  --shadow-sm: var(--elev-1);  --shadow-md: var(--elev-2);  --shadow-lg: var(--elev-3);
+
+  --ease-ui: var(--ease-ui);
+  --spacing-dock: var(--dock-h);
 }
 
-/*
- * Official brand design tokens (navy + green) for the authenticated app shell
- * (dashboard, students, scheduling, finance, ...). The landing page keeps its
- * own separate token set (ink/route/signal/cream/paper/slate/line/asphalt in
- * tailwind.config.js) - deliberately untouched, per the brief: the landing
- * page is acceptable as-is and this pass is scoped to the authenticated app.
- *
- * RGB triplets (not hex) so Tailwind's `rgb(var(--x) / <alpha-value>)`
- * pattern can still apply opacity modifiers (bg-surface/50, etc).
- * Light values live on :root; :root.dark overrides them - matching the
- * `dark` class toggled on <html> by components/theme-toggle.blade.php.
- */
-:root {
-    /* Official brand scales (spec §3) — RGB triplets for Tailwind alpha */
-    --brand-navy-950: 6 28 48;
-    --brand-navy-900: 8 37 67;
-    --brand-navy-800: 13 53 87;
-    --brand-navy-700: 22 70 109;
-
-    --brand-green-700: 8 120 92;
-    --brand-green-600: 10 150 111;
-    --brand-green-500: 15 175 129;
-    --brand-green-400: 49 196 155;
-    --brand-green-100: 221 247 239;
-
-    /* Light theme (spec §5) */
-    --color-background: 244 247 250;
-    --color-surface: 255 255 255;
-    --color-surface-elevated: 249 251 252;
-    --color-surface-inset: 231 237 242;
-
-    --color-content: 23 32 43;
-    --color-content-secondary: 100 116 139;
-    --color-content-muted: 148 163 184;
-
-    --color-border: 220 227 233;
-
-    --color-primary: 8 120 92;            /* brand green 700 (#08785C, AA-contrast fill) — CTA / active */
-    --color-primary-content: 255 255 255;
-    --color-secondary: 8 37 67;           /* brand navy — nav / secondary btn */
-    --color-secondary-content: 255 255 255;
-
-    /* Semantic — deliberately NOT the brand green (spec §4) */
-    --color-success: 21 154 108;          /* #159A6C */
-    --color-warning: 217 139 24;          /* #D98B18 */
-    --color-danger: 214 69 69;            /* #D64545 */
-    --color-info: 35 136 181;             /* #2388B5 */
-
-    /* Radius scale (spec §9) */
-    --radius-xs: 0.375rem;   /* 6px  */
-    --radius-sm: 0.625rem;   /* 10px */
-    --radius-md: 0.875rem;   /* 14px */
-    --radius-lg: 1.125rem;   /* 18px */
-    --radius-xl: 1.5rem;     /* 24px */
-    --radius-pill: 9999px;
-
-    /* Soft neumorphism — lighter than before (spec §7, §8) */
-    --shadow-soft-sm: -2px -2px 6px rgba(255, 255, 255, 0.9), 3px 3px 8px rgba(15, 35, 60, 0.10);
-    --shadow-soft: -4px -4px 10px rgba(255, 255, 255, 0.85), 6px 6px 14px rgba(15, 35, 60, 0.12);
-    --shadow-soft-hover: -5px -5px 12px rgba(255, 255, 255, 0.9), 8px 8px 18px rgba(15, 35, 60, 0.14);
-    --shadow-inset: inset 2px 2px 5px rgba(15, 35, 60, 0.10), inset -2px -2px 5px rgba(255, 255, 255, 0.8);
-    --shadow-inset-focus:
-        inset 1px 1px 3px rgba(15, 35, 60, 0.08),
-        0 0 0 3px rgba(15, 175, 129, 0.35);
+@layer base {
+  html {
+    -webkit-text-size-adjust: 100%;
+    scroll-padding-top: calc(var(--topbar-h) + 24px);
+    scroll-padding-bottom: calc(var(--dock-h) + 24px);
+    scroll-behavior: smooth;
+  }
+  body {
+    font-family: var(--font-ui);
+    font-size: 15px;
+    line-height: 1.5;
+    color: var(--text-1);
+    background: var(--canvas-base);
+    font-variant-numeric: tabular-nums;
+    -webkit-font-smoothing: antialiased;
+  }
+  h1, h2, h3, h4 { letter-spacing: -0.02em; }
+  :focus-visible { outline: none; box-shadow: var(--focus-ring); }
+  [x-cloak] { display: none !important; }
+  ::selection { background: var(--accent-soft); color: var(--text-1); }
+  @media (forced-colors: active) {
+    :focus-visible { outline: 2px solid Highlight; box-shadow: none; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    *, ::before, ::after { animation: none !important; transition: none !important; scroll-behavior: auto !important; }
+  }
 }
 
-:root.dark {
-    /* Dark theme = navy environment + green accent (spec §6) */
-    --color-background: 6 21 34;          /* #061522 */
-    --color-surface: 8 37 67;             /* #082543 */
-    --color-surface-elevated: 13 48 77;  /* #0D304D */
-    --color-surface-inset: 4 16 28;      /* #04101C */
-
-    --color-content: 241 245 249;
-    --color-content-secondary: 168 182 197;
-    --color-content-muted: 113 134 154;
-
-    --color-border: 24 58 85;            /* #183A55 */
-
-    --color-primary: 8 120 92;
-    --color-primary-content: 255 255 255;
-    --color-secondary: 226 232 240;      /* light — navy outline is invisible on navy */
-    --color-secondary-content: 8 37 67;
-
-    --color-success: 45 191 130;
-    --color-warning: 224 160 45;
-    --color-danger: 240 105 105;
-    --color-info: 66 170 209;
-
-    --shadow-soft-sm: -3px -3px 8px rgba(255, 255, 255, 0.02), 3px 3px 8px rgba(0, 0, 0, 0.45);
-    --shadow-soft: -4px -4px 12px rgba(255, 255, 255, 0.025), 6px 6px 16px rgba(0, 0, 0, 0.5);
-    --shadow-soft-hover: -5px -5px 14px rgba(255, 255, 255, 0.03), 8px 8px 20px rgba(0, 0, 0, 0.55);
-    --shadow-inset: inset 2px 2px 6px rgba(0, 0, 0, 0.5), inset -2px -2px 6px rgba(255, 255, 255, 0.015);
-    --shadow-inset-focus:
-        inset 1px 1px 3px rgba(0, 0, 0, 0.4),
-        0 0 0 3px rgba(15, 175, 129, 0.4);
+@layer utilities {
+  /* Échelle typographique du §4.4 */
+  .text-page-title { font-size: 1.75rem; font-weight: 750; line-height: 1.15; letter-spacing: -0.025em; }
+  @media (max-width: 767px) { .text-page-title { font-size: 1.5rem; } }
+  .text-section-title { font-size: 1.0625rem; font-weight: 700; }
+  .text-eyebrow { font-size: 11px; font-weight: 700; letter-spacing: 0.07em; text-transform: uppercase; color: var(--text-3); }
+  .text-caption { font-size: 12.5px; line-height: 1.45; }
+  .safe-bottom { padding-bottom: env(safe-area-inset-bottom, 0px); }
+  .no-scrollbar { scrollbar-width: none; }
+  .no-scrollbar::-webkit-scrollbar { display: none; }
+  .content-vis { content-visibility: auto; contain-intrinsic-size: auto 200px; }
+  .line-clamp-2 { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
 }
+
+@layer components {
+  /* ===== Tableau : surface pleine, en-tête sticky, cartes sous 768 px ===== */
+  .data-table { width: 100%; border-collapse: separate; border-spacing: 0; font-size: 14px; }
+  .data-table caption { text-align: left; }
+  .data-table thead th {
+    position: sticky; top: calc(var(--topbar-h) + 4px); z-index: 10;
+    background: var(--surface-solid);
+    border-bottom: 1px solid var(--line-subtle);
+    padding: 0 14px; height: 42px;
+    font-size: 12px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase;
+    color: var(--text-3); text-align: left; white-space: nowrap;
+  }
+  .data-table tbody td { height: var(--row-h); padding: 8px 14px; border-bottom: 1px solid var(--line-subtle); vertical-align: middle; }
+  .data-table tbody tr:last-child td { border-bottom: 0; }
+  .data-table tbody tr:hover td { background: var(--surface-hover); }
+  .data-table .num { text-align: right; font-variant-numeric: tabular-nums; }
+  @media (max-width: 767px) {
+    .data-table thead { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+    .data-table, .data-table tbody, .data-table tr, .data-table td { display: block; width: 100%; }
+    .data-table tbody tr {
+      margin-bottom: 12px; padding: 6px 14px;
+      border: 1px solid var(--line-subtle); border-radius: var(--r-md);
+      background: var(--surface-solid);
+    }
+    .data-table tbody td {
+      display: flex; align-items: center; justify-content: space-between; gap: 16px;
+      height: auto; min-height: 36px; padding: 7px 0; border-bottom: 1px solid var(--line-subtle); text-align: right;
+    }
+    .data-table tbody tr td:last-child { border-bottom: 0; }
+    .data-table tbody td::before {
+      content: attr(data-label); flex: 0 0 auto;
+      font-size: 12px; font-weight: 600; color: var(--text-3); text-align: left;
+    }
+    .data-table tbody td[data-label=""]::before, .data-table tbody td:not([data-label])::before { content: none; }
+    .data-table .num { text-align: right; }
+  }
+  .scroll-shadow-x { overflow-x: auto; scrollbar-width: thin; }
+
+  /* ===== Planning : grille par ressource, heures en lignes ===== */
+  .planning-scroll { overflow-x: auto; overscroll-behavior-x: contain; }
+  .planning-grid { display: grid; grid-template-columns: 64px repeat(var(--cols), minmax(150px, 1fr)); min-width: max(100%, calc(64px + var(--cols) * 150px)); }
+  .planning-cell { min-height: 36px; border-bottom: 1px solid var(--line-subtle); border-right: 1px solid var(--line-subtle); }
+  .planning-slot { transition: background-color var(--dur-1) var(--ease-ui); }
+  .planning-slot:hover, .planning-slot:focus-visible { background: var(--accent-soft); }
+  .session-block { border-left: 3px solid var(--accent); }
+  .session-block[data-conflict="1"] { outline: 2px dashed var(--danger-solid); outline-offset: -3px; }
+  .now-line { border-top: 2px solid var(--danger-solid); }
+}
+
+/* =========================================================================
+   MARQUE — bascule des lockups JPEG selon le mode (pas de dark:)
+   ========================================================================= */
+.brand-light { display: block; }
+.brand-dark { display: none; }
+[data-mode="dark"] .brand-light { display: none; }
+[data-mode="dark"] .brand-dark { display: block; }
+
+/* Utilitaires d'impression contextuels */
+@media print {
+  .print-hidden { display: none !important; }
+}
+
+/* =========================================================================
+   PASTILLES DU SÉLECTEUR D'APPARENCE (la couleur reste dans le CSS)
+   ========================================================================= */
+.accent-swatch-indigo { background: #4F46E5; }
+.accent-swatch-violet { background: #7C3AED; }
+.accent-swatch-rose { background: #BE123C; }
+.accent-swatch-orange { background: #B83C0A; }
+.accent-swatch-amber { background: #9A5006; }
+.accent-swatch-emerald { background: #047857; }
+.accent-swatch-teal { background: #0F766E; }
+.accent-swatch-sky { background: #0369A1; }
+
+.theme-swatch { border: 1px solid var(--line-control); }
+.theme-swatch-aurore { background: linear-gradient(135deg, #F6F5FB 0 50%, #4F46E5 50% 100%); }
+.theme-swatch-ocean { background: linear-gradient(135deg, #F2F7FA 0 50%, #0369A1 50% 100%); }
+.theme-swatch-sable { background: linear-gradient(135deg, #FAF6EF 0 50%, #B83C0A 50% 100%); }
+.theme-swatch-foret { background: linear-gradient(135deg, #0C1A14 0 50%, #34D399 50% 100%); }
+.theme-swatch-crepuscule { background: linear-gradient(135deg, #0E1020 0 50%, #A78BFA 50% 100%); }
+.theme-swatch-graphite { background: linear-gradient(135deg, #0B0D12 0 50%, #38BDF8 50% 100%); }

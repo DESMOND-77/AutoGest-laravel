@@ -1,225 +1,222 @@
-<x-app-layout>
-    <x-slot name="header">Tableau de bord</x-slot>
+@php
+    $user = auth()->user();
+    $monthTotal = (float) ($revenueByMonth->last()['total'] ?? 0);
+    $previousTotal = (float) ($revenueByMonth->slice(-2, 1)->first()['total'] ?? 0);
+    $delta = $previousTotal > 0 ? round(($monthTotal - $previousTotal) / $previousTotal * 100) : null;
+    $sessionsToday = $todaysSessions->count();
+    $unmarked = $todaysSessions->filter(fn ($s) => $s->presence?->value === 'planned')->count();
+    $activeStudents = (int) $studentsByStage->sum();
+    $phaseCounts = collect(config('ui-status.phases', []))->map(function ($phase) use ($studentsByStage) {
+        $total = 0;
+        foreach ($phase['stages'] as $stage) {
+            $label = \App\Domain\Students\Enums\LifecycleStage::tryFrom($stage)?->label();
+            $total += $label ? (int) ($studentsByStage[$label] ?? 0) : 0;
+        }
+        return ['label' => $phase['label'], 'count' => $total];
+    });
+    $spark = $revenueByMonth->pluck('total')->all();
+    $hour = (int) now()->format('G');
+    $greeting = $hour < 12 ? 'Bonjour' : ($hour < 18 ? 'Bon après-midi' : 'Bonsoir');
+@endphp
 
-    <div class="py-6 space-y-6 max-w-7xl mx-auto">
-        <div>
-            <h1 class="text-xl font-semibold text-content">Bonjour, {{ explode(' ', auth()->user()->name)[0] }} 👋</h1>
-            <p class="text-sm text-content-secondary">{{ now()->translatedFormat('l d F Y') }} - voici ce qui se passe dans votre établissement.</p>
-        </div>
+<x-app-layout :title="'Tableau de bord'">
+    <x-layout.page-header
+        :title="$greeting.', '.explode(' ', $user->name)[0]"
+        :description="now()->locale('fr')->translatedFormat('l j F Y').' · '.$sessionsToday.' séance(s) aujourd’hui, '.$unmarked.' présence(s) à marquer.'"
+    >
+        <x-slot:actions>
+            <x-ui.button :href="route('scheduling.index')" variant="secondary" icon="calendar">Ouvrir le planning</x-ui.button>
+            <x-ui.button :href="route('students.create')" icon="user-plus">Nouvel élève</x-ui.button>
+        </x-slot:actions>
+    </x-layout.page-header>
 
-        {{-- KPI row --}}
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            <x-kpi-card
-                icon="users"
-                label="Élèves actifs"
-                :value="$studentsByStage->sum() - $studentsByStage->get('Ancien élève', 0)"
-                :href="route('students.index')"
-            />
-            <x-kpi-card
-                icon="academic-cap"
-                label="Anciens élèves"
-                :value="$studentsByStage->get('Ancien élève', 0)"
-            />
-            <x-kpi-card
-                icon="document-check"
-                label="Taux de réussite examens"
-                :value="$examStats['rate'].'%'"
-                :trend="$examStats['passed'].' réussis / '.$examStats['failed'].' échoués'"
-                :trend-up="$examStats['rate'] >= 50"
-            />
-            <x-kpi-card
-                icon="truck"
-                label="Alertes flotte"
-                :value="$fleetAlertCount"
-                :href="route('fleet.index')"
-            />
-            <x-kpi-card
-                icon="currency"
-                label="Solde caisse"
-                :value="number_format($cashBalance, 0, ',', ' ').' FCFA'"
-            />
-            <x-kpi-card
-                icon="receipt"
-                label="Reste à collecter"
-                :value="number_format($outstandingBalance, 0, ',', ' ').' FCFA'"
-                :href="route('finance.invoices.index')"
-            />
-        </div>
-
-        {{-- Quick actions --}}
-        <x-card :padded="false" class="p-4">
-            <div class="flex flex-wrap gap-3">
-                <a href="{{ route('students.create') }}" class="inline-flex items-center gap-2 rounded-ui-md bg-surface-elevated px-3.5 py-2 text-sm font-medium text-content hover:shadow-soft-sm transition">
-                    <x-icon name="plus" class="w-4 h-4 text-primary" /> Ajouter un élève
-                </a>
-                <a href="{{ route('scheduling.index') }}" class="inline-flex items-center gap-2 rounded-ui-md bg-surface-elevated px-3.5 py-2 text-sm font-medium text-content hover:shadow-soft-sm transition">
-                    <x-icon name="calendar" class="w-4 h-4 text-primary" /> Planifier une séance
-                </a>
-                <a href="{{ route('finance.invoices.index') }}" class="inline-flex items-center gap-2 rounded-ui-md bg-surface-elevated px-3.5 py-2 text-sm font-medium text-content hover:shadow-soft-sm transition">
-                    <x-icon name="receipt" class="w-4 h-4 text-primary" /> Créer une facture
-                </a>
-                <a href="{{ route('fleet.index') }}" class="inline-flex items-center gap-2 rounded-ui-md bg-surface-elevated px-3.5 py-2 text-sm font-medium text-content hover:shadow-soft-sm transition">
-                    <x-icon name="truck" class="w-4 h-4 text-primary" /> Ajouter un véhicule
-                </a>
-            </div>
-        </x-card>
-
-        {{-- Revenue chart --}}
-        <x-card>
-            <div class="flex items-center justify-between mb-4">
-                <div class="text-sm font-semibold text-content">Recettes des 6 derniers mois</div>
-                <a href="{{ route('reports.revenue.csv') }}" class="text-xs text-primary hover:underline">Exporter en CSV</a>
-            </div>
-            @php $max = max(1, $revenueByMonth->max('total')); @endphp
-            <div class="space-y-3">
-                @foreach ($revenueByMonth as $row)
-                    <div class="flex items-center gap-3 text-sm">
-                        <div class="w-16 text-content-secondary shrink-0">{{ $row['month'] }}</div>
-                        <div class="flex-1 bg-surface-inset rounded-full h-3 overflow-hidden">
-                            <div class="bg-primary h-3 rounded-full" style="width: {{ $row['total'] > 0 ? max(2, $row['total'] / $max * 100) : 0 }}%"></div>
-                        </div>
-                        <div class="w-32 text-right text-content shrink-0">{{ number_format($row['total'], 0, ',', ' ') }} FCFA</div>
+    <div class="space-y-4">
+        {{-- À traiter : la prochaine meilleure action, toujours en premier --}}
+        <x-ui.card title="À traiter" description="Les actions qui débloquent le plus de situations aujourd’hui." variant="solid" padding="p-0">
+            <ul class="divide-y divide-line">
+                <li class="flex flex-wrap items-center justify-between gap-2 px-5 py-3 max-sm:px-4">
+                    <div class="min-w-0">
+                        <p class="text-sm font-medium text-ink">Dossiers d’élèves en attente de validation</p>
+                        <p class="text-[12.5px] text-ink-2">Approuvez ou rejetez les pièces déposées, les plus anciennes d’abord.</p>
                     </div>
-                @endforeach
-            </div>
-        </x-card>
+                    <x-ui.button :href="route('dossiers.index')" size="sm" variant="secondary" icon-right="chevron-right">Ouvrir la file</x-ui.button>
+                </li>
+                <li class="flex flex-wrap items-center justify-between gap-2 px-5 py-3 max-sm:px-4">
+                    <div class="min-w-0">
+                        <p class="text-sm font-medium text-ink">Impayés à relancer</p>
+                        <p class="text-[12.5px] text-ink-2">Solde restant dû sur les factures impayées ou partielles.</p>
+                    </div>
+                    <div class="flex items-center gap-3">
+                        <x-ui.money :amount="$outstandingBalance" class="text-sm font-semibold text-ink" />
+                        <x-ui.button :href="route('finance.invoices.index')" size="sm" variant="secondary">Voir</x-ui.button>
+                    </div>
+                </li>
+                <li class="flex flex-wrap items-center justify-between gap-2 px-5 py-3 max-sm:px-4">
+                    <div class="min-w-0">
+                        <p class="text-sm font-medium text-ink">Alertes flotte (contrôle technique, assurance)</p>
+                        <p class="text-[12.5px] text-ink-2">Échéances dans moins de 30 jours.</p>
+                    </div>
+                    <div class="flex items-center gap-3">
+                        <x-ui.badge :tone="$fleetAlertCount > 0 ? 'warning' : 'success'">{{ $fleetAlertCount }}</x-ui.badge>
+                        <x-ui.button :href="route('fleet.index')" size="sm" variant="secondary">Voir la flotte</x-ui.button>
+                    </div>
+                </li>
+                <li class="flex flex-wrap items-center justify-between gap-2 px-5 py-3 max-sm:px-4">
+                    <div class="min-w-0">
+                        <p class="text-sm font-medium text-ink">Séances du jour sans présence marquée</p>
+                        <p class="text-[12.5px] text-ink-2">Le pointage alimente l’évaluation continue et les statistiques.</p>
+                    </div>
+                    <div class="flex items-center gap-3">
+                        <x-ui.badge :tone="$unmarked > 0 ? 'warning' : 'success'">{{ $unmarked }}</x-ui.badge>
+                        <x-ui.button :href="route('scheduling.index')" size="sm" variant="secondary">Pointer</x-ui.button>
+                    </div>
+                </li>
+            </ul>
+        </x-ui.card>
 
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {{-- Today's sessions --}}
-            <x-card>
-                <div class="text-sm font-semibold text-content mb-3">Séances aujourd'hui</div>
+        {{-- KPI : métrique principale en haut à gauche --}}
+        <div class="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+            <x-data.kpi label="Élèves actifs" :value="$activeStudents" icon="graduation-cap" :href="route('students.index')" hint="Toutes phases confondues" />
+            <x-data.kpi label="Séances aujourd’hui" :value="$sessionsToday" icon="calendar-days" :hint="$unmarked.' à pointer'" :href="route('scheduling.index')" />
+            <x-data.kpi label="Encaissements du mois" icon="wallet" :delta="$delta !== null ? ($delta >= 0 ? '+'.$delta.' %' : $delta.' %') : null" delta-label="vs mois précédent" :trend="$delta !== null && $delta < 0 ? 'down' : 'up'" :spark="$spark">
+                <x-ui.money :amount="$monthTotal" />
+            </x-data.kpi>
+            <x-data.kpi label="Impayés" icon="receipt" :href="route('finance.invoices.index')" hint="Total restant dû">
+                <x-ui.money :amount="$outstandingBalance" />
+            </x-data.kpi>
+        </div>
+
+        <div class="grid gap-4 xl:grid-cols-3">
+            {{-- Parcours des élèves --}}
+            <x-ui.card title="Parcours des élèves" description="Effectifs par phase du parcours." variant="solid" class="xl:col-span-1">
+                @if ($activeStudents === 0)
+                    <x-ui.empty-state icon="graduation-cap" title="Aucun élève enregistré" description="Créez votre premier élève pour suivre son parcours." class="py-6">
+                        <x-slot:actions>
+                            <x-ui.button :href="route('students.create')" size="sm" icon="user-plus">Nouvel élève</x-ui.button>
+                        </x-slot:actions>
+                    </x-ui.empty-state>
+                @else
+                    <x-data.funnel :steps="$phaseCounts->all()" label="Répartition des élèves par phase" />
+                @endif
+            </x-ui.card>
+
+            {{-- Encaissements --}}
+            <div class="xl:col-span-2">
+                <x-data.chart-card
+                    title="Encaissements des 6 derniers mois"
+                    description="Somme des recettes enregistrées au journal comptable."
+                    :empty="$revenueByMonth->sum('total') <= 0"
+                    empty-message="Aucun encaissement sur la période."
+                >
+                    <x-data.bar-chart
+                        :series="$revenueByMonth->map(fn ($row) => ['label' => $row['month'], 'value' => round($row['total'])])->all()"
+                        label="Encaissements mensuels"
+                        height="h-44"
+                    />
+                    <x-slot:table>
+                        <table class="data-table">
+                            <caption class="sr-only">Encaissements par mois</caption>
+                            <thead><tr><th scope="col">Mois</th><th scope="col" class="num">Montant</th></tr></thead>
+                            <tbody>
+                                @foreach ($revenueByMonth as $row)
+                                    <tr>
+                                        <td data-label="Mois">{{ $row['month'] }}</td>
+                                        <td data-label="Montant" class="num"><x-ui.money :amount="$row['total']" /></td>
+                                    </tr>
+                                @endforeach
+                            </tbody>
+                        </table>
+                    </x-slot:table>
+                </x-data.chart-card>
+            </div>
+        </div>
+
+        <div class="grid gap-4 xl:grid-cols-3">
+            {{-- Planning du jour --}}
+            <x-ui.card title="Planning du jour" description="Par moniteur, dans l’ordre des horaires." variant="solid" :padding="'p-0'">
                 @if ($todaysSessions->isEmpty())
-                    <p class="text-sm text-content-muted">Aucune séance planifiée aujourd'hui.</p>
+                    <x-ui.empty-state icon="calendar" title="Aucune séance aujourd’hui" description="Ouvrez le planning pour planifier la journée de vos moniteurs." class="py-8">
+                        <x-slot:actions>
+                            <x-ui.button :href="route('scheduling.index')" size="sm" variant="secondary" icon="calendar">Ouvrir le planning</x-ui.button>
+                        </x-slot:actions>
+                    </x-ui.empty-state>
                 @else
-                    <ul class="divide-y divide-border/60">
+                    <ul class="divide-y divide-line">
                         @foreach ($todaysSessions as $session)
-                            <li class="py-2.5 flex items-center justify-between text-sm gap-2">
-                                <div class="min-w-0">
-                                    <p class="text-content truncate">{{ $session->student->fullName() }}</p>
-                                    <p class="text-content-muted text-xs">{{ $session->type->label() }} &middot; {{ $session->instructor->name }}</p>
+                            <li class="flex items-center gap-3 px-5 py-2.5 max-sm:px-4">
+                                <span class="w-12 shrink-0 text-[12.5px] font-semibold tabular-nums text-ink">{{ \Illuminate\Support\Carbon::parse($session->starts_at)->format('H:i') }}</span>
+                                <div class="min-w-0 flex-1">
+                                    <p class="truncate text-[13.5px] font-medium text-ink">{{ $session->type?->label() }} · {{ $session->student?->fullName() }}</p>
+                                    <p class="truncate text-[12px] text-ink-3">{{ $session->instructor?->name }}</p>
                                 </div>
-                                <span class="text-content-secondary text-xs shrink-0">{{ $session->starts_at }}–{{ $session->ends_at }}</span>
+                                <x-ui.status :value="$session->presence" />
                             </li>
                         @endforeach
                     </ul>
                 @endif
-            </x-card>
+            </x-ui.card>
 
-            {{-- Recent ledger entries --}}
-            <x-card>
-                <div class="text-sm font-semibold text-content mb-3">Dernières opérations financières</div>
-                @if ($recentLedgerEntries->isEmpty())
-                    <p class="text-sm text-content-muted">Aucune opération récente.</p>
-                @else
-                    <ul class="divide-y divide-border/60">
-                        @foreach ($recentLedgerEntries as $entry)
-                            <li class="py-2.5 flex items-center justify-between text-sm gap-2">
-                                <div class="min-w-0">
-                                    <p class="text-content truncate">{{ $entry->type->label() }}</p>
-                                    <p class="text-content-muted text-xs">{{ $entry->occurred_on->format('d/m/Y') }} @if($entry->memo) &middot; {{ $entry->memo }} @endif</p>
-                                </div>
-                                <span @class([
-                                    'font-medium text-xs shrink-0',
-                                    'text-success' => $entry->type->isCredit(),
-                                    'text-danger' => !$entry->type->isCredit(),
-                                ])>{{ $entry->type->isCredit() ? '+' : '-' }}{{ number_format($entry->amount, 0, ',', ' ') }} FCFA</span>
-                            </li>
-                        @endforeach
-                    </ul>
-                @endif
-            </x-card>
+            {{-- Activité récente --}}
+            <div class="xl:col-span-2">
+                <x-ui.card title="Activité récente" description="Paiements et écritures comptables." variant="solid">
+                    @php
+                        $activity = $recentPayments->map(fn ($payment) => [
+                            'title' => 'Paiement reçu',
+                            'description' => trim(($payment->invoice?->student?->fullName() ?? 'Élève inconnu').' · '.number_format((float) $payment->amount, 0, ',', ' ').' FCFA'),
+                            'at' => $payment->paid_at,
+                            'icon' => 'wallet',
+                            'tone' => 'success',
+                        ])->concat($recentLedgerEntries->map(fn ($entry) => [
+                            'title' => $entry->type?->label() ?? 'Écriture',
+                            'description' => $entry->memo,
+                            'at' => $entry->occurred_on,
+                            'icon' => 'landmark',
+                            'tone' => ($entry->type?->isCredit() ?? true) ? 'success' : 'danger',
+                        ]))->sortByDesc('at')->take(8)->values()->all();
+                    @endphp
+                    <x-data.timeline :items="$activity" empty="Aucune activité enregistrée pour le moment." />
+                </x-ui.card>
+            </div>
         </div>
 
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            {{-- Upcoming exams --}}
-            <x-card>
-                <div class="text-sm font-semibold text-content mb-3">Examens à venir</div>
+        {{-- Examens à venir + parc de véhicules --}}
+        <div class="grid gap-4 lg:grid-cols-2">
+            <x-ui.card title="Examens à venir" variant="solid" :padding="'p-0'">
                 @if ($upcomingExams->isEmpty())
-                    <p class="text-sm text-content-muted">Aucun examen planifié.</p>
+                    <p class="px-5 py-6 text-sm text-ink-3">Aucun examen planifié.</p>
                 @else
-                    <ul class="divide-y divide-border/60">
+                    <ul class="divide-y divide-line">
                         @foreach ($upcomingExams as $exam)
-                            <li class="py-2.5 flex items-center justify-between text-sm gap-2">
+                            <li class="flex items-center justify-between gap-3 px-5 py-2.5">
                                 <div class="min-w-0">
-                                    <p class="text-content truncate">{{ $exam->student->fullName() }}</p>
-                                    <p class="text-content-muted text-xs">{{ $exam->type->label() }}</p>
+                                    <p class="truncate text-[13.5px] font-medium text-ink">{{ $exam->student?->fullName() }}</p>
+                                    <p class="text-[12px] text-ink-3">{{ $exam->type?->label() }} · <x-ui.date :value="$exam->exam_date" /></p>
                                 </div>
-                                <span class="text-content-secondary text-xs shrink-0">{{ $exam->exam_date->format('d/m/Y') }}</span>
+                                <x-ui.status :value="$exam->result" />
                             </li>
                         @endforeach
                     </ul>
                 @endif
-            </x-card>
+            </x-ui.card>
 
-            {{-- Recent payments --}}
-            <x-card>
-                <div class="text-sm font-semibold text-content mb-3">Paiements récents</div>
-                @if ($recentPayments->isEmpty())
-                    <p class="text-sm text-content-muted">Aucun paiement récent.</p>
+            <x-ui.card title="Parc de véhicules" description="Répartition par statut." variant="solid">
+                @if (collect($vehicleStatusCounts)->sum() === 0)
+                    <x-ui.empty-state icon="car" title="Aucun véhicule" description="Ajoutez un véhicule pour suivre contrôle technique et assurance." class="py-6" />
                 @else
-                    <ul class="divide-y divide-border/60">
-                        @foreach ($recentPayments as $payment)
-                            <li class="py-2.5 flex items-center justify-between text-sm gap-2">
-                                <div class="min-w-0">
-                                    <p class="text-content truncate">{{ $payment->invoice->student?->fullName() ?? 'Client comptoir' }}</p>
-                                    <p class="text-content-muted text-xs">{{ $payment->paid_at->format('d/m/Y') }}</p>
-                                </div>
-                                <span class="text-success font-medium text-xs shrink-0">+{{ number_format($payment->amount, 0, ',', ' ') }} FCFA</span>
-                            </li>
+                    <dl class="space-y-2.5">
+                        @foreach ($vehicleStatusCounts as $label => $count)
+                            <div class="flex items-center justify-between gap-3">
+                                <dt class="text-sm text-ink-2">{{ $label }}</dt>
+                                <dd class="text-sm font-semibold tabular-nums text-ink">{{ $count }}</dd>
+                            </div>
                         @endforeach
-                    </ul>
+                        <div class="flex items-center justify-between gap-3 border-t border-line pt-2.5">
+                            <dt class="text-sm text-ink-2">Trésorerie disponible</dt>
+                            <dd class="text-sm font-semibold text-ink"><x-ui.money :amount="$cashBalance" /></dd>
+                        </div>
+                    </dl>
                 @endif
-            </x-card>
-
-            {{-- Vehicle status --}}
-            <x-card>
-                <div class="text-sm font-semibold text-content mb-3">État de la flotte</div>
-                <ul class="space-y-2.5">
-                    @foreach ($vehicleStatusCounts as $label => $count)
-                        <li class="flex items-center justify-between text-sm">
-                            <span class="text-content-secondary">{{ $label }}</span>
-                            <span class="font-medium text-content">{{ $count }}</span>
-                        </li>
-                    @endforeach
-                </ul>
-                <a href="{{ route('fleet.index') }}" class="mt-3 inline-flex items-center gap-1 text-xs text-primary hover:underline">
-                    Voir la flotte <x-icon name="chevron-right" class="w-3 h-3" />
-                </a>
-            </x-card>
-        </div>
-
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
-            <x-card>
-                <div class="text-sm font-semibold text-content mb-3">Examens</div>
-                <div class="grid grid-cols-3 gap-2 text-center text-sm">
-                    <div>
-                        <div class="text-2xl font-bold text-success">{{ $examStats['passed'] }}</div>
-                        <div class="text-content-muted">Réussis</div>
-                    </div>
-                    <div>
-                        <div class="text-2xl font-bold text-danger">{{ $examStats['failed'] }}</div>
-                        <div class="text-content-muted">Échoués</div>
-                    </div>
-                    <div>
-                        <div class="text-2xl font-bold text-content-secondary">{{ $examStats['pending'] }}</div>
-                        <div class="text-content-muted">En attente</div>
-                    </div>
-                </div>
-            </x-card>
-
-            <x-card>
-                <div class="text-sm font-semibold text-content mb-3">Élèves par étape</div>
-                <ul class="text-sm divide-y divide-border/60 max-h-48 overflow-y-auto">
-                    @foreach ($studentsByStage as $stage => $count)
-                        @if ($count > 0)
-                            <li class="py-1.5 flex justify-between">
-                                <span class="text-content-secondary">{{ $stage }}</span>
-                                <span class="font-medium text-content">{{ $count }}</span>
-                            </li>
-                        @endif
-                    @endforeach
-                </ul>
-            </x-card>
+            </x-ui.card>
         </div>
     </div>
 </x-app-layout>

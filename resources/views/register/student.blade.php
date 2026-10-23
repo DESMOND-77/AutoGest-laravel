@@ -1,124 +1,111 @@
-<x-guest-layout>
-    @if ($state === 'form')
-        <div class="mb-5 text-center">
-            <p class="text-xs font-semibold text-primary tracking-wide uppercase mb-1">Inscription élève</p>
-            <h1 class="text-lg font-semibold text-content">{{ $structure->name }}</h1>
-            @if ($structure->address || $structure->phone)
-                <p class="text-sm text-content-secondary mt-1">
-                    {{ collect([$structure->address, $structure->phone])->filter()->implode(' · ') }}
+@php
+    $messages = [
+        'invalid' => ['title' => 'Lien incomplet', 'body' => 'Ce lien d’inscription ne contient pas de jeton. Demandez le lien complet à votre auto-école.'],
+        'expired' => ['title' => 'Lien expiré', 'body' => 'Ce lien d’inscription a expiré. Votre auto-école peut en générer un nouveau en un clic.'],
+        'revoked' => ['title' => 'Lien révoqué', 'body' => 'Ce lien a été désactivé par votre auto-école. Demandez un nouveau lien au secrétariat.'],
+        'exhausted' => ['title' => 'Lien déjà utilisé', 'body' => 'Ce lien a atteint son nombre maximal d’inscriptions. Demandez-en un nouveau.'],
+    ];
+    $state = $state ?? 'invalid';
+@endphp
+
+<x-public-layout :title="$state === 'form' ? 'Inscription élève' : ($messages[$state]['title'] ?? 'Inscription élève')">
+    <div class="mx-auto w-full max-w-2xl px-4 py-10 sm:px-6">
+        @if ($state !== 'form')
+            <div class="material-panel p-6 text-center sm:p-10">
+                <span class="mx-auto grid size-14 place-items-center rounded-full bg-warning-soft text-warning">
+                    <x-ui.icon name="circle-alert" class="w-7 h-7" />
+                </span>
+                <h1 class="mt-4 text-2xl font-bold tracking-tight text-ink">{{ $messages[$state]['title'] ?? 'Lien inutilisable' }}</h1>
+                <p class="mx-auto mt-2 max-w-md text-[14px] text-ink-2">{{ $messages[$state]['body'] ?? 'Ce lien d’inscription n’est pas valide.' }}</p>
+                <p class="mt-6 text-[12.5px] text-ink-3">Besoin d’aide ? Contactez le secrétariat de votre auto-école.</p>
+            </div>
+        @else
+            <div class="mb-6">
+                <p class="text-eyebrow">Inscription en ligne</p>
+                <h1 class="mt-1 text-2xl font-bold tracking-tight text-ink">Inscrivez-vous chez {{ $structure?->name ?? 'votre auto-école' }}</h1>
+                <p class="mt-1.5 text-[14px] text-ink-2">
+                    Renseignez vos informations. Votre auto-école validera votre dossier et vous accompagnera pour la suite du parcours.
                 </p>
-            @endif
-        </div>
-
-        @if ($duplicateError ?? null)
-            <x-alert variant="danger" class="mb-4">{{ $duplicateError }}</x-alert>
-        @endif
-
-        @if ($errors->any())
-            <x-alert variant="danger" class="mb-4">
-                Veuillez corriger les champs indiqués ci-dessous.
-            </x-alert>
-        @endif
-
-        <form method="POST" action="{{ route('public-registration.store') }}" class="space-y-4">
-            @csrf
-            <input type="hidden" name="registration_token" value="{{ $token }}">
-
-            <div class="grid grid-cols-2 gap-4">
-                <div>
-                    <x-input-label for="first_name" value="Prénom" />
-                    <x-text-input id="first_name" name="first_name" class="block mt-1 w-full" :value="old('first_name')" required autofocus />
-                    <x-input-error :messages="$errors->get('first_name')" class="mt-1" />
-                </div>
-                <div>
-                    <x-input-label for="last_name" value="Nom" />
-                    <x-text-input id="last_name" name="last_name" class="block mt-1 w-full" :value="old('last_name')" required />
-                    <x-input-error :messages="$errors->get('last_name')" class="mt-1" />
-                </div>
             </div>
 
-            <div>
-                <x-input-label for="phone" value="Téléphone" />
-                <x-text-input id="phone" type="tel" name="phone" class="block mt-1 w-full" :value="old('phone')" required />
-                <x-input-error :messages="$errors->get('phone')" class="mt-1" />
-            </div>
-
-            <div>
-                <x-input-label for="email" value="E-mail" />
-                <x-text-input id="email" type="email" name="email" class="block mt-1 w-full" :value="old('email')" required />
-                <x-input-error :messages="$errors->get('email')" class="mt-1" />
-            </div>
-
-            <div class="grid grid-cols-2 gap-4">
-                <div>
-                    <x-input-label for="password" value="Mot de passe" />
-                    <x-text-input id="password" type="password" name="password" class="block mt-1 w-full" required />
-                    <x-input-error :messages="$errors->get('password')" class="mt-1" />
-                </div>
-                <div>
-                    <x-input-label for="password_confirmation" value="Confirmer le mot de passe" />
-                    <x-text-input id="password_confirmation" type="password" name="password_confirmation" class="block mt-1 w-full" required />
-                </div>
-            </div>
-
-            <div class="grid grid-cols-2 gap-4">
-                <div>
-                    <x-input-label for="license_category" value="Catégorie de permis" />
-                    <select id="license_category" name="license_category" class="mt-1 w-full rounded-ui-md border-0 bg-surface-inset text-content shadow-inset focus:shadow-inset-focus focus:ring-0 text-sm">
-                        @foreach ($licenseCategories as $case)
-                            <option value="{{ $case->value }}" @selected(old('license_category') === $case->value)>{{ $case->value }}</option>
-                        @endforeach
-                    </select>
-                    <x-input-error :messages="$errors->get('license_category')" class="mt-1" />
-                </div>
-                <div>
-                    <x-input-label for="course_type" value="Formation" />
-                    <select id="course_type" name="course_type" class="mt-1 w-full rounded-ui-md border-0 bg-surface-inset text-content shadow-inset focus:shadow-inset-focus focus:ring-0 text-sm">
-                        @foreach ($courseTypes as $case)
-                            <option value="{{ $case->value }}" @selected(old('course_type') === $case->value)>{{ $case->label() }}</option>
-                        @endforeach
-                    </select>
-                    <x-input-error :messages="$errors->get('course_type')" class="mt-1" />
-                </div>
-            </div>
-
-            <div>
-                <x-input-label for="birth_date" value="Date de naissance" />
-                <x-text-input id="birth_date" type="date" name="birth_date" class="block mt-1 w-full" :value="old('birth_date')" required />
-                <x-input-error :messages="$errors->get('birth_date')" class="mt-1" />
-            </div>
-
-            <div>
-                <x-input-label for="address" value="Adresse (optionnel)" />
-                <x-text-input id="address" name="address" class="block mt-1 w-full" :value="old('address')" />
-                <x-input-error :messages="$errors->get('address')" class="mt-1" />
-            </div>
-
-            <x-primary-button class="w-full justify-center">S'inscrire</x-primary-button>
-        </form>
-
-        <p class="text-xs text-content-muted text-center mt-5">
-            🔒 Vos informations sont transmises de manière sécurisée à {{ $structure->name }}.
-        </p>
-    @else
-        <div class="text-center py-4">
-            <span class="inline-flex h-12 w-12 items-center justify-center rounded-full bg-danger/10 text-danger mb-4">
-                <x-icon name="exclamation-triangle" class="w-6 h-6" />
-            </span>
-
-            @if ($state === 'expired')
-                <h1 class="text-lg font-semibold text-content mb-2">Lien d'inscription expiré</h1>
-                <p class="text-sm text-content-secondary">
-                    Ce lien d'inscription a expiré. Demandez à l'auto-école de vous transmettre un nouveau lien.
-                </p>
-            @else
-                <h1 class="text-lg font-semibold text-content mb-2">Lien d'inscription invalide</h1>
-                <p class="text-sm text-content-secondary">
-                    Ce lien d'inscription est invalide, expiré ou désactivé. Veuillez demander un nouveau lien à votre auto-école.
-                </p>
+            @if (! empty($duplicateError))
+                <x-ui.alert tone="warning" title="Inscription déjà existante" class="mb-4">{{ $duplicateError }}</x-ui.alert>
             @endif
 
-            <a href="/" class="inline-block mt-6 text-sm text-primary hover:underline">Retour à l'accueil</a>
-        </div>
-    @endif
-</x-guest-layout>
+            <x-form.errors class="mb-4" />
+
+            <form method="POST" action="{{ route('public-registration.store') }}" class="space-y-6">
+                @csrf
+                <input type="hidden" name="registration_token" value="{{ $token }}">
+
+                <div class="material-solid p-5">
+                    <x-form.section title="Vos informations" description="Identité et coordonnées.">
+                        <div class="space-y-4">
+                            <div class="grid gap-4 sm:grid-cols-2">
+                                <x-form.field name="first_name" label="Prénom" required>
+                                    <x-form.input name="first_name" :value="old('first_name')" autocomplete="given-name" required />
+                                </x-form.field>
+                                <x-form.field name="last_name" label="Nom" required>
+                                    <x-form.input name="last_name" :value="old('last_name')" autocomplete="family-name" required />
+                                </x-form.field>
+                            </div>
+                            <div class="grid gap-4 sm:grid-cols-2">
+                                <x-form.field name="birth_date" label="Date de naissance" required>
+                                    <x-form.input name="birth_date" type="date" :value="old('birth_date')" required />
+                                </x-form.field>
+                                <x-form.field name="birth_place" label="Lieu de naissance" optional>
+                                    <x-form.input name="birth_place" :value="old('birth_place')" />
+                                </x-form.field>
+                            </div>
+                            <div class="grid gap-4 sm:grid-cols-2">
+                                <x-form.field name="phone" label="Téléphone" required>
+                                    <x-form.input name="phone" type="tel" inputmode="tel" icon="phone" :value="old('phone')" placeholder="+241 …" required />
+                                </x-form.field>
+                                <x-form.field name="email" label="Adresse e-mail" required hint="Servira d’identifiant de connexion.">
+                                    <x-form.input name="email" type="email" icon="envelope" :value="old('email')" autocomplete="email" required />
+                                </x-form.field>
+                            </div>
+                            <x-form.field name="address" label="Adresse" optional>
+                                <x-form.input name="address" :value="old('address')" autocomplete="street-address" />
+                            </x-form.field>
+                        </div>
+                    </x-form.section>
+                </div>
+
+                <div class="material-solid p-5">
+                    <x-form.section title="Votre formation" description="Le permis visé et la formule choisie.">
+                        <div class="grid gap-4 sm:grid-cols-2">
+                            <x-form.field name="license_category" label="Catégorie de permis" required>
+                                <x-form.select name="license_category" :selected="old('license_category', 'B')"
+                                    :options="collect($licenseCategories)->mapWithKeys(fn ($c) => [$c->value => 'Permis '.$c->value])->all()" />
+                            </x-form.field>
+                            <x-form.field name="course_type" label="Formule" required>
+                                <x-form.select name="course_type" :selected="old('course_type')"
+                                    :options="collect($courseTypes)->mapWithKeys(fn ($c) => [$c->value => $c->label()])->all()" placeholder="Choisir une formule" />
+                            </x-form.field>
+                        </div>
+                    </x-form.section>
+                </div>
+
+                <div class="material-solid p-5">
+                    <x-form.section title="Votre accès" description=" Vous pourrez suivre votre dossier, votre planning et vos paiements.">
+                        <div class="grid gap-4 sm:grid-cols-2">
+                            <x-form.field name="password" label="Mot de passe" required>
+                                <x-form.input name="password" type="password" icon="lock" autocomplete="new-password" required />
+                            </x-form.field>
+                            <x-form.field name="password_confirmation" label="Confirmer le mot de passe" required>
+                                <x-form.input name="password_confirmation" type="password" icon="lock" autocomplete="new-password" required />
+                            </x-form.field>
+                        </div>
+                    </x-form.section>
+                </div>
+
+                <x-ui.button type="submit" size="lg" class="w-full" icon-right="arrow-right">Valider mon inscription</x-ui.button>
+
+                <p class="text-center text-[12px] leading-relaxed text-ink-3">
+                    Un code de vérification sera envoyé à votre adresse e-mail pour sécuriser votre première connexion.
+                </p>
+            </form>
+        @endif
+    </div>
+</x-public-layout>

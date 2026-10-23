@@ -1,31 +1,50 @@
+@php
+    $htmlAttrs = collect($uiAttributes ?? [])
+        ->map(fn ($value, $key) => $key.'="'.e($value).'"')
+        ->implode(' ');
+@endphp
 <!DOCTYPE html>
-<html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
-    <head>
-        <meta charset="utf-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1">
-        <meta name="csrf-token" content="{{ csrf_token() }}">
-
-        <title>{{ config('app.name', 'Laravel') }}</title>
-        <link rel="icon" type="image/jpeg" href="{{ asset('images/brand/icon.jpg') }}">
-
-        <x-theme-init-script />
-
-        <!-- Fonts -->
-        <link rel="preconnect" href="https://fonts.bunny.net">
-        <link href="https://fonts.bunny.net/css?family=inter:400,500,600,700&display=swap" rel="stylesheet" />
-
-        <!-- Scripts -->
-        @vite(['resources/css/app.css', 'resources/js/app.js'])
-    </head>
-    <body class="font-sans text-content antialiased bg-background">
-        <div class="min-h-screen flex flex-col sm:justify-center items-center pt-6 sm:pt-0">
-            <a href="/" class="flex items-center gap-2">
-                <x-brand-logo variant="full" class="h-9 w-auto" />
+<html lang="{{ str_replace('_', '-', app()->getLocale()) }}" {!! $htmlAttrs !!}>
+<head>
+    @include('layouts.partials.head')
+</head>
+<body class="app-canvas min-h-dvh text-[15px] text-ink antialiased">
+    <div class="grid min-h-dvh lg:grid-cols-[1fr_minmax(420px,520px)]">
+        {{-- Volet de gauche : promesse produit, masqué sur mobile --}}
+        <aside class="relative hidden overflow-hidden border-r border-line/60 p-10 lg:flex lg:flex-col lg:justify-between">
+            <a href="{{ url('/') }}" class="inline-flex items-center gap-2.5 rounded-sm focus-visible:outline-none focus-visible:shadow-[var(--focus-ring)]">
+                <x-brand.logo size="sm" />
+                <span class="text-[15px] font-bold tracking-tight text-ink">Auto-GestBoard</span>
             </a>
 
-            <div class="w-full sm:max-w-md mt-6 px-6 py-6 bg-surface shadow-soft overflow-hidden rounded-ui-xl">
+            <div class="max-w-md">
+                <h1 class="text-3xl font-bold leading-tight tracking-tight text-ink">Toute votre auto-école,<br>de l’inscription au permis.</h1>
+                <p class="mt-3 text-[14.5px] text-ink-2">
+                    Dossiers élèves, planning des moniteurs, encaissements, flotte et boutique — sans tableur ni cahier.
+                </p>
+                <ul class="mt-6 space-y-2.5 text-[13.5px] text-ink-2">
+                    @foreach (['Parcours élève en 15 étapes suivies', 'Planning anti-conflit moniteur / véhicule', 'Factures et journal de caisse en FCFA', 'Accès élève : planning, dossier, entraînement au code'] as $line)
+                        <li class="flex items-start gap-2">
+                            <x-ui.icon name="circle-check" class="mt-0.5 w-4 h-4 shrink-0 text-success" />
+                            <span>{{ $line }}</span>
+                        </li>
+                    @endforeach
+                </ul>
+            </div>
+
+            <p class="text-[12px] text-ink-3">© {{ now()->year }} Auto-GestBoard · Libreville, Gabon</p>
+        </aside>
+
+        {{-- Formulaire --}}
+        <main id="main" class="flex flex-col justify-center px-5 py-10 sm:px-8">
+            <div class="mx-auto w-full max-w-sm">
+                <a href="{{ url('/') }}" class="mb-8 inline-flex items-center gap-2 lg:hidden">
+                    <x-brand.logo size="sm" />
+                    <span class="text-sm font-bold text-ink">Auto-GestBoard</span>
+                </a>
                 {{ $slot }}
             </div>
-        </div>
-    </body>
+        </main>
+    </div>
+</body>
 </html>

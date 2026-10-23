@@ -1,127 +1,149 @@
-<x-app-layout>
-    <x-slot name="header">Examens</x-slot>
+@php
+    $pageExams = $exams->getCollection();
+    $stats = [
+        'pending' => $pageExams->filter(fn ($exam) => $exam->result?->value === 'pending')->count(),
+        'passed' => $pageExams->filter(fn ($exam) => $exam->result?->value === 'passed')->count(),
+        'failed' => $pageExams->filter(fn ($exam) => $exam->result?->value === 'failed')->count(),
+    ];
+    $types = collect(\App\Domain\Training\Enums\ExamType::cases())->mapWithKeys(fn ($t) => [$t->value => $t->label()])->all();
+    $results = collect(\App\Domain\Training\Enums\ExamResult::cases())->mapWithKeys(fn ($r) => [$r->value => $r->label()])->all();
+@endphp
 
-    <div class="py-6 space-y-5 max-w-4xl mx-auto">
-        @if (session('status'))
-            <x-alert variant="success">{{ session('status') }}</x-alert>
-        @endif
+<x-app-layout :title="'Examens'">
+    <x-layout.page-header
+        title="Examens"
+        description="Planifiez les examens du code et de la conduite, puis saisissez les résultats."
+        :breadcrumbs="[['label' => 'Examens']]"
+    >
+        <x-slot:actions>
+            @can('create', \App\Domain\Training\Models\Exam::class)
+                <x-ui.button icon="plus" x-on:click="$dispatch('open-dialog', { name: 'new-exam' })">Nouvel examen</x-ui.button>
+            @endcan
+        </x-slot:actions>
+    </x-layout.page-header>
 
-        <x-card>
-            <div class="text-sm font-semibold text-content mb-3">Nouvel examen</div>
-            <form id="exams-create-form" method="POST" action="{{ route('training.exams.store') }}" class="grid grid-cols-1 sm:grid-cols-3 gap-3 items-end">
+    <div class="space-y-4">
+        <div class="grid gap-3 sm:grid-cols-3">
+            <x-data.kpi label="À venir / en attente" :value="$stats['pending']" icon="calendar" />
+            <x-data.kpi label="Réussis (page)" :value="$stats['passed']" icon="trophy" trend="up" />
+            <x-data.kpi label="Échecs (page)" :value="$stats['failed']" icon="circle-x" trend="down" />
+        </div>
+
+        <x-ui.card variant="solid" padding="p-0">
+            @if ($exams->isEmpty())
+                <x-ui.empty-state icon="award" title="Aucun examen enregistré" description="Enregistrez les convocations et saisissez les résultats pour suivre le taux de réussite." class="py-10">
+                    <x-slot:actions>
+                        @can('create', \App\Domain\Training\Models\Exam::class)
+                            <x-ui.button icon="plus" x-on:click="$dispatch('open-dialog', { name: 'new-exam' })">Nouvel examen</x-ui.button>
+                        @endcan
+                    </x-slot:actions>
+                </x-ui.empty-state>
+            @else
+                <div class="px-1 pb-1">
+                    <x-data.table caption="Liste des examens">
+                        <thead>
+                            <tr>
+                                <th scope="col">Élève</th>
+                                <th scope="col">Type</th>
+                                <th scope="col">Date</th>
+                                <th scope="col">Lieu / inspecteur</th>
+                                <th scope="col">Résultat</th>
+                                <th scope="col"><span class="sr-only">Actions</span></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach ($exams as $exam)
+                                <tr>
+                                    <td data-label="Élève">
+                                        @if ($exam->student)
+                                            <a href="{{ route('students.show', $exam->student) }}" class="text-sm font-medium text-ink hover:text-accent">{{ $exam->student->fullName() }}</a>
+                                        @else
+                                            <span class="text-sm text-ink-3">—</span>
+                                        @endif
+                                    </td>
+                                    <td data-label="Type">{{ $exam->type?->label() }}</td>
+                                    <td data-label="Date"><x-ui.date :value="$exam->exam_date" /></td>
+                                    <td data-label="Lieu / inspecteur">
+                                        <span class="block text-[13px] text-ink-2">{{ $exam->location ?: '—' }}</span>
+                                        @if ($exam->inspector)
+                                            <span class="block text-[12px] text-ink-3">{{ $exam->inspector }}</span>
+                                        @endif
+                                    </td>
+                                    <td data-label="Résultat"><x-ui.status :value="$exam->result" /></td>
+                                    <td data-label="">
+                                        <div class="flex justify-end">
+                                            @can('update', $exam)
+                                                <x-ui.button size="sm" variant="ghost" icon="pencil"
+                                                    x-on:click="$dispatch('open-dialog', { name: 'result-{{ $exam->id }}' })">Résultat</x-ui.button>
+                                            @endcan
+                                        </div>
+                                    </td>
+                                </tr>
+
+                                @can('update', $exam)
+                                    <x-ui.dialog name="result-{{ $exam->id }}" title="Saisir le résultat" :description="'Examen du '.($exam->exam_date?->format('d/m/Y') ?? '—').' — '.($exam->student?->fullName() ?? '')">
+                                        <form method="POST" action="{{ route('training.exams.update', $exam) }}" class="space-y-4">
+                                            @csrf
+                                            @method('PATCH')
+                                            <x-form.field name="result" label="Résultat" required>
+                                                <x-form.select name="result" :options="$results" :selected="$exam->result?->value" />
+                                            </x-form.field>
+                                            <div class="grid gap-4 sm:grid-cols-2">
+                                                <x-form.field name="fault_count" label="Nombre de fautes" optional>
+                                                    <x-form.input name="fault_count" type="number" min="0" :value="$exam->fault_count" />
+                                                </x-form.field>
+                                            </div>
+                                            <x-form.field name="comment" label="Commentaire" optional>
+                                                <x-form.textarea name="comment" :value="$exam->comment" />
+                                            </x-form.field>
+                                            <div class="flex justify-end gap-2">
+                                                <x-ui.button variant="ghost" type="button" x-on:click="$dispatch('close-dialog', { name: 'result-{{ $exam->id }}' })">Annuler</x-ui.button>
+                                                <x-ui.button type="submit">Enregistrer</x-ui.button>
+                                            </div>
+                                        </form>
+                                    </x-ui.dialog>
+                                @endcan
+                            @endforeach
+                        </tbody>
+                    </x-data.table>
+                </div>
+                <x-ui.pagination :paginator="$exams" label="Pagination des examens" />
+            @endif
+        </x-ui.card>
+    </div>
+
+    @can('create', \App\Domain\Training\Models\Exam::class)
+        <x-ui.dialog name="new-exam" title="Nouvel examen">
+            <x-form.errors />
+            <form method="POST" action="{{ route('training.exams.store') }}" class="space-y-4">
                 @csrf
-                <div>
-                    <x-input-label for="student_id" value="Élève" />
-                    <select id="student_id" name="student_id" class="mt-1 w-full rounded-ui-md border-0 bg-surface-inset text-content shadow-inset focus:shadow-inset-focus focus:ring-0 text-sm">
-                        @foreach ($students as $student)
-                            <option value="{{ $student->id }}">{{ $student->fullName() }}</option>
-                        @endforeach
-                    </select>
+                <x-form.field name="student_id" label="Élève" required>
+                    <x-form.select name="student_id" :options="$students->mapWithKeys(fn ($s) => [$s->id => $s->fullName()])->all()" placeholder="Choisir un élève" required />
+                </x-form.field>
+                <div class="grid gap-4 sm:grid-cols-2">
+                    <x-form.field name="type" label="Type d’examen" required>
+                        <x-form.select name="type" :options="$types" :selected="'code'" />
+                    </x-form.field>
+                    <x-form.field name="exam_date" label="Date" required>
+                        <x-form.input name="exam_date" type="date" :value="now()->addWeek()->format('Y-m-d')" required />
+                    </x-form.field>
                 </div>
-                <div>
-                    <x-input-label for="type" value="Type" />
-                    <select id="type" name="type" class="mt-1 w-full rounded-ui-md border-0 bg-surface-inset text-content shadow-inset focus:shadow-inset-focus focus:ring-0 text-sm">
-                        @foreach (\App\Domain\Training\Enums\ExamType::cases() as $case)
-                            <option value="{{ $case->value }}">{{ $case->label() }}</option>
-                        @endforeach
-                    </select>
+                <div class="grid gap-4 sm:grid-cols-2">
+                    <x-form.field name="location" label="Lieu" optional>
+                        <x-form.input name="location" placeholder="Centre d’examen" />
+                    </x-form.field>
+                    <x-form.field name="inspector" label="Inspecteur" optional>
+                        <x-form.input name="inspector" />
+                    </x-form.field>
                 </div>
-                <div>
-                    <x-input-label for="exam_date" value="Date" />
-                    <x-text-input id="exam_date" type="date" name="exam_date" class="block mt-1 w-full" required />
-                </div>
-                <div>
-                    <x-input-label for="location" value="Lieu" />
-                    <x-text-input id="location" name="location" class="block mt-1 w-full" />
-                </div>
-                <div>
-                    <x-input-label for="inspector" value="Inspecteur" />
-                    <x-text-input id="inspector" name="inspector" class="block mt-1 w-full" />
-                </div>
-                <div>
-                    <x-primary-button>Planifier</x-primary-button>
+                <x-form.field name="comment" label="Note interne" optional>
+                    <x-form.textarea name="comment" />
+                </x-form.field>
+                <div class="flex justify-end gap-2">
+                    <x-ui.button variant="ghost" type="button" x-on:click="$dispatch('close-dialog', { name: 'new-exam' })">Annuler</x-ui.button>
+                    <x-ui.button type="submit">Enregistrer l’examen</x-ui.button>
                 </div>
             </form>
-        </x-card>
-
-        <x-card :padded="false">
-            <div class="overflow-x-auto">
-                <table class="w-full text-sm text-left">
-                    <thead class="text-content-muted">
-                        <tr>
-                            <th class="px-5 py-3 font-medium">Élève</th>
-                            <th class="px-5 py-3 font-medium">Type</th>
-                            <th class="px-5 py-3 font-medium">Date</th>
-                            <th class="px-5 py-3 font-medium">Lieu</th>
-                            <th class="px-5 py-3 font-medium">Inspecteur</th>
-                            <th class="px-5 py-3 font-medium">Résultat</th>
-                            <th class="px-5 py-3 font-medium"></th>
-                        </tr>
-                    </thead>
-                    @forelse ($exams as $exam)
-                        <tbody x-data="{ open: false }" class="divide-y divide-border/60 border-t border-border/60 first:border-t-0">
-                            <tr class="hover:bg-surface-elevated/60 transition">
-                                <td class="px-5 py-3 text-content font-medium">{{ $exam->student->fullName() }}</td>
-                                <td class="px-5 py-3 text-content-secondary">{{ $exam->type->label() }}</td>
-                                <td class="px-5 py-3 text-content-secondary">{{ $exam->exam_date->format('d/m/Y') }}</td>
-                                <td class="px-5 py-3 text-content-secondary">{{ $exam->location ?? '—' }}</td>
-                                <td class="px-5 py-3 text-content-secondary">{{ $exam->inspector ?? '—' }}</td>
-                                <td class="px-5 py-3">
-                                    <form method="POST" action="{{ route('training.exams.update', $exam) }}" class="flex gap-1">
-                                        @csrf @method('PATCH')
-                                        <select name="result" class="text-xs rounded-ui-md border-0 bg-surface-inset text-content shadow-inset focus:shadow-inset-focus focus:ring-0" onchange="this.form.submit()">
-                                            @foreach (\App\Domain\Training\Enums\ExamResult::cases() as $case)
-                                                <option value="{{ $case->value }}" @selected($exam->result === $case)>{{ $case->label() }}</option>
-                                            @endforeach
-                                        </select>
-                                    </form>
-                                </td>
-                                <td class="px-5 py-3 text-right">
-                                    <button type="button" @click="open = !open" class="text-xs text-content-secondary hover:text-primary transition" :aria-expanded="open.toString()">
-                                        <span x-text="open ? 'Fermer' : 'Détails'"></span>
-                                    </button>
-                                </td>
-                            </tr>
-                            <tr x-show="open" x-cloak>
-                                <td colspan="7" class="px-5 py-4 bg-surface-inset/40">
-                                    <div class="text-xs text-content-secondary mb-2">
-                                        <span class="font-medium text-content">Fautes :</span> {{ $exam->fault_count ?? '—' }}
-                                        <span class="mx-2">·</span>
-                                        <span class="font-medium text-content">Commentaire :</span> {{ $exam->comment ?? '—' }}
-                                    </div>
-                                    <form method="POST" action="{{ route('training.exams.update', $exam) }}" class="grid grid-cols-1 sm:grid-cols-3 gap-3 items-end">
-                                        @csrf @method('PATCH')
-                                        <input type="hidden" name="result" value="{{ $exam->result->value }}" />
-                                        <div>
-                                            <x-input-label for="fault_count-{{ $exam->id }}" value="Nombre de fautes" />
-                                            <x-text-input id="fault_count-{{ $exam->id }}" type="number" min="0" name="fault_count" class="block mt-1 w-full" value="{{ $exam->fault_count }}" />
-                                        </div>
-                                        <div class="sm:col-span-2">
-                                            <x-input-label for="comment-{{ $exam->id }}" value="Commentaire" />
-                                            <textarea id="comment-{{ $exam->id }}" name="comment" rows="2" class="w-full rounded-ui-md border-0 bg-surface px-3.5 py-2.5 text-sm text-content shadow-inset placeholder:text-content-muted focus:outline-none focus:shadow-inset-focus mt-1">{{ $exam->comment }}</textarea>
-                                        </div>
-                                        <div class="sm:col-span-3">
-                                            <x-primary-button>Enregistrer</x-primary-button>
-                                        </div>
-                                    </form>
-                                </td>
-                            </tr>
-                        </tbody>
-                    @empty
-                        <tbody>
-                            <x-empty-table-row
-                                colspan="7"
-                                title="Aucun examen planifié."
-                                message="Planifiez un examen pour un élève afin de suivre son résultat."
-                                action="#exams-create-form"
-                                action-label="Planifier un examen"
-                            />
-                        </tbody>
-                    @endforelse
-                </table>
-            </div>
-        </x-card>
-
-        {{ $exams->links() }}
-    </div>
+        </x-ui.dialog>
+    @endcan
 </x-app-layout>

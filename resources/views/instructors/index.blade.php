@@ -1,81 +1,96 @@
-<x-app-layout>
-    <x-slot name="header">Moniteurs</x-slot>
+<x-app-layout :title="'Moniteurs'">
+    <x-layout.page-header
+        title="Moniteurs"
+        description="L’équipe pédagogique, ses disponibilités et les élèves affectés."
+        :breadcrumbs="[['label' => 'Moniteurs']]"
+    >
+        <x-slot:actions>
+            @can('create', \App\Domain\Instructors\Models\Instructor::class)
+                <x-ui.button icon="user-plus" x-on:click="$dispatch('open-dialog', { name: 'new-instructor' })">Nouveau moniteur</x-ui.button>
+            @endcan
+        </x-slot:actions>
+    </x-layout.page-header>
 
-    <div class="py-6 space-y-5 max-w-4xl mx-auto">
-        @if (session('status'))
-            <x-alert variant="success">{{ session('status') }}</x-alert>
-        @endif
+    <div class="space-y-4">
+        @if ($instructors->isEmpty())
+            <x-ui.card variant="solid">
+                <x-ui.empty-state icon="users" title="Aucun moniteur" description="Ajoutez vos moniteurs pour leur affecter des élèves et des séances de conduite.">
+                    <x-slot:actions>
+                        @can('create', \App\Domain\Instructors\Models\Instructor::class)
+                            <x-ui.button icon="user-plus" x-on:click="$dispatch('open-dialog', { name: 'new-instructor' })">Nouveau moniteur</x-ui.button>
+                        @endcan
+                    </x-slot:actions>
+                </x-ui.empty-state>
+            </x-ui.card>
+        @else
+            <div class="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+                @foreach ($instructors as $instructor)
+                    <article class="material-solid flex flex-col gap-3 p-4">
+                        <div class="flex items-start gap-3">
+                            <x-ui.avatar :name="$instructor->user?->name ?? 'Moniteur'" size="md" />
+                            <div class="min-w-0 flex-1">
+                                <a href="{{ route('instructors.show', $instructor) }}" class="block truncate text-[14px] font-semibold text-ink hover:text-accent">{{ $instructor->user?->name ?? 'Moniteur sans compte' }}</a>
+                                <p class="truncate text-[12px] text-ink-3">{{ $instructor->user?->email }}</p>
+                            </div>
+                            <x-ui.status :value="$instructor->status" compact />
+                        </div>
 
-        @if ($errors->any())
-            <x-alert variant="danger">{{ $errors->first() }}</x-alert>
-        @endif
+                        <dl class="grid grid-cols-2 gap-2 text-[12.5px]">
+                            <div>
+                                <dt class="text-ink-3">Permis</dt>
+                                <dd class="truncate font-medium text-ink">{{ $instructor->license_number ?: '—' }}</dd>
+                            </div>
+                            <div>
+                                <dt class="text-ink-3">Embauche</dt>
+                                <dd class="font-medium text-ink">{{ $instructor->hire_date?->format('d/m/Y') ?? '—' }}</dd>
+                            </div>
+                        </dl>
 
-        @can('create', \App\Domain\Instructors\Models\Instructor::class)
-            <x-card>
-                <div class="text-sm font-semibold text-content mb-3">Nouveau moniteur</div>
-                <form id="instructors-create-form" method="POST" action="{{ route('instructors.store') }}" class="grid grid-cols-1 sm:grid-cols-4 gap-3 items-end">
-                    @csrf
-                    <div>
-                        <x-input-label for="name" value="Nom complet" />
-                        <x-text-input id="name" name="name" class="block mt-1 w-full" required />
-                    </div>
-                    <div>
-                        <x-input-label for="email" value="E-mail" />
-                        <x-text-input id="email" type="email" name="email" class="block mt-1 w-full" required />
-                    </div>
-                    <div>
-                        <x-input-label for="license_number" value="N° agrément" />
-                        <x-text-input id="license_number" name="license_number" class="block mt-1 w-full" />
-                    </div>
-                    <div>
-                        <x-input-label for="hire_date" value="Date d'embauche" />
-                        <x-text-input id="hire_date" type="date" name="hire_date" class="block mt-1 w-full" />
-                    </div>
-                    <div>
-                        <x-primary-button>Ajouter</x-primary-button>
-                    </div>
-                </form>
-                <p class="text-xs text-content-muted mt-3">
-                    Le nouveau compte moniteur reçoit un e-mail avec un lien pour définir son mot de passe.
-                </p>
-            </x-card>
-        @endcan
+                        @if (! empty($instructor->specialties))
+                            <div class="flex flex-wrap gap-1">
+                                @foreach ($instructor->specialties as $specialty)
+                                    <x-ui.badge tone="neutral">{{ $specialty }}</x-ui.badge>
+                                @endforeach
+                            </div>
+                        @endif
 
-        <x-card :padded="false">
-            <div class="overflow-x-auto">
-                <table class="w-full text-sm text-left">
-                    <thead class="text-content-muted">
-                        <tr>
-                            <th class="px-5 py-3 font-medium">Nom</th>
-                            <th class="px-5 py-3 font-medium">N° agrément</th>
-                            <th class="px-5 py-3 font-medium">Statut</th>
-                            <th class="px-5 py-3 font-medium">Embauche</th>
-                        </tr>
-                    </thead>
-                    <tbody class="divide-y divide-border/60">
-                        @forelse ($instructors as $instructor)
-                            <tr class="hover:bg-surface-elevated/60 transition">
-                                <td class="px-5 py-3">
-                                    <a href="{{ route('instructors.show', $instructor) }}" class="font-medium text-content hover:text-primary transition">
-                                        {{ $instructor->user->name }}
-                                    </a>
-                                </td>
-                                <td class="px-5 py-3 text-content-secondary">{{ $instructor->license_number ?? '-' }}</td>
-                                <td class="px-5 py-3"><x-badge variant="info">{{ $instructor->status->label() }}</x-badge></td>
-                                <td class="px-5 py-3 text-content-secondary">{{ optional($instructor->hire_date)->format('d/m/Y') ?? '-' }}</td>
-                            </tr>
-                        @empty
-                            <x-empty-table-row
-                                colspan="4"
-                                title="Aucun moniteur enregistré."
-                                message="Ajoutez votre premier moniteur pour pouvoir lui assigner des séances."
-                                :action="Auth::user()->can('create', \App\Domain\Instructors\Models\Instructor::class) ? '#instructors-create-form' : null"
-                                action-label="Ajouter un moniteur"
-                            />
-                        @endforelse
-                    </tbody>
-                </table>
+                        <div class="mt-auto flex items-center justify-between border-t border-line pt-2.5">
+                            <span class="text-[12px] text-ink-3">{{ $instructor->availabilities_count ?? $instructor->availabilities?->count() ?? 0 }} créneau(x)</span>
+                            <x-ui.button :href="route('instructors.show', $instructor)" size="sm" variant="ghost" icon-right="chevron-right">Ouvrir</x-ui.button>
+                        </div>
+                    </article>
+                @endforeach
             </div>
-        </x-card>
+            <x-ui.pagination :paginator="$instructors" label="Pagination des moniteurs" />
+        @endif
     </div>
+
+    @can('create', \App\Domain\Instructors\Models\Instructor::class)
+        <x-ui.dialog name="new-instructor" title="Nouveau moniteur" description="Un compte lui sera créé et un lien de définition de mot de passe envoyé par e-mail.">
+            <x-form.errors />
+            <form method="POST" action="{{ route('instructors.store') }}" class="space-y-4">
+                @csrf
+                <div class="grid gap-4 sm:grid-cols-2">
+                    <x-form.field name="name" label="Nom complet" required>
+                        <x-form.input name="name" required autocomplete="name" />
+                    </x-form.field>
+                    <x-form.field name="email" label="Adresse e-mail" required>
+                        <x-form.input name="email" type="email" required autocomplete="email" />
+                    </x-form.field>
+                </div>
+                <div class="grid gap-4 sm:grid-cols-2">
+                    <x-form.field name="license_number" label="Numéro de permis" optional>
+                        <x-form.input name="license_number" />
+                    </x-form.field>
+                    <x-form.field name="hire_date" label="Date d’embauche" optional>
+                        <x-form.input name="hire_date" type="date" :value="now()->format('Y-m-d')" />
+                    </x-form.field>
+                </div>
+                <div class="flex justify-end gap-2">
+                    <x-ui.button variant="ghost" type="button" x-on:click="$dispatch('close-dialog', { name: 'new-instructor' })">Annuler</x-ui.button>
+                    <x-ui.button type="submit">Créer le moniteur</x-ui.button>
+                </div>
+            </form>
+        </x-ui.dialog>
+    @endcan
 </x-app-layout>

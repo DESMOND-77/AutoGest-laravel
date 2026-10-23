@@ -1,43 +1,38 @@
+@php
+    $htmlAttrs = collect($uiAttributes ?? [])
+        ->map(fn ($value, $key) => $key.'="'.e($value).'"')
+        ->implode(' ');
+@endphp
 <!DOCTYPE html>
-<html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
-    <head>
-        <meta charset="utf-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1">
-        <meta name="csrf-token" content="{{ csrf_token() }}">
+<html lang="{{ str_replace('_', '-', app()->getLocale()) }}" {!! $htmlAttrs !!}>
+<head>
+    @include('layouts.partials.head')
+</head>
+<body data-auth="1" class="app-canvas text-[15px] text-ink antialiased">
+    <a href="#main" class="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[100] focus:rounded-md focus:bg-solid focus:px-4 focus:py-2 focus:text-sm focus:font-medium focus:text-ink focus:shadow-[var(--focus-ring)]">
+        Aller au contenu principal
+    </a>
 
-        <title>{{ config('app.name', 'Laravel') }}</title>
-        <link rel="icon" type="image/jpeg" href="{{ asset('images/brand/icon.jpg') }}">
+    <div x-data x-init="$store.shell.init()" class="min-h-dvh">
+        <x-layout.sidebar />
 
-        <x-theme-init-script />
+        <div class="transition-[padding] duration-[var(--dur-2)] lg:pl-[var(--sidebar-w)]"
+             :class="$store.shell.collapsed ? 'lg:pl-[var(--sidebar-w-collapsed)]' : 'lg:pl-[var(--sidebar-w)]'">
+            <x-layout.topbar />
 
-        <!-- Fonts -->
-        <link rel="preconnect" href="https://fonts.bunny.net">
-        <link href="https://fonts.bunny.net/css?family=inter:400,500,600,700&display=swap" rel="stylesheet" />
-
-        <!-- Scripts -->
-        @vite(['resources/css/app.css', 'resources/js/app.js'])
-    </head>
-    <body class="font-sans antialiased text-content">
-        <div
-            x-data="{
-                mobileMenuOpen: false,
-                collapsed: localStorage.getItem('sidebarCollapsed') === 'true',
-            }"
-            x-init="$watch('collapsed', value => localStorage.setItem('sidebarCollapsed', value))"
-            class="min-h-screen bg-background"
-        >
-            @include('layouts.partials.sidebar')
-            @include('layouts.partials.mobile-drawer')
-
-            <div class="flex flex-col min-h-screen transition-[padding] duration-200" :class="collapsed ? 'lg:pl-28' : 'lg:pl-72'">
-                @include('layouts.partials.topbar')
-
-                <main class="flex-1 px-4 sm:px-6 pb-10">
-                    {{ $slot }}
-                </main>
-            </div>
+            <main id="main" tabindex="-1" class="mx-auto w-full max-w-[1480px] px-4 pb-28 pt-4 sm:px-6 lg:px-8 lg:pb-10">
+                @if (session('status'))
+                    <x-ui.alert tone="success" class="mb-4" dismissible>{{ session('status') }}</x-ui.alert>
+                @endif
+                {{ $slot }}
+            </main>
         </div>
 
-        @stack('scripts')
-    </body>
+        <x-layout.dock />
+    </div>
+
+    <div id="overlays"></div>
+    <x-layout.toasts />
+    <x-layout.command-palette />
+</body>
 </html>

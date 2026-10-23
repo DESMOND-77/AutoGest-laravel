@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\ProfileUpdateRequest;
+use App\Support\Ui\Preferences;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -35,6 +37,24 @@ class ProfileController extends Controller
         $request->user()->save();
 
         return Redirect::route('profile.edit')->with('status', 'profile-updated');
+    }
+
+    /**
+     * Synchronise les préférences d'apparence entre appareils (additif, §1.3).
+     * Aucune valeur n'est stockée sans passer par la liste blanche Preferences.
+     */
+    public function updateAppearance(Request $request): JsonResponse
+    {
+        $preferences = Preferences::fromArray([
+            'theme' => $request->input('theme'),
+            'accent' => $request->input('accent'),
+            'density' => $request->input('density'),
+            'perf' => $request->input('perf'),
+        ]);
+
+        $request->user()->forceFill(['ui_preferences' => $preferences->toDatabase()])->save();
+
+        return response()->json(['saved' => true, 'preferences' => $preferences->toArray()]);
     }
 
     /**

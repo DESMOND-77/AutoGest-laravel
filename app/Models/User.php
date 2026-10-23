@@ -29,6 +29,7 @@ class User extends Authenticatable
         'email',
         'password',
         'is_active',
+        'ui_preferences',
     ];
 
     public function structure(): BelongsTo
@@ -57,6 +58,7 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
             'is_active' => 'boolean',
+            'ui_preferences' => 'array',
         ];
     }
 

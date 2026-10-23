@@ -1,33 +1,27 @@
-<x-guest-layout>
-    <h1 class="text-lg font-semibold text-content mb-3">Vérifiez votre e-mail</h1>
-
-    <div class="mb-4 text-sm text-content-secondary">
-        {{ __('Thanks for signing up! Before getting started, could you verify your email address by clicking on the link we just emailed to you? If you didn\'t receive the email, we will gladly send you another.') }}
+<x-guest-layout :title="'Vérifier l’adresse e-mail'">
+    <div>
+        <p class="text-eyebrow">Vérification</p>
+        <h1 class="mt-1 text-2xl font-bold tracking-tight text-ink">Vérifiez votre adresse e-mail</h1>
+        <p class="mt-1.5 text-[13.5px] text-ink-2">
+            Un lien de confirmation a été envoyé à <strong class="font-semibold text-ink">{{ auth()->user()?->email }}</strong>.
+            Ouvrez-le pour activer toutes les fonctionnalités de votre espace.
+        </p>
     </div>
 
-    @if (session('status') == 'verification-link-sent')
-        <div class="mb-4 font-medium text-sm text-success">
-            {{ __('A new verification link has been sent to the email address you provided during registration.') }}
-        </div>
+    @if (session('status'))
+        <x-ui.alert tone="success" class="mt-4">{{ session('status') }}</x-ui.alert>
     @endif
 
-    <div class="mt-4 flex items-center justify-between">
+    <div class="mt-6 space-y-3">
         <form method="POST" action="{{ route('verification.send') }}">
             @csrf
-
-            <div>
-                <x-primary-button>
-                    {{ __('Resend Verification Email') }}
-                </x-primary-button>
-            </div>
+            <x-ui.button type="submit" class="w-full" icon="mail">Renvoyer le lien de vérification</x-ui.button>
         </form>
+        <p class="text-center text-[12.5px] text-ink-3">L’envoi est limité à quelques demandes par minute.</p>
 
         <form method="POST" action="{{ route('logout') }}">
             @csrf
-
-            <button type="submit" class="text-sm text-content-secondary hover:text-content rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary">
-                {{ __('Log Out') }}
-            </button>
+            <x-ui.button type="submit" variant="ghost" class="w-full">Se déconnecter</x-ui.button>
         </form>
     </div>
 </x-guest-layout>
