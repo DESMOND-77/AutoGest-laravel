@@ -8,7 +8,8 @@
 <head>
     @include('layouts.partials.head')
 </head>
-<body class="app-canvas min-h-dvh text-[15px] text-ink antialiased">
+<body class="min-h-dvh text-[15px] text-ink antialiased">
+    <div class="app-canvas" aria-hidden="true"></div>
     @php $user = auth()->user(); @endphp
     <header class="sticky top-0 z-40 border-b border-line/70 bg-[var(--surface-panel)]/85 backdrop-blur-sm">
         <div class="mx-auto flex h-16 w-full max-w-6xl items-center justify-between gap-4 px-4 sm:px-6">

@@ -8,7 +8,8 @@
 <head>
     @include('layouts.partials.head')
 </head>
-<body class="app-canvas min-h-dvh text-[15px] text-ink antialiased">
+<body class="min-h-dvh text-[15px] text-ink antialiased">
+    <div class="app-canvas" aria-hidden="true"></div>
     <div class="grid min-h-dvh lg:grid-cols-[1fr_minmax(420px,520px)]">
         {{-- Volet de gauche : promesse produit, masqué sur mobile --}}
         <aside class="relative hidden overflow-hidden border-r border-line/60 p-10 lg:flex lg:flex-col lg:justify-between">

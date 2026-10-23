@@ -8,7 +8,8 @@
 <head>
     @include('layouts.partials.head')
 </head>
-<body data-auth="1" class="app-canvas text-[15px] text-ink antialiased">
+<body data-auth="1" class="text-[15px] text-ink antialiased">
+    <div class="app-canvas" aria-hidden="true"></div>
     <a href="#main" class="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[100] focus:rounded-md focus:bg-solid focus:px-4 focus:py-2 focus:text-sm focus:font-medium focus:text-ink focus:shadow-[var(--focus-ring)]">
         Aller au contenu principal
     </a>
